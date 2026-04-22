@@ -33,6 +33,16 @@ Build a production-shaped role-based operations dashboard for a fitness studio.
 - Preserve typed contracts across entity -> form -> payload -> result.
 - Keep changes small and reviewable.
 
+## Styling rules
+
+- Use Tailwind CSS with semantic design tokens.
+- Prefer reusable variants for shared UI primitives.
+- Use cva for Button, Input, Card, and similar shared components.
+- Do not hardcode repeated class sets across many files.
+- Avoid arbitrary values unless there is a real UI reason.
+- Keep styling restrained, readable, and dashboard-oriented.
+- Favor consistency over visual novelty.
+
 ## Review checklist
 
 - No auth checks only in UI.
