@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { signInSchema } from '../model/signInSchema'
+import { getRoleHomePath } from '../../model/auth-role'
 
 type SignInFormState = {
   message?: string
@@ -33,12 +34,23 @@ export async function signIn(
   const { email, password } = validated.data
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
 
   if (error) return { message: error.message }
 
-  redirect('/cabinet')
+  const { data: profile } = await supabase
+    .schema('public')
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .maybeSingle()
+
+  const roleHomePath = getRoleHomePath(profile?.role)
+
+  if (roleHomePath) redirect(roleHomePath)
+
+  redirect('/forbidden')
 }
