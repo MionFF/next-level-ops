@@ -1,3 +1,4 @@
+import SignOutButton from '@/features/auth/sign-out/ui/sign-out-button'
 import { clientNavigationItems } from '@/shared/config/clientNavigation'
 import Link from 'next/link'
 
@@ -45,12 +46,7 @@ export function ClientCabinetShell({ children, pageTitle, userLabel }: ClientCab
                 <span className='rounded-full bg-[var(--surface-2)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
                   {userLabel}
                 </span>
-                <button
-                  type='button'
-                  className='rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--foreground)]'
-                >
-                  Sign out
-                </button>
+                <SignOutButton />
               </div>
             </div>
           </header>
