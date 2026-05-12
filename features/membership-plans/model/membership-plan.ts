@@ -12,6 +12,11 @@ export type MembershipPlan = {
   created_at: string
 }
 
+export type EditableMembershipPlan = Pick<
+  MembershipPlan,
+  'id' | 'name' | 'description' | 'duration_days' | 'price_cents' | 'status'
+>
+
 export function isMembershipPlanStatus(value: string | undefined): value is MembershipPlanStatus {
   return value === 'active' || value === 'inactive'
 }

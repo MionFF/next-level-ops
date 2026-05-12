@@ -55,6 +55,7 @@ export default function MembershipPlansList({ plans, errorMessage }: MembershipP
                 <th className='px-4 py-3'>Price</th>
                 <th className='px-4 py-3'>Status</th>
                 <th className='px-4 py-3'>Created</th>
+                <th className='px-4 py-3 text-right'>Actions</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
@@ -75,6 +76,14 @@ export default function MembershipPlansList({ plans, errorMessage }: MembershipP
                     </span>
                   </td>
                   <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(plan.created_at)}</td>
+                  <td className='px-4 py-3 text-right'>
+                    <Link
+                      href={`/dashboard/plans/${plan.id}/edit`}
+                      className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
+                    >
+                      Edit
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
