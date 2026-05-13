@@ -83,6 +83,5 @@ export async function updateMembershipPlan(
   }
 
   revalidatePath('/dashboard/plans')
-  revalidatePath(`/dashboard/plans/${planId}/edit`)
   redirect('/dashboard/plans')
 }
