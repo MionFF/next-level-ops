@@ -83,6 +83,5 @@ export async function updateTrainer(
   }
 
   revalidatePath('/dashboard/trainers')
-  revalidatePath(`/dashboard/trainers/${trainerId}/edit`)
   redirect('/dashboard/trainers')
 }
