@@ -77,3 +77,50 @@ Follow-up needed:
 
 - revisit member lifecycle automation when payments, membership plans, or product purchase flows are added
 - define how client profiles connect to member records before implementing deeper client cabinet features
+
+## 2026-05-09
+
+### Trainers and membership plans scope
+
+- trainers are stored as admin-managed business records in the `trainers` table
+- trainer is not the same concept as authenticated user
+- trainers do not have auth accounts, roles, or a trainer portal in the MVP
+- membership plans are stored as reusable catalog records in the `membership_plans` table
+- membership plan is not the same concept as a purchased member membership
+- actual member memberships are intentionally not modeled in Milestone 4
+- plan prices are stored as `price_cents` integer values
+- trainer and plan detail pages are intentionally skipped
+- trainer and plan delete/archive flows are intentionally skipped
+- admin form logic stays feature-local for now instead of extracting reusable form abstractions
+
+Reason:
+
+- keeps Milestone 4 focused on admin CRUD for operational reference data
+- avoids adding trainer portal, payments, purchase lifecycle, or member-plan assignment too early
+- keeps auth users, trainers, members, membership plans, and future memberships as separate domain concepts
+- `price_cents` avoids floating-point money issues and keeps the model compatible with payment-provider minor-unit conventions
+- list/create/edit flows are enough for trainers and plans because they are supporting catalog/reference entities, not core detail-heavy records
+- feature-local forms remain easier to read while fields and validation rules are still domain-specific
+
+Alternatives considered:
+
+- creating trainer auth accounts or a trainer role
+- adding trainer and plan detail pages
+- creating a `memberships` table during Milestone 4
+- assigning plans to members from the member detail page
+- storing plan prices as floating-point dollar values
+- extracting shared admin form components immediately
+
+Trade-offs:
+
+- trainers cannot sign in or manage their own schedule
+- plans cannot be assigned to members yet
+- member detail pages cannot show active memberships yet
+- some form UI and action logic is duplicated across members, trainers, and plans
+- future membership lifecycle work will require a separate `memberships` model and member-plan relationship
+
+Follow-up needed:
+
+- revisit trainer assignment when implementing sessions
+- define the `memberships` model when implementing active member subscriptions/client cabinet
+- consider small shared admin form primitives only if duplication becomes painful after more flows are implemented
