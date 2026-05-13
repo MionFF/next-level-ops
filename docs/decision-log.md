@@ -124,3 +124,34 @@ Follow-up needed:
 - revisit trainer assignment when implementing sessions
 - define the `memberships` model when implementing active member subscriptions/client cabinet
 - consider small shared admin form primitives only if duplication becomes painful after more flows are implemented
+
+## 2026-05-13
+
+### Database schema versioning
+
+- Supabase schema is now versioned in the repository under `supabase/migrations`
+- remote schema was pulled from the existing Supabase project using Supabase CLI
+- future database schema changes should be tracked through migrations instead of only being applied manually in SQL Editor
+
+Reason:
+
+- keeps application code and required database schema in the same repository
+- makes the project easier to review, reproduce, and maintain
+- prepares the codebase for Milestone 5, where sessions and bookings will depend on existing tables and relationships
+- improves repo hygiene and production-readiness signal
+
+Alternatives considered:
+
+- keeping schema only in Supabase SQL Editor
+- documenting schema manually in Markdown
+- postponing database versioning until packaging
+
+Trade-offs:
+
+- migrations require more discipline before merging DB changes
+- Supabase CLI/Docker setup adds some local tooling overhead
+
+Follow-up needed:
+
+- use migrations for future schema changes
+- avoid applying structural DB changes only through the Supabase UI unless they are later captured in migrations
