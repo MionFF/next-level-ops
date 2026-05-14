@@ -14,6 +14,11 @@ export type Session = {
   created_at: string
 }
 
+export type EditableSession = Pick<
+  Session,
+  'id' | 'title' | 'trainer_id' | 'starts_at' | 'ends_at' | 'capacity' | 'status'
+>
+
 export function isSessionStatus(value: string | undefined): value is SessionStatus {
   return value === 'scheduled' || value === 'cancelled'
 }

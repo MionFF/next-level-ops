@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sessionFormSchema } from '../model/session-form-schema'
 
-type CreateSessionFormState = {
+type UpdateSessionFormState = {
   message?: string
   errors?: {
     title?: string[]
@@ -18,10 +18,15 @@ type CreateSessionFormState = {
   }
 }
 
-export async function createSession(
-  _prevValue: CreateSessionFormState,
+export async function updateSession(
+  sessionId: string,
+  _prevValue: UpdateSessionFormState,
   formData: FormData,
-): Promise<CreateSessionFormState> {
+): Promise<UpdateSessionFormState> {
+  if (!sessionId) {
+    return { message: 'Missing session id' }
+  }
+
   const { user, profile } = await getAuthProfile()
 
   if (!user) {
@@ -51,19 +56,29 @@ export async function createSession(
   }
 
   const { title, trainerId, startsAt, endsAt, capacity, status } = validated.data
-  const supabase = await createClient()
-
-  const { error } = await supabase.from('sessions').insert({
+  const payload = {
     title,
     trainer_id: trainerId,
     starts_at: new Date(startsAt).toISOString(),
     ends_at: new Date(endsAt).toISOString(),
     capacity,
     status,
-  })
+  }
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .update(payload)
+    .eq('id', sessionId)
+    .select('id')
+    .maybeSingle()
 
   if (error) {
-    return { message: 'Could not create session. Please try again' }
+    return { message: 'Could not update session. Please try again' }
+  }
+
+  if (!data) {
+    return { message: 'Session was not found or could not be updated' }
   }
 
   revalidatePath('/dashboard/sessions')

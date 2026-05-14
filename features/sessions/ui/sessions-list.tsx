@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Session } from '../model/session'
 import { formatDate } from '@/shared/lib/format-date'
+import { formatDateTime } from '@/shared/lib/format-date'
 
 type SessionsListProps = {
   sessions: Session[]
@@ -44,11 +45,12 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
               <tr>
                 <th className='px-4 py-3'>Title</th>
                 <th className='px-4 py-3'>Trainer</th>
-                <th className='px-4 py-3'>Starts</th>
-                <th className='px-4 py-3'>Ends</th>
+                <th className='px-4 py-3'>Start time</th>
+                <th className='px-4 py-3'>End time</th>
                 <th className='px-4 py-3'>Capacity</th>
                 <th className='px-4 py-3'>Status</th>
                 <th className='px-4 py-3'>Created</th>
+                <th className='px-4 py-3 text-right'>Actions</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
@@ -61,9 +63,13 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
                   <td className='px-4 py-3 text-[var(--muted)]'>
                     {session.trainer?.full_name ?? 'Unknown'}
                   </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(session.starts_at)}</td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(session.ends_at)}</td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>{session.capacity}</td>
+                  <td className='px-4 py-3 text-[var(--muted)]'>
+                    {formatDateTime(session.starts_at)}
+                  </td>
+                  <td className='px-4 py-3 text-[var(--muted)]'>
+                    {formatDateTime(session.ends_at)}
+                  </td>
+                  <td className='px-4 py-3 text-[var(--muted)]'>{session.capacity} spots</td>
                   <td className='px-4 py-3'>
                     <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
                       {session.status}
@@ -71,6 +77,14 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
                   </td>
                   <td className='px-4 py-3 text-[var(--muted)]'>
                     {formatDate(session.created_at)}
+                  </td>
+                  <td className='px-4 py-3 text-right'>
+                    <Link
+                      href={`/dashboard/sessions/${session.id}/edit`}
+                      className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
+                    >
+                      Edit
+                    </Link>
                   </td>
                 </tr>
               ))}
