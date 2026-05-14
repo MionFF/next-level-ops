@@ -56,7 +56,7 @@ export default function EditSessionForm({ session, trainers }: EditSessionFormPr
         </p>
         <h1 className='mt-2 text-2xl font-semibold text-[var(--foreground)]'>Edit session</h1>
         <p className='mt-2 text-sm text-[var(--muted)]'>
-          Update the session details, trainer assignment, and schedule
+          Update the session details, trainer assignment, and schedule.
         </p>
       </div>
 

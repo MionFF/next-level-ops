@@ -2,7 +2,7 @@ import { Session } from '@/features/sessions/model/session'
 import SessionsList from '@/features/sessions/ui/sessions-list'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function sessionsPage() {
+export default async function SessionsPage() {
   const supabase = await createClient()
 
   const { data: sessions, error } = await supabase

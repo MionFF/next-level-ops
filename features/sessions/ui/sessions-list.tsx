@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Session } from '../model/session'
-import { formatDate } from '@/shared/lib/format-date'
-import { formatDateTime } from '@/shared/lib/format-date'
+import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 
 type SessionsListProps = {
   sessions: Session[]
