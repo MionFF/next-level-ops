@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Session } from '../model/session'
 import { formatDate } from '@/shared/lib/format-date'
 
@@ -16,6 +17,12 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
             Manage scheduled studio sessions and capacity.
           </p>
         </div>
+        <Link
+          href='/dashboard/sessions/new'
+          className='rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-center text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary)]/90'
+        >
+          Add session
+        </Link>
       </div>
 
       {errorMessage && (

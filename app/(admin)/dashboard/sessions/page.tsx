@@ -18,5 +18,5 @@ export default async function sessionsPage() {
       trainer: Array.isArray(session.trainer) ? (session.trainer[0] ?? null) : session.trainer,
     })) ?? []
 
-  return <SessionsList sessions={normalizedSessions ?? []} errorMessage={error?.message} />
+  return <SessionsList sessions={normalizedSessions} errorMessage={error?.message} />
 }
