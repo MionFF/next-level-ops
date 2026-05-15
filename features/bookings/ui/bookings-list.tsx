@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Booking } from '../model/booking'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 
@@ -9,11 +10,19 @@ type BookingsListProps = {
 export default function BookingsList({ bookings, errorMessage }: BookingsListProps) {
   return (
     <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
-      <div className='mb-6'>
-        <h1 className='text-2xl font-semibold text-[var(--foreground)]'>Bookings</h1>
-        <p className='mt-2 text-sm text-[var(--muted)]'>
-          Manage member bookings for scheduled sessions.
-        </p>
+      <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+        <div>
+          <h1 className='text-2xl font-semibold text-[var(--foreground)]'>Bookings</h1>
+          <p className='mt-2 text-sm text-[var(--muted)]'>
+            Manage member bookings for scheduled sessions.
+          </p>
+        </div>
+        <Link
+          href='/dashboard/bookings/new'
+          className='rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 text-center text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary)]/90'
+        >
+          Add booking
+        </Link>
       </div>
 
       {errorMessage && (
