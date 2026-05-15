@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Booking } from '../model/booking'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
+import CancelBookingButton from './cancel-booking-button'
 
 type BookingsListProps = {
   bookings: Booking[]
@@ -49,6 +50,7 @@ export default function BookingsList({ bookings, errorMessage }: BookingsListPro
                 <th className='px-4 py-3'>Start time</th>
                 <th className='px-4 py-3'>Status</th>
                 <th className='px-4 py-3'>Created</th>
+                <th className='px-4 py-3 text-right'>Actions</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
@@ -75,6 +77,13 @@ export default function BookingsList({ bookings, errorMessage }: BookingsListPro
                   </td>
                   <td className='px-4 py-3 text-[var(--muted)]'>
                     {formatDate(booking.created_at)}
+                  </td>
+                  <td className='px-4 py-3 text-center'>
+                    {booking.status === 'confirmed' ? (
+                      <CancelBookingButton bookingId={booking.id} />
+                    ) : (
+                      <span className='text-xs text-[var(--muted)]'>—</span>
+                    )}
                   </td>
                 </tr>
               ))}
