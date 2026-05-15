@@ -12,6 +12,7 @@ export type Session = {
   capacity: number
   status: SessionStatus
   created_at: string
+  confirmed_bookings_count: number
 }
 
 export type EditableSession = Pick<

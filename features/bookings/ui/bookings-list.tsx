@@ -8,6 +8,29 @@ type BookingsListProps = {
   errorMessage?: string
 }
 
+function getBookingDisplayStatus(booking: Booking): { text: string; className: string } {
+  const now = new Date()
+
+  if (booking.status === 'cancelled') {
+    return { text: 'Cancelled', className: 'border-[var(--border)] text-[var(--muted)]' }
+  }
+
+  if (booking.session?.ends_at && new Date(booking.session.ends_at) <= now) {
+    return { text: 'Completed', className: 'border-[var(--border)] text-[var(--muted)]' }
+  }
+
+  if (
+    booking.session?.starts_at &&
+    booking.session?.ends_at &&
+    new Date(booking.session.starts_at) <= now &&
+    new Date(booking.session.ends_at) > now
+  ) {
+    return { text: 'In progress', className: 'border-[var(--primary)]/30 text-[var(--primary)]' }
+  }
+
+  return { text: 'Confirmed', className: 'border-[var(--border)] text-[var(--foreground)]' }
+}
+
 export default function BookingsList({ bookings, errorMessage }: BookingsListProps) {
   return (
     <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
@@ -71,8 +94,10 @@ export default function BookingsList({ bookings, errorMessage }: BookingsListPro
                     {booking.session?.starts_at ? formatDateTime(booking.session.starts_at) : '—'}
                   </td>
                   <td className='px-4 py-3'>
-                    <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
-                      {booking.status}
+                    <span
+                      className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${getBookingDisplayStatus(booking).className}`}
+                    >
+                      {getBookingDisplayStatus(booking).text}
                     </span>
                   </td>
                   <td className='px-4 py-3 text-[var(--muted)]'>

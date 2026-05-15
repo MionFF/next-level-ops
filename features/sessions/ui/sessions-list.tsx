@@ -7,6 +7,54 @@ type SessionsListProps = {
   errorMessage?: string
 }
 
+function getSessionDisplayStatus(session: Session): { text: string; className: string } {
+  const now = new Date()
+
+  if (session.status === 'cancelled') {
+    return {
+      text: 'Cancelled',
+      className: 'border-[var(--border)] text-[var(--muted)]',
+    }
+  }
+
+  if (new Date(session.ends_at) <= now) {
+    return {
+      text: 'Completed',
+      className: 'border-[var(--border)] text-[var(--muted)]',
+    }
+  }
+
+  if (new Date(session.starts_at) <= now && new Date(session.ends_at) > now) {
+    return {
+      text: 'In progress',
+      className: 'border-[var(--primary)]/30 text-[var(--primary)]',
+    }
+  }
+
+  if (session.confirmed_bookings_count >= session.capacity) {
+    return {
+      text: 'Full',
+      className: 'border-[var(--danger)]/30 text-[var(--danger)]',
+    }
+  }
+
+  return {
+    text: 'Scheduled',
+    className: 'border-[var(--border)] text-[var(--foreground)]',
+  }
+}
+
+function DisplayBadge({ session }: { session: Session }) {
+  const { text, className } = getSessionDisplayStatus(session)
+  return (
+    <span
+      className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${className}`}
+    >
+      {text}
+    </span>
+  )
+}
+
 export default function SessionsList({ sessions, errorMessage }: SessionsListProps) {
   return (
     <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
@@ -68,11 +116,11 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
                   <td className='px-4 py-3 text-[var(--muted)]'>
                     {formatDateTime(session.ends_at)}
                   </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>{session.capacity} spots</td>
+                  <td className='px-4 py-3 text-[var(--muted)]'>
+                    {session.confirmed_bookings_count} / {session.capacity} booked
+                  </td>
                   <td className='px-4 py-3'>
-                    <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
-                      {session.status}
-                    </span>
+                    <DisplayBadge session={session} />
                   </td>
                   <td className='px-4 py-3 text-[var(--muted)]'>
                     {formatDate(session.created_at)}
