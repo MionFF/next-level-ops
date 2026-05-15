@@ -155,3 +155,53 @@ Follow-up needed:
 
 - use migrations for future schema changes
 - avoid applying structural DB changes only through the Supabase UI unless they are later captured in migrations
+
+## 2026-05-14
+
+### Sessions and bookings scope
+
+- sessions are admin-managed scheduled studio events
+- each session belongs to one trainer through `sessions.trainer_id`
+- bookings connect members to sessions through `bookings.member_id` and `bookings.session_id`
+- bookings are admin-managed in Milestone 5
+- client self-booking and client cancellation are deferred until client cabinet/member-profile linking is defined
+- cancelling a booking updates `bookings.status` to `cancelled` instead of deleting the row
+- cancelled bookings are kept as booking history
+- session capacity stays static; occupied spots are derived from confirmed bookings count
+- overbooking is prevented in server actions by checking confirmed bookings against session capacity
+- duplicate active bookings are prevented with confirmed-booking checks and DB uniqueness
+- past, cancelled, and unavailable sessions cannot receive new bookings
+- `Completed`, `In progress`, and `Full` are UI-derived statuses, not database statuses
+
+Reason:
+
+- keeps Milestone 5 focused on admin operations instead of client self-service complexity
+- preserves booking history instead of losing operational data through deletion
+- keeps database statuses minimal and avoids storing states that can be derived from time or capacity
+- keeps capacity as a business limit while deriving availability from confirmed bookings
+- avoids implementing profile-to-member linking before Milestone 6
+- provides realistic scheduling and booking constraints without adding unnecessary automation or background jobs
+
+Alternatives considered:
+
+- allowing clients to create and cancel bookings immediately
+- deleting bookings when cancelled
+- mutating session capacity when bookings are created or cancelled
+- adding extra database statuses such as `completed`, `in_progress`, or `full`
+- creating a session details page for booking management
+- adding searchable comboboxes for large member/session lists during Milestone 5
+
+Trade-offs:
+
+- admin manages bookings manually for now
+- client booking/cancellation requires a later profile-member relationship decision
+- cancelled bookings remain visible and require UI distinction
+- availability checks live partly in server actions instead of being fully enforced by database functions
+- native select inputs are acceptable for MVP but may become inefficient with larger datasets
+
+Follow-up needed:
+
+- define profile-to-member linking before implementing client cabinet booking actions
+- revisit searchable member/session selectors when data volume grows
+- consider stronger database-level capacity enforcement if concurrent booking becomes a real risk
+- improve booking/session filtering and grouping during testing and polish
