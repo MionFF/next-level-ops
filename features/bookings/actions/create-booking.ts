@@ -47,7 +47,7 @@ export async function createBooking(
 
   const { data: session, error: sessionError } = await supabase
     .from('sessions')
-    .select('id, status, capacity')
+    .select('id, status, capacity, starts_at, ends_at')
     .eq('id', sessionId)
     .single()
 
@@ -57,6 +57,12 @@ export async function createBooking(
 
   if (session.status === 'cancelled') {
     return { message: 'This session is cancelled.' }
+  }
+
+  const now = new Date()
+
+  if (new Date(session.starts_at) <= now || new Date(session.ends_at) <= now) {
+    return { message: 'This session is no longer available for booking.' }
   }
 
   const { count: confirmedCount, error: countError } = await supabase
