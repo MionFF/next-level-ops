@@ -31,13 +31,17 @@ export async function cancelBooking(
 
   const supabase = await createClient()
 
-  const { data: updatedBooking } = await supabase
+  const { data: updatedBooking, error } = await supabase
     .from('bookings')
     .update({ status: 'cancelled' })
     .eq('id', bookingId)
     .eq('status', 'confirmed')
     .select('id')
     .maybeSingle()
+
+  if (error) {
+    return { message: 'Could not cancel booking. Please try again.' }
+  }
 
   if (!updatedBooking) {
     return { message: 'Booking was not found or already cancelled.' }

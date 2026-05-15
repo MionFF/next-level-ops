@@ -14,7 +14,7 @@ export default async function SessionsPage() {
 
   const { data: confirmedBookings } = await supabase
     .from('bookings')
-    .select('session_id, id')
+    .select('session_id')
     .eq('status', 'confirmed')
 
   const confirmedCounts = new Map<string, number>()

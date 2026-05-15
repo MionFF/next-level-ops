@@ -77,41 +77,47 @@ export default function BookingsList({ bookings, errorMessage }: BookingsListPro
               </tr>
             </thead>
             <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
-              {bookings.map(booking => (
-                <tr
-                  key={booking.id}
-                  className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
-                >
-                  <td className='px-4 py-3 font-medium'>
-                    {booking.member?.full_name ?? 'Unknown'}
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>{booking.member?.email ?? '—'}</td>
-                  <td className='px-4 py-3 font-medium'>{booking.session?.title ?? 'Unknown'}</td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {booking.session?.trainer?.full_name ?? 'Unknown'}
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {booking.session?.starts_at ? formatDateTime(booking.session.starts_at) : '—'}
-                  </td>
-                  <td className='px-4 py-3'>
-                    <span
-                      className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${getBookingDisplayStatus(booking).className}`}
-                    >
-                      {getBookingDisplayStatus(booking).text}
-                    </span>
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {formatDate(booking.created_at)}
-                  </td>
-                  <td className='px-4 py-3 text-center'>
-                    {booking.status === 'confirmed' ? (
-                      <CancelBookingButton bookingId={booking.id} />
-                    ) : (
-                      <span className='text-xs text-[var(--muted)]'>—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {bookings.map(booking => {
+                const bookingDisplayStatus = getBookingDisplayStatus(booking)
+
+                return (
+                  <tr
+                    key={booking.id}
+                    className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
+                  >
+                    <td className='px-4 py-3 font-medium'>
+                      {booking.member?.full_name ?? 'Unknown'}
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {booking.member?.email ?? '—'}
+                    </td>
+                    <td className='px-4 py-3 font-medium'>{booking.session?.title ?? 'Unknown'}</td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {booking.session?.trainer?.full_name ?? 'Unknown'}
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {booking.session?.starts_at ? formatDateTime(booking.session.starts_at) : '—'}
+                    </td>
+                    <td className='px-4 py-3'>
+                      <span
+                        className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${bookingDisplayStatus.className}`}
+                      >
+                        {bookingDisplayStatus.text}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {formatDate(booking.created_at)}
+                    </td>
+                    <td className='px-4 py-3 text-center'>
+                      {booking.status === 'confirmed' ? (
+                        <CancelBookingButton bookingId={booking.id} />
+                      ) : (
+                        <span className='text-xs text-[var(--muted)]'>—</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
