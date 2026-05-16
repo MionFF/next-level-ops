@@ -1,6 +1,7 @@
 import * as z from 'zod'
 import { sessionStatuses } from './session'
 
+const MAX_SESSION_CAPACITY = 100
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
 
@@ -23,7 +24,8 @@ export const sessionFormSchema = z
       z.coerce
         .number({ error: 'Capacity is required' })
         .int('Capacity must be a whole number')
-        .positive('Capacity must be at least 1'),
+        .positive('Capacity must be at least 1')
+        .max(MAX_SESSION_CAPACITY, `Capacity cannot exceed ${MAX_SESSION_CAPACITY}`),
     ),
     status: z.enum(sessionStatuses).default('scheduled'),
   })

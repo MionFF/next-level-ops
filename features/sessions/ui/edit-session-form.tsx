@@ -3,9 +3,12 @@
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { updateSession } from '../actions/update-session'
-import type { EditableSession } from '../model/session'
-import type { SessionStatus } from '../model/session'
-import { isSessionStatus, sessionStatuses } from '../model/session'
+import {
+  type EditableSession,
+  type SessionStatus,
+  isSessionStatus,
+  sessionStatuses,
+} from '../model/session'
 
 type TrainerOption = {
   id: string
