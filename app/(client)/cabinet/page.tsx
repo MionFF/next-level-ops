@@ -2,8 +2,11 @@ import { getAuthProfile } from '@/features/auth/model/get-auth-profile'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { CabinetProfile, LinkedMember } from '@/features/cabinet/model/cabinet-profile'
+import type { CabinetMembership } from '@/features/cabinet/model/cabinet-membership'
 import { UnlinkedMemberState } from '@/features/cabinet/ui/unlinked-member-state'
 import { LinkedMemberOverview } from '@/features/cabinet/ui/linked-member-overview'
+import { ActiveMembershipCard } from '@/features/cabinet/ui/active-membership-card'
+import { NoActiveMembershipCard } from '@/features/cabinet/ui/no-active-membership-card'
 import { isMemberStatus } from '@/features/members/model/member'
 
 export default async function CabinetPage() {
@@ -46,7 +49,7 @@ export default async function CabinetPage() {
   }
 
   if (!cabinetProfile.member_id) {
-    return <UnlinkedMemberState profile={cabinetProfile} />
+    return <UnlinkedMemberState />
   }
 
   const { data: memberData } = await supabase
@@ -56,7 +59,7 @@ export default async function CabinetPage() {
     .maybeSingle()
 
   if (!memberData || !isMemberStatus(memberData.status)) {
-    return <UnlinkedMemberState profile={cabinetProfile} />
+    return <UnlinkedMemberState />
   }
 
   const linkedMember: LinkedMember = {
@@ -67,5 +70,54 @@ export default async function CabinetPage() {
     status: memberData.status,
   }
 
-  return <LinkedMemberOverview member={linkedMember} />
+  const now = new Date().toISOString()
+
+  const { data: membershipData } = await supabase
+    .from('member_memberships')
+    .select(
+      `
+      id,
+      starts_at,
+      ends_at,
+      status,
+      plan:plan_id (
+        id,
+        name,
+        description,
+        duration_days,
+        price_cents
+      )
+    `,
+    )
+    .eq('member_id', linkedMember.id)
+    .eq('status', 'active')
+    .lte('starts_at', now)
+    .gte('ends_at', now)
+    .order('ends_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  const activeMembership: CabinetMembership | null = membershipData
+    ? {
+        ...membershipData,
+        plan: Array.isArray(membershipData.plan)
+          ? (membershipData.plan[0] ?? null)
+          : membershipData.plan,
+      }
+    : null
+
+  return (
+    <>
+      <LinkedMemberOverview member={linkedMember} />
+
+      <section className='mt-6 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
+        <h2 className='mb-3 text-lg font-semibold text-[var(--foreground)]'>Active membership</h2>
+        {activeMembership ? (
+          <ActiveMembershipCard membership={activeMembership} />
+        ) : (
+          <NoActiveMembershipCard />
+        )}
+      </section>
+    </>
+  )
 }

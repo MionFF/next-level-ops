@@ -35,7 +35,8 @@ export function LinkedMemberOverview({ member }: { member: LinkedMember }) {
               Account status
             </dt>
             <dd className='mt-1 text-sm capitalize text-[var(--foreground)]'>
-              <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs font-medium'>
+              <span className='inline-flex items-center gap-2 text-sm font-medium text-[var(--foreground)]'>
+                <span className='h-1.5 w-1.5 rounded-full bg-[var(--muted)]' />
                 {member.status}
               </span>
             </dd>

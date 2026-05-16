@@ -1,6 +1,4 @@
-import type { CabinetProfile } from '../model/cabinet-profile'
-
-export function UnlinkedMemberState({ profile }: { profile: CabinetProfile }) {
+export function UnlinkedMemberState() {
   return (
     <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
       <div className='mb-6'>
@@ -16,19 +14,6 @@ export function UnlinkedMemberState({ profile }: { profile: CabinetProfile }) {
           to finish setup.
         </p>
       </div>
-
-      {profile.full_name && (
-        <div className='mt-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'>
-          <dl>
-            <div className='py-4'>
-              <dt className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
-                Signed in as
-              </dt>
-              <dd className='mt-1 text-sm text-[var(--foreground)]'>{profile.full_name}</dd>
-            </div>
-          </dl>
-        </div>
-      )}
     </section>
   )
 }
