@@ -31,62 +31,16 @@ export async function cancelOwnBooking(
 
   const supabase = await createClient()
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('member_id')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (!profileData?.member_id) {
-    return { message: 'Could not cancel booking. Please try again.' }
-  }
-
-  const unavailableMessage = 'Booking was not found or is no longer available.'
-
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select(
-      `
-      id,
-      member_id,
-      status,
-      session:sessions(id, starts_at)
-    `,
-    )
-    .eq('id', bookingId)
-    .maybeSingle()
-
-  const session = Array.isArray(booking?.session) ? (booking.session[0] ?? null) : booking?.session
-
-  const now = Date.now()
-
-  if (
-    !booking ||
-    booking.member_id !== profileData.member_id ||
-    booking.status !== 'confirmed' ||
-    !session ||
-    new Date(session.starts_at).getTime() <= now
-  ) {
-    return { message: unavailableMessage }
-  }
-
-  const { data: updatedBooking, error } = await supabase
-    .from('bookings')
-    .update({ status: 'cancelled' })
-    .eq('id', bookingId)
-    .eq('member_id', profileData.member_id)
-    .eq('status', 'confirmed')
-    .select('id')
-    .maybeSingle()
+  const { data: cancelled, error } = await supabase.rpc('cancel_own_booking', {
+    p_booking_id: bookingId,
+  })
 
   if (error) {
-    console.error('cancelOwnBooking update error:', error)
-
     return { message: 'Could not cancel booking. Please try again.' }
   }
 
-  if (!updatedBooking) {
-    return { message: unavailableMessage }
+  if (!cancelled) {
+    return { message: 'Booking was not found or is no longer available.' }
   }
 
   revalidatePath('/cabinet/bookings')
