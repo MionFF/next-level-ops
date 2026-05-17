@@ -1,8 +1,12 @@
-export function UnlinkedMemberState() {
+type UnlinkedMemberStateProps = {
+  title?: string
+}
+
+export function UnlinkedMemberState({ title = 'My account' }: UnlinkedMemberStateProps) {
   return (
     <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
       <div className='mb-6'>
-        <h1 className='text-2xl font-semibold text-[var(--foreground)]'>My account</h1>
+        <h1 className='text-2xl font-semibold text-[var(--foreground)]'>{title}</h1>
       </div>
 
       <div className='rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-4 py-8 text-center'>
