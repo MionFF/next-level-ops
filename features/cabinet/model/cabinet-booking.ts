@@ -13,3 +13,10 @@ export type CabinetUpcomingBooking = {
     } | null
   } | null
 }
+
+export type BookingHistorySummary = {
+  total: number
+  upcoming: number
+  completed: number
+  cancelled: number
+}

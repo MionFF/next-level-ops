@@ -1,5 +1,9 @@
 import { getAuthProfile } from '@/features/auth/model/get-auth-profile'
-import type { CabinetUpcomingBooking } from '@/features/cabinet/model/cabinet-booking'
+import type {
+  BookingHistorySummary,
+  CabinetUpcomingBooking,
+} from '@/features/cabinet/model/cabinet-booking'
+import { BookingHistorySummaryCard } from '@/features/cabinet/ui/booking-history-summary'
 import { UnlinkedMemberState } from '@/features/cabinet/ui/unlinked-member-state'
 import { UpcomingBookingsList } from '@/features/cabinet/ui/upcoming-bookings-list'
 import { createClient } from '@/lib/supabase/server'
@@ -29,6 +33,7 @@ export default async function CabinetBookingsPage() {
   }
 
   const now = new Date()
+  const nowTime = now.getTime()
 
   const { data: bookings } = await supabase
     .from('bookings')
@@ -47,35 +52,55 @@ export default async function CabinetBookingsPage() {
     `,
     )
     .eq('member_id', profileData.member_id)
-    .eq('status', 'confirmed')
 
-  const upcomingBookings: CabinetUpcomingBooking[] =
-    bookings
-      ?.map(booking => {
-        const session = Array.isArray(booking.session)
-          ? (booking.session[0] ?? null)
-          : booking.session
+  const normalizedBookings: CabinetUpcomingBooking[] =
+    bookings?.map(booking => {
+      const session = Array.isArray(booking.session)
+        ? (booking.session[0] ?? null)
+        : booking.session
 
-        const trainer = session
-          ? Array.isArray(session.trainer)
-            ? (session.trainer[0] ?? null)
-            : session.trainer
-          : null
+      const trainer = session
+        ? Array.isArray(session.trainer)
+          ? (session.trainer[0] ?? null)
+          : session.trainer
+        : null
 
-        return {
-          ...booking,
-          session: session
-            ? {
-                ...session,
-                trainer,
-              }
-            : null,
-        }
-      })
-      .filter(
-        booking => booking.session && new Date(booking.session.starts_at).getTime() > now.getTime(),
-      )
-      .sort((a, b) => (a.session?.starts_at ?? '').localeCompare(b.session?.starts_at ?? '')) ?? []
+      return {
+        ...booking,
+        session: session
+          ? {
+              ...session,
+              trainer,
+            }
+          : null,
+      }
+    }) ?? []
 
-  return <UpcomingBookingsList bookings={upcomingBookings} />
+  const upcomingBookings = normalizedBookings
+    .filter(
+      booking =>
+        booking.status === 'confirmed' &&
+        booking.session &&
+        new Date(booking.session.starts_at).getTime() > nowTime,
+    )
+    .sort((a, b) => (a.session?.starts_at ?? '').localeCompare(b.session?.starts_at ?? ''))
+
+  const summary: BookingHistorySummary = {
+    total: normalizedBookings.length,
+    upcoming: upcomingBookings.length,
+    completed: normalizedBookings.filter(
+      booking =>
+        booking.status === 'confirmed' &&
+        booking.session &&
+        new Date(booking.session.ends_at).getTime() <= nowTime,
+    ).length,
+    cancelled: normalizedBookings.filter(booking => booking.status === 'cancelled').length,
+  }
+
+  return (
+    <>
+      <UpcomingBookingsList bookings={upcomingBookings} />
+      <BookingHistorySummaryCard summary={summary} />
+    </>
+  )
 }

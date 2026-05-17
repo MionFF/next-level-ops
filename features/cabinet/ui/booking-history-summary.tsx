@@ -1,0 +1,32 @@
+import type { BookingHistorySummary } from '../model/cabinet-booking'
+
+function StatBox({ label, value }: { label: string; value: number }) {
+  return (
+    <div className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-center'>
+      <p className='text-2xl font-bold text-[var(--foreground)]'>{value}</p>
+      <p className='mt-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]'>
+        {label}
+      </p>
+    </div>
+  )
+}
+
+export function BookingHistorySummaryCard({ summary }: { summary: BookingHistorySummary }) {
+  return (
+    <section className='mt-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
+      <div className='mb-6'>
+        <h2 className='text-2xl font-semibold text-[var(--foreground)]'>Booking summary</h2>
+        <p className='mt-2 text-sm text-[var(--muted)]'>
+          A quick overview of your studio bookings.
+        </p>
+      </div>
+
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        <StatBox label='Total' value={summary.total} />
+        <StatBox label='Upcoming' value={summary.upcoming} />
+        <StatBox label='Completed' value={summary.completed} />
+        <StatBox label='Cancelled' value={summary.cancelled} />
+      </div>
+    </section>
+  )
+}
