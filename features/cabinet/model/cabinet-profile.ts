@@ -1,7 +1,6 @@
 export type CabinetProfile = {
   id: string
   full_name: string | null
-  role: 'admin' | 'client'
   member_id: string | null
 }
 

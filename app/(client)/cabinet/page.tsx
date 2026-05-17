@@ -44,7 +44,6 @@ export default async function CabinetPage() {
   const cabinetProfile: CabinetProfile = {
     id: profileData.id,
     full_name: profileData.full_name,
-    role: profileData.role as 'admin' | 'client',
     member_id: profileData.member_id,
   }
 
