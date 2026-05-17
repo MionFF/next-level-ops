@@ -1,5 +1,6 @@
 import { formatDateTime } from '@/shared/lib/format-date'
 import type { CabinetUpcomingBooking } from '../model/cabinet-booking'
+import { CancelOwnBookingButton } from './cancel-own-booking-button'
 import { NoUpcomingBookingsCard } from './no-upcoming-bookings-card'
 
 export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBooking[] }) {
@@ -22,6 +23,7 @@ export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBo
                 <th className='px-4 py-3'>Start time</th>
                 <th className='px-4 py-3'>End time</th>
                 <th className='px-4 py-3'>Status</th>
+                <th className='px-4 py-3 text-right'>Actions</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
@@ -45,6 +47,9 @@ export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBo
                       <span className='inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]' />
                       Confirmed
                     </span>
+                  </td>
+                  <td className='px-4 py-3 text-right'>
+                    <CancelOwnBookingButton bookingId={booking.id} />
                   </td>
                 </tr>
               ))}
