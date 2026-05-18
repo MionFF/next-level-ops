@@ -205,3 +205,57 @@ Follow-up needed:
 - revisit searchable member/session selectors when data volume grows
 - consider stronger database-level capacity enforcement if concurrent booking becomes a real risk
 - improve booking/session filtering and grouping during testing and polish
+
+## 2026-05-17
+
+### Client cabinet, linked member model, and safe cancellation
+
+- Milestone 6 implements the client cabinet for authenticated client users linked to existing studio member records.
+- Client auth profiles are linked to business member records through `profiles.member_id`.
+- The cabinet resolves client data through `auth.uid() -> profiles.id -> profiles.member_id -> members.id`.
+- `member_memberships` was introduced to represent concrete member-plan assignments.
+- `membership_plans` remain reusable catalog records, while `member_memberships` represent actual memberships for specific members.
+- Clients can view their linked member info, active membership, upcoming bookings, and booking history summary.
+- Clients can cancel their own confirmed future bookings.
+- Client self-booking remains out of scope for the MVP.
+- Cancelled bookings are not deleted; they remain part of booking history.
+- Client cancellation is handled through `public.cancel_own_booking(p_booking_id uuid)`.
+- Direct client `UPDATE` access to `public.bookings` is not allowed.
+- The RPC resolves the current member through `auth.uid()` and `profiles.member_id`.
+- The RPC updates only `bookings.status` to `cancelled`.
+
+Reason:
+
+- Keeps Milestone 6 focused on a secure client-facing cabinet over existing operational data.
+- Preserves the MVP model where booking creation is admin-managed.
+- Avoids expanding the cabinet into a full client self-booking platform.
+- Separates auth users from business member records.
+- Adds realistic multi-role product behavior without introducing payments or full membership lifecycle automation.
+- Prevents clients from mutating non-status booking columns through the public Supabase API.
+- Keeps cancellation as a narrow, auditable database operation.
+- Preserves operational history by keeping cancelled booking records.
+
+Alternatives considered:
+
+- Allowing clients to create bookings themselves.
+- Allowing direct client `UPDATE` through RLS.
+- Tightening the `WITH CHECK` policy to preserve immutable booking columns.
+- Handling cancellation only in the server action with direct table update.
+- Merging auth profiles and members into one domain concept.
+- Storing active memberships directly on `members` instead of using `member_memberships`.
+
+Trade-offs:
+
+- Clients can cancel existing bookings but cannot create new ones.
+- Admin remains responsible for booking creation in the MVP.
+- Client cabinet depends on linking `profiles.member_id`.
+- Manual profile-member linking is acceptable for MVP but may need admin UI later.
+- Cancellation now depends on a database RPC.
+- Future cancellation rule changes must update the RPC.
+
+Follow-up needed:
+
+- Add tests for client cabinet and cancellation flow during Milestone 7.
+- Consider admin UI for linking profiles to members if manual linking becomes painful.
+- Revisit client self-booking after MVP only if eligibility, availability, capacity, and concurrency rules are clearly defined.
+- Document the client cancellation flow in architecture notes.
