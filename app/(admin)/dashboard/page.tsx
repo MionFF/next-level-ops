@@ -1,7 +1,8 @@
-export default function Dashboard() {
-  return (
-    <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
-      <p className='text-sm text-[var(--muted)]'>Admin dashboard content goes here.</p>
-    </section>
-  )
+import { fetchDashboardSummary } from '@/features/dashboard/model/dashboard-summary'
+import { OverviewCards } from '@/features/dashboard/ui/overview-cards'
+
+export default async function Dashboard() {
+  const summary = await fetchDashboardSummary()
+
+  return <OverviewCards summary={summary} />
 }
