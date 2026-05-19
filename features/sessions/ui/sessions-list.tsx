@@ -57,9 +57,9 @@ function DisplayBadge({ session }: { session: Session }) {
 
 export default function SessionsList({ sessions, errorMessage }: SessionsListProps) {
   return (
-    <section className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
+    <section className='max-lg:border-0 max-lg:bg-transparent max-lg:p-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
       <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-        <div>
+        <div className='min-w-0'>
           <h1 className='text-2xl font-semibold text-[var(--foreground)]'>Sessions</h1>
           <p className='mt-2 text-sm text-[var(--muted)]'>
             Manage scheduled studio sessions and capacity.
@@ -86,58 +86,100 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
       )}
 
       {!errorMessage && sessions && sessions.length > 0 && (
-        <div className='overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)]'>
-          <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
-            <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
-              <tr>
-                <th className='px-4 py-3'>Title</th>
-                <th className='px-4 py-3'>Trainer</th>
-                <th className='px-4 py-3'>Start time</th>
-                <th className='px-4 py-3'>End time</th>
-                <th className='px-4 py-3'>Capacity</th>
-                <th className='px-4 py-3'>Status</th>
-                <th className='px-4 py-3'>Created</th>
-                <th className='px-4 py-3 text-right'>Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
-              {sessions.map(session => (
-                <tr
-                  key={session.id}
-                  className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
-                >
-                  <td className='px-4 py-3 font-medium'>{session.title}</td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {session.trainer?.full_name ?? 'Unknown'}
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {formatDateTime(session.starts_at)}
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {formatDateTime(session.ends_at)}
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {session.confirmed_bookings_count} / {session.capacity} booked
-                  </td>
-                  <td className='px-4 py-3'>
-                    <DisplayBadge session={session} />
-                  </td>
-                  <td className='px-4 py-3 text-[var(--muted)]'>
-                    {formatDate(session.created_at)}
-                  </td>
-                  <td className='px-4 py-3 text-right'>
-                    <Link
-                      href={`/dashboard/sessions/${session.id}/edit`}
-                      className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
-                    >
-                      Edit
-                    </Link>
-                  </td>
+        <>
+          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
+            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+              <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
+                <tr>
+                  <th className='px-4 py-3'>Title</th>
+                  <th className='px-4 py-3'>Trainer</th>
+                  <th className='px-4 py-3'>Start time</th>
+                  <th className='px-4 py-3'>End time</th>
+                  <th className='px-4 py-3'>Capacity</th>
+                  <th className='px-4 py-3'>Status</th>
+                  <th className='px-4 py-3'>Created</th>
+                  <th className='px-4 py-3 text-right'>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
+                {sessions.map(session => (
+                  <tr
+                    key={session.id}
+                    className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
+                  >
+                    <td className='px-4 py-3 font-medium'>{session.title}</td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {session.trainer?.full_name ?? 'Unknown'}
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {formatDateTime(session.starts_at)}
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {formatDateTime(session.ends_at)}
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {session.confirmed_bookings_count} / {session.capacity} booked
+                    </td>
+                    <td className='px-4 py-3'>
+                      <DisplayBadge session={session} />
+                    </td>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      {formatDate(session.created_at)}
+                    </td>
+                    <td className='px-4 py-3 text-right'>
+                      <Link
+                        href={`/dashboard/sessions/${session.id}/edit`}
+                        className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
+                      >
+                        Edit
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <ul className='flex min-w-0 flex-col gap-3 lg:hidden'>
+            {sessions.map(session => (
+              <li
+                key={session.id}
+                className='min-w-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4'
+              >
+                <div className='grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3'>
+                  <div className='min-w-0'>
+                    <p className='block max-w-full truncate font-semibold text-[var(--foreground)]'>
+                      {session.title}
+                    </p>
+
+                    <div className='mt-2 min-w-0 space-y-1 text-sm text-[var(--muted)]'>
+                      <p className='max-w-full truncate'>
+                        Trainer: {session.trainer?.full_name ?? 'Unknown'}
+                      </p>
+                      <p>Starts: {formatDateTime(session.starts_at)}</p>
+                      <p>Ends: {formatDateTime(session.ends_at)}</p>
+                      <p>
+                        Capacity: {session.confirmed_bookings_count} / {session.capacity} booked
+                      </p>
+                      <p>Created: {formatDate(session.created_at)}</p>
+                    </div>
+
+                    <div className='mt-2'>
+                      <DisplayBadge session={session} />
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/dashboard/sessions/${session.id}/edit`}
+                    className='inline-flex shrink-0 items-center justify-center self-start rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
+                  >
+                    Edit
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   )

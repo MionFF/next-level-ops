@@ -92,24 +92,24 @@ export default function MembersList({
           </div>
 
           {/* Mobile card list — below lg */}
-          <ul className='flex flex-col gap-3 lg:hidden'>
+          <ul className='flex min-w-0 flex-col gap-3 lg:hidden'>
             {members.map(member => (
               <li
                 key={member.id}
-                className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4'
+                className='min-w-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4'
               >
-                <div className='flex items-start justify-between gap-3'>
-                  <div className='min-w-0 flex-1'>
+                <div className='grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3'>
+                  <div className='min-w-0'>
                     <Link
                       href={`/dashboard/members/${member.id}`}
-                      className='block truncate font-semibold text-[var(--foreground)] underline-offset-4 hover:text-[var(--primary)] hover:underline'
+                      className='block max-w-full truncate font-semibold text-[var(--foreground)] underline-offset-4 hover:text-[var(--primary)] hover:underline'
                     >
                       {member.full_name}
                     </Link>
 
-                    <div className='mt-2 space-y-1 text-sm text-[var(--muted)]'>
-                      {member.email && <p className='truncate'>{member.email}</p>}
-                      {member.phone && <p>{member.phone}</p>}
+                    <div className='mt-2 min-w-0 space-y-1 text-sm text-[var(--muted)]'>
+                      {member.email && <p className='max-w-full truncate'>{member.email}</p>}
+                      {member.phone && <p className='max-w-full truncate'>{member.phone}</p>}
                       <p>{formatDate(member.created_at)}</p>
                     </div>
 
@@ -118,12 +118,20 @@ export default function MembersList({
                     </span>
                   </div>
 
-                  <Link
-                    href={`/dashboard/members/${member.id}/edit`}
-                    className='inline-flex shrink-0 items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
-                  >
-                    Edit
-                  </Link>
+                  <div className='flex shrink-0 flex-col gap-2'>
+                    <Link
+                      href={`/dashboard/members/${member.id}`}
+                      className='inline-flex items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
+                    >
+                      View
+                    </Link>
+                    <Link
+                      href={`/dashboard/members/${member.id}/edit`}
+                      className='inline-flex items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'
+                    >
+                      Edit
+                    </Link>
+                  </div>
                 </div>
               </li>
             ))}

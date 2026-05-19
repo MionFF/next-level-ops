@@ -52,7 +52,9 @@ export function AdminShell({ children, pageTitle, roleLabel }: AdminShellProps) 
             </div>
           </header>
 
-          <main className='flex-1 px-4 py-6 lg:px-8 overflow-x-auto'>{children}</main>
+          <main className='min-w-0 flex-1 overflow-x-hidden px-4 py-6 lg:overflow-x-auto lg:px-8'>
+            {children}
+          </main>
         </div>
       </div>
     </div>
