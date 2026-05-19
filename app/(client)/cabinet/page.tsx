@@ -109,7 +109,7 @@ export default async function CabinetPage() {
     <>
       <LinkedMemberOverview member={linkedMember} />
 
-      <section className='mt-6 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
+      <section className='mt-6 max-lg:border-0 max-lg:bg-transparent max-lg:p-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
         <h2 className='mb-3 text-lg font-semibold text-[var(--foreground)]'>Active membership</h2>
         {activeMembership ? (
           <ActiveMembershipCard membership={activeMembership} />

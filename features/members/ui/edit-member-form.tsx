@@ -33,7 +33,7 @@ export default function EditMemberForm({ member }: { member: EditableMember }) {
     <form
       action={formAction}
       noValidate
-      className='rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'
+      className='max-lg:border-0 max-lg:bg-transparent max-lg:p-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'
     >
       <div className='mb-6'>
         <p className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>Members</p>
