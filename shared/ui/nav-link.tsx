@@ -8,6 +8,8 @@ type NavLinkProps = {
   label: string
   /** Routes considered "root" get exact match; all others use prefix match for nesting. */
   rootRoutes?: string[]
+  /** Optional callback fired on click — useful for closing mobile menus on navigation. */
+  onNavigate?: () => void
 }
 
 const DEFAULT_ROOT_ROUTES = ['/dashboard', '/cabinet']
@@ -19,13 +21,19 @@ function isActive(pathname: string, href: string, rootRoutes: string[]): boolean
   return pathname.startsWith(href)
 }
 
-export function NavLink({ href, label, rootRoutes = DEFAULT_ROOT_ROUTES }: NavLinkProps) {
+export function NavLink({
+  href,
+  label,
+  rootRoutes = DEFAULT_ROOT_ROUTES,
+  onNavigate,
+}: NavLinkProps) {
   const pathname = usePathname()
   const active = isActive(pathname, href, rootRoutes)
 
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       className={`flex rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors ${
         active
           ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
