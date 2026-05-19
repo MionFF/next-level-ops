@@ -15,7 +15,7 @@ export function AdminShell({ children, pageTitle, roleLabel }: AdminShellProps) 
       {/* Mobile top bar + overlay — visible only below lg */}
       <MobileNav brandLabel='Next Level Ops' badgeLabel={roleLabel} navItems={navigationItems} />
 
-      <div className='grid min-h-screen lg:grid-cols-[240px_minmax(0,1fr)]'>
+      <div className='grid lg:min-h-screen lg:grid-cols-[240px_minmax(0,1fr)]'>
         {/* Desktop sidebar — hidden below lg */}
         <aside className='hidden lg:block sticky top-0 max-h-screen overflow-y-auto border-r border-[var(--border)] bg-[var(--surface)] px-5 py-6'>
           <div className='mb-8'>
@@ -35,7 +35,7 @@ export function AdminShell({ children, pageTitle, roleLabel }: AdminShellProps) 
           </nav>
         </aside>
 
-        <div className='flex min-h-screen flex-col'>
+        <div className='flex flex-col lg:min-h-screen'>
           {/* Desktop header — hidden below lg */}
           <header className='hidden lg:block sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--surface)] px-8 py-4'>
             <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
