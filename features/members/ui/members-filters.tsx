@@ -40,19 +40,21 @@ export default function MembersFilters({ search, status }: MembersFiltersProps) 
         </select>
       </label>
 
-      <button
-        type='submit'
-        className='cursor-pointer rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90'
-      >
-        Apply filters
-      </button>
+      <div className='flex gap-2 sm:w-auto'>
+        <button
+          type='submit'
+          className='flex-1 cursor-pointer whitespace-nowrap rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 sm:flex-none'
+        >
+          Apply filters
+        </button>
 
-      <Link
-        href='/dashboard/members'
-        className='rounded-[var(--radius-md)] border border-[var(--border)] px-4 py-2 text-center font-medium text-[var(--foreground)] hover:bg-[var(--surface-2)]'
-      >
-        Reset
-      </Link>
+        <Link
+          href='/dashboard/members'
+          className='flex-1 rounded-[var(--radius-md)] border border-[var(--border)] px-4 py-2 text-center font-medium text-[var(--foreground)] hover:bg-[var(--surface-2)] sm:flex-none'
+        >
+          Reset
+        </Link>
+      </div>
     </form>
   )
 }
