@@ -1,51 +1,15 @@
 import Link from 'next/link'
-import { Session } from '../model/session'
+import { getDerivedSessionStatus, getSessionDisplayBadge, type Session } from '../model/session'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 
 type SessionsListProps = {
   sessions: Session[]
   errorMessage?: string
-}
-
-function getSessionDisplayStatus(session: Session): { text: string; className: string } {
-  const now = new Date()
-
-  if (session.status === 'cancelled') {
-    return {
-      text: 'Cancelled',
-      className: 'border-[var(--border)] text-[var(--muted)]',
-    }
-  }
-
-  if (new Date(session.ends_at) <= now) {
-    return {
-      text: 'Completed',
-      className: 'border-[var(--border)] text-[var(--muted)]',
-    }
-  }
-
-  if (new Date(session.starts_at) <= now && new Date(session.ends_at) > now) {
-    return {
-      text: 'In progress',
-      className: 'border-[var(--primary)]/30 text-[var(--primary)]',
-    }
-  }
-
-  if (session.confirmed_bookings_count >= session.capacity) {
-    return {
-      text: 'Full',
-      className: 'border-[var(--danger)]/30 text-[var(--danger)]',
-    }
-  }
-
-  return {
-    text: 'Scheduled',
-    className: 'border-[var(--border)] text-[var(--foreground)]',
-  }
+  emptyMessage?: string
 }
 
 function DisplayBadge({ session }: { session: Session }) {
-  const { text, className } = getSessionDisplayStatus(session)
+  const { text, className } = getSessionDisplayBadge(getDerivedSessionStatus(session))
   return (
     <span
       className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${className}`}
@@ -55,7 +19,7 @@ function DisplayBadge({ session }: { session: Session }) {
   )
 }
 
-export default function SessionsList({ sessions, errorMessage }: SessionsListProps) {
+export default function SessionsList({ sessions, errorMessage, emptyMessage }: SessionsListProps) {
   return (
     <section className='max-lg:border-0 max-lg:bg-transparent max-lg:p-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
       <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
@@ -81,7 +45,7 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
 
       {!errorMessage && sessions?.length === 0 && (
         <div className='rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-4 py-8 text-center text-sm text-[var(--muted)]'>
-          No sessions found.
+          {emptyMessage ?? 'No sessions found.'}
         </div>
       )}
 
