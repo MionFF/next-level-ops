@@ -4,7 +4,11 @@ import { memberStatuses } from './member'
 const phonePattern = /^(?=(?:.*\d){7,})\+?[0-9\s()-]{7,20}$/
 
 export const memberFormSchema = z.object({
-  fullName: z.string().trim().min(3, 'Name must be at least 3 characters!'),
+  fullName: z
+    .string()
+    .trim()
+    .min(3, 'Name must be at least 3 characters!')
+    .max(100, 'Name cannot exceed 100 characters.'),
   email: z
     .string()
     .trim()
