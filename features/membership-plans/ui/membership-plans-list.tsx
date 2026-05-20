@@ -47,7 +47,7 @@ export default function MembershipPlansList({ plans, errorMessage }: MembershipP
       {!errorMessage && plans && plans.length > 0 && (
         <>
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
-            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
                   <th className='px-4 py-3'>Name</th>
@@ -65,19 +65,29 @@ export default function MembershipPlansList({ plans, errorMessage }: MembershipP
                     key={plan.id}
                     className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                   >
-                    <td className='px-4 py-3 font-medium'>{plan.name}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
-                      {plan.description ?? 'No description'}
+                    <td className='px-4 py-3 font-medium'>
+                      <div className='line-clamp-2 max-w-full'>{plan.name}</div>
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{plan.duration_days} days</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{formatUsd(plan.price_cents)}</td>
-                    <td className='px-4 py-3'>
+                    <td className='px-4 py-3 text-[var(--muted)]'>
+                      <div className='line-clamp-2 max-w-full'>
+                        {plan.description ?? 'No description'}
+                      </div>
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                      {plan.duration_days} days
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                      {formatUsd(plan.price_cents)}
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap'>
                       <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
                         {plan.status}
                       </span>
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(plan.created_at)}</td>
-                    <td className='px-4 py-3 text-right'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                      {formatDate(plan.created_at)}
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-right'>
                       <Link
                         href={`/dashboard/plans/${plan.id}/edit`}
                         className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'

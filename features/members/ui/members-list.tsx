@@ -42,7 +42,7 @@ export default function MembersList({
         <>
           {/* Desktop table — lg+ */}
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
-            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
                   <th className='px-4 py-3'>Name</th>
@@ -60,24 +60,30 @@ export default function MembersList({
                     className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                   >
                     <td className='px-4 py-3 font-medium'>
-                      <Link
-                        href={`/dashboard/members/${member.id}`}
-                        className='font-medium text-[var(--foreground)] underline-offset-4 hover:text-[var(--primary)] hover:underline'
-                      >
-                        {member.full_name}
-                      </Link>
+                      <div className='line-clamp-2 max-w-full'>
+                        <Link
+                          href={`/dashboard/members/${member.id}`}
+                          className='font-medium text-[var(--foreground)] underline-offset-4 hover:text-[var(--primary)] hover:underline'
+                        >
+                          {member.full_name}
+                        </Link>
+                      </div>
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{member.email}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{member.phone ?? 'No phone'}</td>
-                    <td className='px-4 py-3'>
+                    <td className='px-4 py-3 max-w-full truncate text-[var(--muted)]'>
+                      {member.email}
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                      {member.phone ?? 'No phone'}
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap'>
                       <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
                         {member.status}
                       </span>
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(member.created_at)}
                     </td>
-                    <td className='px-4 py-3 text-right'>
+                    <td className='px-4 py-3 whitespace-nowrap text-right'>
                       <Link
                         href={`/dashboard/members/${member.id}/edit`}
                         className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'

@@ -88,7 +88,7 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
       {!errorMessage && sessions && sessions.length > 0 && (
         <>
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
-            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
                   <th className='px-4 py-3'>Title</th>
@@ -107,26 +107,30 @@ export default function SessionsList({ sessions, errorMessage }: SessionsListPro
                     key={session.id}
                     className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                   >
-                    <td className='px-4 py-3 font-medium'>{session.title}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
-                      {session.trainer?.full_name ?? 'Unknown'}
+                    <td className='px-4 py-3 font-medium'>
+                      <div className='line-clamp-2 max-w-full'>{session.title}</div>
                     </td>
                     <td className='px-4 py-3 text-[var(--muted)]'>
+                      <div className='line-clamp-2 max-w-full'>
+                        {session.trainer?.full_name ?? 'Unknown'}
+                      </div>
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDateTime(session.starts_at)}
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDateTime(session.ends_at)}
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {session.confirmed_bookings_count} / {session.capacity} booked
                     </td>
-                    <td className='px-4 py-3'>
+                    <td className='px-4 py-3 whitespace-nowrap'>
                       <DisplayBadge session={session} />
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(session.created_at)}
                     </td>
-                    <td className='px-4 py-3 text-right'>
+                    <td className='px-4 py-3 whitespace-nowrap text-right'>
                       <Link
                         href={`/dashboard/sessions/${session.id}/edit`}
                         className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'

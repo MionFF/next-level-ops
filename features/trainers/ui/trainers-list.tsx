@@ -40,7 +40,7 @@ export default function TrainersList({ trainers, errorMessage }: TrainersListPro
       {!errorMessage && trainers && trainers.length > 0 && (
         <>
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
-            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
                   <th className='px-4 py-3'>Name</th>
@@ -58,21 +58,27 @@ export default function TrainersList({ trainers, errorMessage }: TrainersListPro
                     key={trainer.id}
                     className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                   >
-                    <td className='px-4 py-3 font-medium'>{trainer.full_name}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{trainer.email}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>{trainer.phone ?? 'No phone'}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 font-medium'>
+                      <div className='line-clamp-2 max-w-full'>{trainer.full_name}</div>
+                    </td>
+                    <td className='px-4 py-3 max-w-full truncate text-[var(--muted)]'>
+                      {trainer.email}
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                      {trainer.phone ?? 'No phone'}
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {trainer.specialty ?? 'No specialty'}
                     </td>
-                    <td className='px-4 py-3'>
+                    <td className='px-4 py-3 whitespace-nowrap'>
                       <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
                         {trainer.status}
                       </span>
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(trainer.created_at)}
                     </td>
-                    <td className='px-4 py-3 text-right'>
+                    <td className='px-4 py-3 whitespace-nowrap text-right'>
                       <Link
                         href={`/dashboard/trainers/${trainer.id}/edit`}
                         className='inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]'

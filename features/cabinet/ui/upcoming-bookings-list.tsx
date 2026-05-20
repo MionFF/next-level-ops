@@ -16,7 +16,7 @@ export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBo
       {bookings.length > 0 && (
         <>
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
-            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
                   <th className='px-4 py-3'>Session</th>
@@ -33,23 +33,29 @@ export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBo
                     key={booking.id}
                     className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                   >
-                    <td className='px-4 py-3 font-medium'>{booking.session?.title ?? 'Unknown'}</td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
-                      {booking.session?.trainer?.full_name ?? 'Unknown'}
+                    <td className='px-4 py-3 font-medium'>
+                      <div className='line-clamp-2 max-w-full'>
+                        {booking.session?.title ?? 'Unknown'}
+                      </div>
                     </td>
                     <td className='px-4 py-3 text-[var(--muted)]'>
+                      <div className='line-clamp-2 max-w-full'>
+                        {booking.session?.trainer?.full_name ?? 'Unknown'}
+                      </div>
+                    </td>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {booking.session?.starts_at ? formatDateTime(booking.session.starts_at) : '—'}
                     </td>
-                    <td className='px-4 py-3 text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {booking.session?.ends_at ? formatDateTime(booking.session.ends_at) : '—'}
                     </td>
-                    <td className='px-4 py-3'>
+                    <td className='px-4 py-3 whitespace-nowrap'>
                       <span className='inline-flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)]'>
                         <span className='inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]' />
                         Confirmed
                       </span>
                     </td>
-                    <td className='px-4 py-3 text-right'>
+                    <td className='px-4 py-3 whitespace-nowrap text-right'>
                       <CancelOwnBookingButton bookingId={booking.id} />
                     </td>
                   </tr>

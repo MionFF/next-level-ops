@@ -64,7 +64,7 @@ export default function BookingsList({ bookings, errorMessage }: BookingsListPro
       {!errorMessage && bookings && bookings.length > 0 && (
         <>
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
-            <table className='min-w-full divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
                   <th className='px-4 py-3'>Member</th>
@@ -87,33 +87,37 @@ export default function BookingsList({ bookings, errorMessage }: BookingsListPro
                       className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                     >
                       <td className='px-4 py-3 font-medium'>
-                        {booking.member?.full_name ?? 'Unknown'}
+                        <div className='line-clamp-2 max-w-full'>
+                          {booking.member?.full_name ?? 'Unknown'}
+                        </div>
                       </td>
-                      <td className='px-4 py-3 text-[var(--muted)]'>
+                      <td className='px-4 py-3 max-w-full truncate text-[var(--muted)]'>
                         {booking.member?.email ?? '—'}
                       </td>
                       <td className='px-4 py-3 font-medium'>
-                        {booking.session?.title ?? 'Unknown'}
+                        <div className='line-clamp-2 max-w-full'>
+                          {booking.session?.title ?? 'Unknown'}
+                        </div>
                       </td>
-                      <td className='px-4 py-3 text-[var(--muted)]'>
+                      <td className='px-4 py-3 truncate max-w-full text-[var(--muted)]'>
                         {booking.session?.trainer?.full_name ?? 'Unknown'}
                       </td>
-                      <td className='px-4 py-3 text-[var(--muted)]'>
+                      <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                         {booking.session?.starts_at
                           ? formatDateTime(booking.session.starts_at)
                           : '—'}
                       </td>
-                      <td className='px-4 py-3'>
+                      <td className='px-4 py-3 whitespace-nowrap'>
                         <span
                           className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${bookingDisplayStatus.className}`}
                         >
                           {bookingDisplayStatus.text}
                         </span>
                       </td>
-                      <td className='px-4 py-3 text-[var(--muted)]'>
+                      <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                         {formatDate(booking.created_at)}
                       </td>
-                      <td className='px-4 py-3 text-center'>
+                      <td className='px-4 py-3 whitespace-nowrap text-center'>
                         {booking.status === 'confirmed' ? (
                           <CancelBookingButton bookingId={booking.id} />
                         ) : (
