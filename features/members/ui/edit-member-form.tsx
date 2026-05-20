@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { updateMember } from '../actions/update-member'
 import type { EditableMember, MemberStatus } from '../model/member'
-import { isMemberStatus, memberStatuses } from '../model/member'
+import { isMemberStatus, memberStatuses, memberStatusLabels } from '../model/member'
 
 const initialState = { message: '', errors: {} }
 
@@ -140,7 +140,7 @@ export default function EditMemberForm({ member }: { member: EditableMember }) {
           >
             {memberStatuses.map(memberStatus => (
               <option key={memberStatus} value={memberStatus}>
-                {memberStatus}
+                {memberStatusLabels[memberStatus]}
               </option>
             ))}
           </select>

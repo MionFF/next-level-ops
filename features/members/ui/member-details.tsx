@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { MemberDetails as MemberDetailsType } from '../model/member'
+import { memberStatusLabels, type MemberDetails as MemberDetailsType } from '../model/member'
 import { formatDate } from '@/shared/lib/format-date'
 
 function DetailItem({ label, value }: { label: string; value: string }) {
@@ -42,7 +42,7 @@ export function MemberDetails({ member }: { member: MemberDetailsType }) {
         <dl className='mt-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'>
           <DetailItem label='Email' value={member.email} />
           <DetailItem label='Phone' value={member.phone ?? 'No phone'} />
-          <DetailItem label='Status' value={member.status} />
+          <DetailItem label='Status' value={memberStatusLabels[member.status]} />
           <DetailItem label='Created' value={formatDate(member.created_at)} />
           <DetailItem label='Updated' value={formatDate(member.updated_at)} />
         </dl>
