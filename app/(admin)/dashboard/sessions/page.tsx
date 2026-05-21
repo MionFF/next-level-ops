@@ -16,6 +16,11 @@ type SessionsPageProps = {
   }>
 }
 
+type TrainerFilterOption = {
+  id: string
+  full_name: string
+}
+
 export default async function SessionsPage({ searchParams }: SessionsPageProps) {
   const params = await searchParams
 
@@ -58,16 +63,19 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
     })) ?? []
 
   // Load trainers for filter dropdown (only those with sessions)
-  const trainerIds = new Set(normalizedSessions.map(s => s.trainer_id))
-  const { data: trainerRows } =
-    trainerIds.size > 0
-      ? await supabase
-          .from('trainers')
-          .select('id, full_name')
-          .in('id', Array.from(trainerIds))
-          .order('full_name', { ascending: true })
-      : { data: null }
-  const trainers = (trainerRows ?? []) as { id: string; full_name: string }[]
+  const trainerIds = [...new Set(normalizedSessions.map(session => session.trainer_id))]
+
+  let trainers: TrainerFilterOption[] = []
+
+  if (trainerIds.length > 0) {
+    const { data: trainerRows } = await supabase
+      .from('trainers')
+      .select('id, full_name')
+      .in('id', trainerIds)
+      .order('full_name', { ascending: true })
+
+    trainers = trainerRows ?? []
+  }
 
   // Apply trainer filter first
   const trainerFiltered = filterTrainerId

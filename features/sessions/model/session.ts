@@ -35,7 +35,13 @@ export function isSessionStatus(value: string | undefined): value is SessionStat
 }
 
 export function isDerivedSessionStatus(value: string | undefined): value is DerivedSessionStatus {
-  return (derivedSessionStatuses as readonly string[]).includes(value ?? '')
+  return (
+    value === 'scheduled' ||
+    value === 'in_progress' ||
+    value === 'full' ||
+    value === 'completed' ||
+    value === 'cancelled'
+  )
 }
 
 export function getDerivedSessionStatus(session: Session): DerivedSessionStatus {
