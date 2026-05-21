@@ -80,7 +80,7 @@ export default function SessionsFilters({
         value={draftTrainer}
         onChange={e => setDraftTrainer(e.target.value)}
         disabled={isPending}
-        className='w-full md:w-auto rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed'
+        className='w-full md:w-auto rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] cursor-pointer focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed'
       >
         <option value=''>All trainers</option>
         {trainers.map(t => (
@@ -105,7 +105,7 @@ export default function SessionsFilters({
         <button
           onClick={applyFilters}
           disabled={isPending}
-          className='rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-3 py-1.5 text-sm font-medium text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-3 py-1.5 text-sm font-medium text-[var(--primary-foreground)] cursor-pointer transition-colors hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isPending ? 'Applying…' : 'Apply'}
         </button>
@@ -113,7 +113,7 @@ export default function SessionsFilters({
         <button
           onClick={resetFilters}
           disabled={isPending}
-          className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
+          className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--muted)] cursor-pointer transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
         >
           Reset
         </button>
@@ -176,7 +176,7 @@ function SessionStatusFilter({
         type='button'
         disabled={disabled}
         onClick={() => setOpen(!open)}
-        className='flex w-full md:w-auto items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
+        className='flex w-full md:w-auto items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] cursor-pointer transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
       >
         <span className='font-medium'>Status</span>
         <span className='text-[var(--muted)]'>{label}</span>
