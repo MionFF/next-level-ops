@@ -259,3 +259,149 @@ Follow-up needed:
 - Consider admin UI for linking profiles to members if manual linking becomes painful.
 - Revisit client self-booking after MVP only if eligibility, availability, capacity, and concurrency rules are clearly defined.
 - Document the client cancellation flow in architecture notes.
+
+## 2026-05-18 — 2026-05-21
+
+### Milestone 7A stabilization before testing
+
+- Milestone 7 starts with stabilization before testing.
+- Test setup is deferred until the implemented MVP flows are stable enough to test.
+- `/forbidden` is upgraded from placeholder to usable access-denied recovery page.
+- `/dashboard` is upgraded from placeholder to operational admin overview.
+- Admin/client shell navigation receives active states.
+- Desktop shell navigation remains sticky.
+- Mobile shell uses a compact sticky header and full-screen navigation overlay.
+- Performance optimization is not handled blindly in Milestone 7A; Supabase/network timeout concerns remain tracked separately.
+
+Reason:
+
+- Tests should lock stable product behavior, not obvious UX gaps.
+- `/dashboard`, `/forbidden`, and shell navigation are core product surfaces.
+- Navigation clarity and recovery paths are baseline MVP requirements.
+- Stabilization must improve product quality without expanding feature scope.
+
+Trade-offs:
+
+- Testing starts later than originally planned.
+- Shell navigation now includes small client components for pathname state and mobile menu behavior.
+- Some UI polish is handled before test infrastructure.
+
+Follow-up needed:
+
+- Add Jest/RTL and Playwright in Milestone 7B.
+- Include protected flows, role redirects, admin CRUD, client cabinet, and cancellation behavior in test coverage.
+
+### Responsive UI strategy
+
+- The app must be usable on mobile and tablet, not only desktop.
+- Desktop admin list screens keep tables at `lg+`.
+- Mobile/tablet admin and cabinet list screens use card lists below `lg`.
+- Horizontal table scrolling is not used as the primary mobile UX.
+- Dense list screens use overflow-safe handling for long names, titles, descriptions, emails, and related labels.
+- Mobile forms, details, cabinet sections, and list wrappers use lighter visual framing to avoid nested-card clutter.
+- Shell min-height behavior is adjusted to avoid empty mobile scroll caused by mobile header + full-screen containers.
+- Responsive list/card implementations stay feature-local for now instead of extracting shared abstractions.
+
+Reason:
+
+- Before this pass, the MVP was effectively not usable on mobile.
+- Tables work well on desktop but are a poor primary representation on narrow screens.
+- Card lists expose decision-useful data more clearly on mobile.
+- Real-world long content must not be able to break layouts.
+- Feature-local duplication is acceptable while the responsive pattern is still stabilizing.
+
+Trade-offs:
+
+- Desktop and mobile list presentations must be kept consistent manually.
+- Some UI markup is duplicated between table rows and mobile cards.
+- Shared responsive primitives are deferred to avoid premature abstraction.
+
+Follow-up needed:
+
+- Add responsive smoke coverage where practical.
+- Consider extracting shared list/card primitives only if duplication becomes painful.
+
+### Text overflow and input length limits
+
+- Desktop tables receive controlled text overflow handling.
+- Long names, titles, descriptions, emails, and related labels are clamped or truncated.
+- Metadata fields such as dates, prices, statuses, phones, capacity, and actions are protected from awkward wrapping.
+- Form schemas now enforce reasonable text length limits for key fields.
+- Text length limits are enforced in Zod schemas only.
+- No new database migration is added for text length constraints during this pass.
+
+Reason:
+
+- Long user/content values were able to deform table layouts.
+- UI should be resilient against realistic and pathological input.
+- Schema-level limits are enough for the current MVP because writes go through app forms/server actions.
+- DB constraints would add migration scope without being necessary for this stabilization pass.
+
+Trade-offs:
+
+- Database still does not enforce these text limits directly.
+- Direct database writes could bypass app-level validation.
+- UI still needs defensive overflow handling even with form limits.
+
+Follow-up needed:
+
+- Revisit DB-level text constraints only if external writes, imports, or public APIs are added.
+
+### Sessions and bookings discoverability
+
+- Sessions and bookings receive discoverability improvements.
+- Filtering is server-driven through URL search params.
+- Bookings support filtering/searching by operationally useful fields such as member, email, session title, and status.
+- Sessions support filtering/searching by operationally useful fields such as title, trainer, and status.
+- Status filters use multi-select dropdown UI.
+- Derived session/booking statuses are centralized in model helpers.
+- Derived statuses are reused for badges, sorting, filtering, counts, and action visibility.
+- Filter components own only isolated client interactivity.
+- List components remain server-rendered display components over already-filtered data.
+- Trainers and plans intentionally remain simple during this stabilization pass.
+
+Reason:
+
+- Sessions and bookings are the highest-volume operational screens.
+- Admin needs fast scanning and filtering before the MVP is presentable.
+- URL state keeps filters reload-safe, shareable, and aligned with App Router server rendering.
+- Centralized derived-status logic prevents drift between UI labels, counts, sorting, filtering, and actions.
+- Adding the same discoverability depth to every screen would exceed MVP stabilization scope.
+
+Trade-offs:
+
+- Filter UI is more complex than simple native selects.
+- Multi-select dropdowns require client state and accessibility handling.
+- Server orchestration is more involved than unfiltered list fetching.
+- Derived-status helpers become a central dependency for these screens.
+
+Follow-up needed:
+
+- Cover sessions/bookings filter flows in Milestone 7B tests.
+- Keep trainers/plans simple unless real discoverability pain appears.
+- Avoid extracting a generic filter framework until reuse pressure is clear.
+
+### Booking cancellation action visibility
+
+- Admin booking cancellation action is shown only when the booking derived status is `confirmed`.
+- Bookings with derived statuses such as `completed`, `in_progress`, or `cancelled` show `—` instead of `Cancel`.
+- UI action visibility no longer relies only on stored `bookings.status === 'confirmed'`.
+- Client cabinet cancellation behavior remains unchanged and limited to upcoming bookings.
+
+Reason:
+
+- A stored confirmed booking can become completed or in progress based on session time.
+- Completed or running bookings should not expose a cancellation action.
+- Derived status better represents the current operational state than stored booking status alone.
+- This preserves the minimal database status model without adding `completed` or `in_progress` as stored booking statuses.
+
+Trade-offs:
+
+- Cancel action visibility now depends on derived-status logic.
+- Future changes to derived-status rules can affect action availability.
+- Server-side cancellation rules must stay aligned with UI cancellability.
+
+Follow-up needed:
+
+- Add tests for completed and in-progress bookings not exposing cancellation.
+- Verify server-side cancellation does not allow invalid cancellation paths during Milestone 7B.
