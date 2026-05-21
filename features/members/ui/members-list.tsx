@@ -41,7 +41,7 @@ export default function MembersList({
       {!errorMessage && members && members.length > 0 && (
         <>
           {/* Desktop table — lg+ */}
-          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
+          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] xl:block'>
             <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
@@ -98,7 +98,7 @@ export default function MembersList({
           </div>
 
           {/* Mobile card list — below lg */}
-          <ul className='flex min-w-0 flex-col gap-3 lg:hidden'>
+          <ul className='flex min-w-0 flex-col gap-3 xl:hidden'>
             {members.map(member => (
               <li
                 key={member.id}

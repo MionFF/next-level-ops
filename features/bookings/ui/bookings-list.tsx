@@ -45,7 +45,7 @@ export default function BookingsList({
 
       {!errorMessage && bookings.length > 0 && (
         <>
-          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
+          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] xl:block'>
             <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
@@ -114,7 +114,7 @@ export default function BookingsList({
             </table>
           </div>
 
-          <ul className='flex min-w-0 flex-col gap-3 lg:hidden'>
+          <ul className='flex min-w-0 flex-col gap-3 xl:hidden'>
             {bookings.map(booking => {
               const derived = getDerivedBookingStatus(booking)
               const badge = getBookingDisplayBadge(derived)
