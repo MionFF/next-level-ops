@@ -15,7 +15,11 @@ const emptyStringToUndefined = (value: unknown) => {
 
 export const sessionFormSchema = z
   .object({
-    title: z.string().trim().min(1, 'Title is required'),
+    title: z
+      .string()
+      .trim()
+      .min(1, 'Title is required')
+      .max(100, 'Title cannot exceed 100 characters'),
     trainerId: z.string().min(1, 'Trainer is required'),
     startsAt: z.string().min(1, 'Start time is required'),
     endsAt: z.string().min(1, 'End time is required'),

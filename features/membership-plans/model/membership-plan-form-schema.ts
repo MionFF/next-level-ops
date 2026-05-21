@@ -10,8 +10,8 @@ const emptyStringToUndefined = (value: unknown) => {
 }
 
 export const membershipPlanFormSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required.'),
-  description: z.string().trim().optional(),
+  name: z.string().trim().min(1, 'Name is required.').max(80, 'Name cannot exceed 80 characters.'),
+  description: z.string().trim().max(240, 'Description cannot exceed 240 characters.').optional(),
   durationDays: z.preprocess(
     emptyStringToUndefined,
     z.coerce

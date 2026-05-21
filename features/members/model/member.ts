@@ -1,4 +1,9 @@
 export const memberStatuses = ['active', 'paused', 'inactive'] as const
+export const memberStatusLabels: Record<MemberStatus, string> = {
+  active: 'Active',
+  paused: 'Paused',
+  inactive: 'Inactive',
+}
 
 export type MemberStatus = (typeof memberStatuses)[number]
 export type MemberStatusFilter = MemberStatus | 'all'
