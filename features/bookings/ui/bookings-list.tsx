@@ -101,7 +101,7 @@ export default function BookingsList({
                         {formatDate(booking.created_at)}
                       </td>
                       <td className='px-4 py-3 whitespace-nowrap text-center'>
-                        {booking.status === 'confirmed' ? (
+                        {derived === 'confirmed' ? (
                           <CancelBookingButton bookingId={booking.id} />
                         ) : (
                           <span className='text-xs text-[var(--muted)]'>—</span>
@@ -155,7 +155,7 @@ export default function BookingsList({
                     </div>
 
                     <div className='flex shrink-0 justify-end'>
-                      {booking.status === 'confirmed' ? (
+                      {derived === 'confirmed' ? (
                         <CancelBookingButton bookingId={booking.id} />
                       ) : (
                         <span className='text-xs text-[var(--muted)]'>—</span>
