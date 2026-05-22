@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { createBooking } from '../actions/create-booking'
+import { createBooking, type CreateBookingFormState } from '../actions/create-booking'
 import { formatDateTime } from '@/shared/lib/format-date'
 
 type SessionOption = {
@@ -18,15 +18,25 @@ type MemberOption = {
   email: string
 }
 
+const initialState = { message: '', errors: {} }
+
+type CreateBookingFormAction = (
+  prevValue: CreateBookingFormState,
+  formData: FormData,
+) => Promise<CreateBookingFormState>
+
 type CreateBookingFormProps = {
   sessions: SessionOption[]
   members: MemberOption[]
+  action?: CreateBookingFormAction
 }
 
-const initialState = { message: '', errors: {} }
-
-export default function CreateBookingForm({ sessions, members }: CreateBookingFormProps) {
-  const [state, formAction, isPending] = useActionState(createBooking, initialState)
+export default function CreateBookingForm({
+  sessions,
+  members,
+  action = createBooking,
+}: CreateBookingFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
   const [sessionId, setSessionId] = useState('')
   const [memberId, setMemberId] = useState('')
 

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { bookingFormSchema } from '../model/booking-form-schema'
 
-type CreateBookingFormState = {
+export type CreateBookingFormState = {
   message?: string
   errors?: {
     sessionId?: string[]
