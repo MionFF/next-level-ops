@@ -3,14 +3,23 @@
 import { useActionState } from 'react'
 import { cancelOwnBooking, type CancelOwnBookingFormState } from '../actions/cancel-own-booking'
 
+type CancelOwnBookingButtonAction = (
+  prevValue: CancelOwnBookingFormState,
+  formData: FormData,
+) => Promise<CancelOwnBookingFormState>
+
 type CancelOwnBookingButtonProps = {
   bookingId: string
+  action?: CancelOwnBookingButtonAction
 }
 
 const initialState: CancelOwnBookingFormState = { message: undefined }
 
-export function CancelOwnBookingButton({ bookingId }: CancelOwnBookingButtonProps) {
-  const [state, formAction, isPending] = useActionState(cancelOwnBooking, initialState)
+export function CancelOwnBookingButton({
+  bookingId,
+  action = cancelOwnBooking,
+}: CancelOwnBookingButtonProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
 
   return (
     <form action={formAction}>
