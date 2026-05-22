@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { trainerFormSchema } from '../model/trainer-form-schema'
 
-type CreateTrainerFormState = {
+export type CreateTrainerFormState = {
   message?: string
   errors?: {
     fullName?: string[]

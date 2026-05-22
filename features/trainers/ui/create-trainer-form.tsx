@@ -2,13 +2,22 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { createTrainer } from '../actions/create-trainer'
+import { createTrainer, type CreateTrainerFormState } from '../actions/create-trainer'
 import { isTrainerStatus, trainerStatuses, type TrainerStatus } from '../model/trainer'
 
 const initialState = { message: '', errors: {} }
 
-export default function CreateTrainerForm() {
-  const [state, formAction, isPending] = useActionState(createTrainer, initialState)
+type CreateTrainerFormAction = (
+  prevValue: CreateTrainerFormState,
+  formData: FormData,
+) => Promise<CreateTrainerFormState>
+
+type CreateTrainerFormProps = {
+  action?: CreateTrainerFormAction
+}
+
+export default function CreateTrainerForm({ action = createTrainer }: CreateTrainerFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
