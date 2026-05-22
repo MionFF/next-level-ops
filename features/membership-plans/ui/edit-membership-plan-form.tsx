@@ -2,14 +2,27 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { updateMembershipPlan } from '../actions/update-membership-plan'
+import {
+  updateMembershipPlan,
+  type UpdateMembershipPlanFormState,
+} from '../actions/update-membership-plan'
 import type { EditableMembershipPlan, MembershipPlanStatus } from '../model/membership-plan'
 import { isMembershipPlanStatus, membershipPlanStatuses } from '../model/membership-plan'
 
 const initialState = { message: '', errors: {} }
 
-export default function EditMembershipPlanForm({ plan }: { plan: EditableMembershipPlan }) {
-  const updatePlanAction = updateMembershipPlan.bind(null, plan.id)
+type EditMembershipPlanFormAction = (
+  prevValue: UpdateMembershipPlanFormState,
+  formData: FormData,
+) => Promise<UpdateMembershipPlanFormState>
+
+type EditMembershipPlanFormProps = {
+  plan: EditableMembershipPlan
+  action?: EditMembershipPlanFormAction
+}
+
+export default function EditMembershipPlanForm({ plan, action }: EditMembershipPlanFormProps) {
+  const updatePlanAction = action ?? updateMembershipPlan.bind(null, plan.id)
   const [state, formAction, isPending] = useActionState(updatePlanAction, initialState)
   const [name, setName] = useState(plan.name)
   const [description, setDescription] = useState(plan.description ?? '')
