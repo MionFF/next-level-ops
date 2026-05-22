@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { createSession } from '../actions/create-session'
+import { createSession, type CreateSessionFormState } from '../actions/create-session'
 import { isSessionStatus, sessionStatuses, type SessionStatus } from '../model/session'
 
 type TrainerOption = {
@@ -10,14 +10,23 @@ type TrainerOption = {
   full_name: string
 }
 
-type CreateSessionFormProps = {
-  trainers: TrainerOption[]
-}
-
 const initialState = { message: '', errors: {} }
 
-export default function CreateSessionForm({ trainers }: CreateSessionFormProps) {
-  const [state, formAction, isPending] = useActionState(createSession, initialState)
+type CreateSessionFormAction = (
+  prevValue: CreateSessionFormState,
+  formData: FormData,
+) => Promise<CreateSessionFormState>
+
+type CreateSessionFormProps = {
+  trainers: TrainerOption[]
+  action?: CreateSessionFormAction
+}
+
+export default function CreateSessionForm({
+  trainers,
+  action = createSession,
+}: CreateSessionFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
   const [title, setTitle] = useState('')
   const [trainerId, setTrainerId] = useState('')
   const [startsAt, setStartsAt] = useState('')

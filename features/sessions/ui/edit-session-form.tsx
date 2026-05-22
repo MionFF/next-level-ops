@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { updateSession } from '../actions/update-session'
+import { updateSession, type UpdateSessionFormState } from '../actions/update-session'
 import {
   type EditableSession,
   type SessionStatus,
@@ -15,15 +15,21 @@ type TrainerOption = {
   full_name: string
 }
 
+const initialState = { message: '', errors: {} }
+
+type EditSessionFormAction = (
+  prevValue: UpdateSessionFormState,
+  formData: FormData,
+) => Promise<UpdateSessionFormState>
+
 type EditSessionFormProps = {
   session: EditableSession
   trainers: TrainerOption[]
+  action?: EditSessionFormAction
 }
 
-const initialState = { message: '', errors: {} }
-
-export default function EditSessionForm({ session, trainers }: EditSessionFormProps) {
-  const updateSessionAction = updateSession.bind(null, session.id)
+export default function EditSessionForm({ session, trainers, action }: EditSessionFormProps) {
+  const updateSessionAction = action ?? updateSession.bind(null, session.id)
   const [state, formAction, isPending] = useActionState(updateSessionAction, initialState)
   const [title, setTitle] = useState(session.title)
   const [trainerId, setTrainerId] = useState(session.trainer_id)
