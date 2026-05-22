@@ -2,13 +2,22 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { createMember } from '../actions/create-member'
+import { createMember, type CreateMemberFormState } from '../actions/create-member'
 import { isMemberStatus, memberStatuses, type MemberStatus } from '../model/member'
 
 const initialState = { message: '', errors: {} }
 
-export default function CreateMemberForm() {
-  const [state, formAction, isPending] = useActionState(createMember, initialState)
+type CreateMemberFormAction = (
+  prevValue: CreateMemberFormState,
+  formData: FormData,
+) => Promise<CreateMemberFormState>
+
+type CreateMemberFormProps = {
+  action?: CreateMemberFormAction
+}
+
+export default function CreateMemberForm({ action = createMember }: CreateMemberFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')

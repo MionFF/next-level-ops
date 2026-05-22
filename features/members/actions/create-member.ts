@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { memberFormSchema } from '../model/member-form-schema'
 
-type CreateMemberFormState = {
+export type CreateMemberFormState = {
   message?: string
   errors?: {
     fullName?: string[]
