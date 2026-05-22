@@ -2,20 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { CancelBookingFormState } from '../actions/cancel-booking'
 import CancelBookingButton from './cancel-booking-button'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/cancel-booking', () => ({
   cancelBooking: jest.fn(),
 }))
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
-}
 
 describe('CancelBookingButton', () => {
   it('renders cancel button', () => {

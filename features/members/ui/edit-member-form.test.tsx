@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import EditMemberForm from './edit-member-form'
 import type { EditableMember } from '../model/member'
 import type { UpdateMemberFormState } from '../actions/update-member'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/update-member', () => ({
   updateMember: jest.fn(),
@@ -14,16 +15,6 @@ const member: EditableMember = {
   email: 'alex@example.com',
   phone: '+1 555 0101',
   status: 'active',
-}
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
 }
 
 describe('EditMemberForm', () => {

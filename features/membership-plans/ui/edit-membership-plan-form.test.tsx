@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { UpdateMembershipPlanFormState } from '../actions/update-membership-plan'
 import type { EditableMembershipPlan } from '../model/membership-plan'
 import EditMembershipPlanForm from './edit-membership-plan-form'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/update-membership-plan', () => ({
   updateMembershipPlan: jest.fn(),
@@ -15,16 +16,6 @@ const plan: EditableMembershipPlan = {
   duration_days: 30,
   price_cents: 9900,
   status: 'active',
-}
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
 }
 
 describe('EditMembershipPlanForm', () => {

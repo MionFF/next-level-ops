@@ -2,20 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CreateMemberForm from './create-member-form'
 import type { CreateMemberFormState } from '../actions/create-member'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/create-member', () => ({
   createMember: jest.fn(),
 }))
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
-}
 
 describe('CreateMemberForm', () => {
   it('renders member fields and default status', () => {

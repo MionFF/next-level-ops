@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { CreateSessionFormState } from '../actions/create-session'
 import CreateSessionForm from './create-session-form'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/create-session', () => ({
   createSession: jest.fn(),
@@ -11,16 +12,6 @@ const trainers = [
   { id: 'trainer-1', full_name: 'Sam Coach' },
   { id: 'trainer-2', full_name: 'Mia Trainer' },
 ]
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
-}
 
 describe('CreateSessionForm', () => {
   it('renders session fields, trainer options, and default status', () => {

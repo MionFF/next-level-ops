@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { CreateBookingFormState } from '../actions/create-booking'
 import CreateBookingForm from './create-booking-form'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/create-booking', () => ({
   createBooking: jest.fn(),
@@ -36,16 +37,6 @@ const members = [
     email: 'jamie@example.com',
   },
 ]
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
-}
 
 describe('CreateBookingForm', () => {
   it('renders booking fields, session options, member options, and empty defaults', () => {

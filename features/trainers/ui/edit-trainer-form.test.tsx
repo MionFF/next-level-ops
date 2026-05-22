@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { UpdateTrainerFormState } from '../actions/update-trainer'
 import type { EditableTrainer } from '../model/trainer'
 import EditTrainerForm from './edit-trainer-form'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/update-trainer', () => ({
   updateTrainer: jest.fn(),
@@ -15,16 +16,6 @@ const trainer: EditableTrainer = {
   phone: '+1 555 0202',
   specialty: 'Strength',
   status: 'active',
-}
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
 }
 
 describe('EditTrainerForm', () => {

@@ -2,20 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { CreateMembershipPlanFormState } from '../actions/create-membership-plan'
 import CreateMembershipPlanForm from './create-membership-plan-form'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/create-membership-plan', () => ({
   createMembershipPlan: jest.fn(),
 }))
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
-}
 
 describe('CreateMembershipPlanForm', () => {
   it('renders membership plan fields and default status', () => {

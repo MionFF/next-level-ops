@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { UpdateSessionFormState } from '../actions/update-session'
 import type { EditableSession } from '../model/session'
 import EditSessionForm from './edit-session-form'
+import { getSubmittedFormData } from '@/test/utils/form-data'
 
 jest.mock('../actions/update-session', () => ({
   updateSession: jest.fn(),
@@ -21,16 +22,6 @@ const session: EditableSession = {
   ends_at: '2026-06-01T11:00:00.000Z',
   capacity: 20,
   status: 'scheduled',
-}
-
-function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
-
-  if (!formData) {
-    throw new Error('Expected action to be called with FormData')
-  }
-
-  return formData
 }
 
 describe('EditSessionForm', () => {
