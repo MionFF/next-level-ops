@@ -1,13 +1,19 @@
 'use client'
 
-import { signUp } from '@/features/auth/sign-up/actions/signUp'
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
+import { signUp, type SignUpFormState } from '@/features/auth/sign-up/actions/signUp'
 
 const initialState = { message: '', errors: {} }
 
-export default function SignUpForm() {
-  const [state, formAction, isPending] = useActionState(signUp, initialState)
+type SignUpFormAction = (prevValue: SignUpFormState, formData: FormData) => Promise<SignUpFormState>
+
+type SignUpFormProps = {
+  action?: SignUpFormAction
+}
+
+export default function SignUpForm({ action = signUp }: SignUpFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')

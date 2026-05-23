@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { signInSchema } from '../model/signInSchema'
 import { getRoleHomePath } from '../../model/auth-role'
 
-type SignInFormState = {
+export type SignInFormState = {
   message?: string
   errors?: {
     email?: string[]
