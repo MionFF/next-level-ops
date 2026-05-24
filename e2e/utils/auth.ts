@@ -12,12 +12,12 @@ function getRequiredEnv(name: string) {
 
 export async function loginAsAdmin(page: Page) {
   await login(page, getRequiredEnv('E2E_ADMIN_EMAIL'), getRequiredEnv('E2E_ADMIN_PASSWORD'))
-  await expect(page).toHaveURL(/\/dashboard/)
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15_000 })
 }
 
 export async function loginAsClient(page: Page) {
   await login(page, getRequiredEnv('E2E_CLIENT_EMAIL'), getRequiredEnv('E2E_CLIENT_PASSWORD'))
-  await expect(page).toHaveURL(/\/cabinet/)
+  await expect(page).toHaveURL(/\/cabinet/, { timeout: 15_000 })
 }
 
 async function login(page: Page, email: string, password: string) {

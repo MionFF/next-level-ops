@@ -5,6 +5,7 @@ loadEnvConfig(process.cwd())
 
 export default defineConfig({
   testDir: './e2e',
+  workers: 1,
   fullyParallel: false,
   retries: 0,
   use: {

@@ -40,7 +40,7 @@ test.describe('admin member flow', () => {
     await expect(page.getByText(memberName).first()).toBeVisible()
     await expect(page.getByText(memberEmail).first()).toBeVisible()
 
-    await page.getByRole('link', { name: /edit/i }).click()
+    await page.getByRole('link', { name: /edit member/i }).click()
 
     await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+\/edit/)
     await expect(page.getByRole('heading', { name: /edit member/i })).toBeVisible()
