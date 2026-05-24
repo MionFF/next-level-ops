@@ -1,45 +1,9 @@
-import { expect, type Page, test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { loginAsAdmin } from './utils/auth'
 import { createE2EEmail, createE2EName, createE2ERunId } from './utils/test-data'
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-async function selectOptionByText(page: Page, label: string, text: string) {
-  const select = page.getByLabel(label)
-  const option = select.getByRole('option', { name: new RegExp(escapeRegExp(text)) })
-  const value = await option.getAttribute('value')
-
-  if (!value) {
-    throw new Error(`Could not find option value for "${text}" in "${label}" select`)
-  }
-
-  await select.selectOption(value)
-}
-
-function toDatetimeLocalValue(date: Date) {
-  const pad = (value: number) => String(value).padStart(2, '0')
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}`
-}
-
-function createFutureSessionDateTimes() {
-  const starts = new Date()
-
-  starts.setDate(starts.getDate() + 14)
-  starts.setHours(10, 0, 0, 0)
-
-  const ends = new Date(starts)
-  ends.setHours(11, 0, 0, 0)
-
-  return {
-    startsAt: toDatetimeLocalValue(starts),
-    endsAt: toDatetimeLocalValue(ends),
-  }
-}
+import { selectOptionByText } from './utils/forms'
+import { createFutureSessionDateTimes } from './utils/date-time'
+import { gotoAppPage } from './utils/navigation'
 
 test.describe('admin session and booking flow', () => {
   test('creates trainer, member, session, and booking', async ({ page }) => {
@@ -57,7 +21,7 @@ test.describe('admin session and booking flow', () => {
 
     await loginAsAdmin(page)
 
-    await page.goto('/dashboard/trainers/new')
+    await gotoAppPage(page, '/dashboard/trainers/new')
 
     await expect(page.getByRole('heading', { name: /add trainer/i })).toBeVisible()
 
@@ -72,7 +36,7 @@ test.describe('admin session and booking flow', () => {
     await expect(page.getByText(trainerName).first()).toBeVisible()
     await expect(page.getByText(trainerEmail).first()).toBeVisible()
 
-    await page.goto('/dashboard/members/new')
+    await gotoAppPage(page, '/dashboard/members/new')
 
     await expect(page.getByRole('heading', { name: /add member/i })).toBeVisible()
 
@@ -86,7 +50,7 @@ test.describe('admin session and booking flow', () => {
     await expect(page.getByText(memberName).first()).toBeVisible()
     await expect(page.getByText(memberEmail).first()).toBeVisible()
 
-    await page.goto('/dashboard/sessions/new')
+    await gotoAppPage(page, '/dashboard/sessions/new')
 
     await expect(page.getByRole('heading', { name: /add session/i })).toBeVisible()
 
@@ -103,7 +67,7 @@ test.describe('admin session and booking flow', () => {
     await expect(page.getByText(trainerName).first()).toBeAttached()
     await expect(page.getByText(/scheduled/i).first()).toBeVisible()
 
-    await page.goto('/dashboard/bookings/new')
+    await gotoAppPage(page, '/dashboard/bookings/new')
 
     await expect(page.getByRole('heading', { name: /add booking/i })).toBeVisible()
 

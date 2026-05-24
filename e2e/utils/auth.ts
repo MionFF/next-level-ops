@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 
-function getRequiredEnv(name: string) {
+export function getRequiredEnv(name: string) {
   const value = process.env[name]
 
   if (!value) {

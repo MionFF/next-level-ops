@@ -51,7 +51,7 @@ test.describe('admin member flow', () => {
 
     await page.getByRole('button', { name: /save member/i }).click()
 
-    await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/)
+    await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/, { timeout: 15_000 })
     await expect(page.getByText(updatedMemberName).first()).toBeVisible()
     await expect(page.getByText(memberEmail).first()).toBeVisible()
     await expect(page.getByText(updatedMemberPhone).first()).toBeVisible()

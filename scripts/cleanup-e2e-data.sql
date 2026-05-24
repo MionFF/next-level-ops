@@ -6,39 +6,38 @@ begin;
 
 delete from public.bookings
 where member_id in (
-  select id from public.members
+  select id
+  from public.members
   where full_name ilike 'E2E %'
-     or email ilike 'e2e.%@example.com'
 )
 or session_id in (
-  select id from public.sessions
+  select id
+  from public.sessions
   where title ilike 'E2E %'
 );
 
 delete from public.member_memberships
 where member_id in (
-  select id from public.members
+  select id
+  from public.members
   where full_name ilike 'E2E %'
-     or email ilike 'e2e.%@example.com'
 );
 
 update public.profiles
 set member_id = null
 where member_id in (
-  select id from public.members
+  select id
+  from public.members
   where full_name ilike 'E2E %'
-     or email ilike 'e2e.%@example.com'
 );
 
 delete from public.sessions
 where title ilike 'E2E %';
 
 delete from public.members
-where full_name ilike 'E2E %'
-   or email ilike 'e2e.%@example.com';
+where full_name ilike 'E2E %';
 
 delete from public.trainers
-where full_name ilike 'E2E %'
-   or email ilike 'e2e.%@example.com';
+where full_name ilike 'E2E %';
 
 commit;
