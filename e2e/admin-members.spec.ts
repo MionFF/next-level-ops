@@ -15,7 +15,7 @@ test.describe('admin member flow', () => {
 
     await loginAsAdmin(page)
 
-    await page.goto('/dashboard/members')
+    await page.goto('/dashboard/members', { waitUntil: 'domcontentloaded' })
 
     await page.getByRole('link', { name: /add member/i }).click()
 
@@ -27,9 +27,11 @@ test.describe('admin member flow', () => {
     await page.getByLabel('Phone').fill(memberPhone)
     await page.getByLabel('Status').selectOption('active')
 
-    await page.getByRole('button', { name: /create member/i }).click()
+    await Promise.all([
+      page.waitForURL(/\/dashboard\/members\/?$/, { timeout: 15_000 }),
+      page.getByRole('button', { name: /create member/i }).click(),
+    ])
 
-    await expect(page).toHaveURL(/\/dashboard\/members/)
     await expect(page.getByRole('heading', { name: /^members$/i })).toBeVisible()
     await expect(page.getByText(memberName).first()).toBeVisible()
     await expect(page.getByText(memberEmail).first()).toBeVisible()
