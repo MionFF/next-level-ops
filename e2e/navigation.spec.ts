@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 import { loginAsAdmin, loginAsClient } from './utils/auth'
-import { gotoAppPage } from './utils/navigation'
 
 async function clickSidebarLink(page: Page, name: RegExp) {
   await page
