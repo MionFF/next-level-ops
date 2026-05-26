@@ -2,14 +2,24 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { updateTrainer } from '../actions/update-trainer'
+import { updateTrainer, type UpdateTrainerFormState } from '../actions/update-trainer'
 import type { EditableTrainer, TrainerStatus } from '../model/trainer'
 import { isTrainerStatus, trainerStatuses } from '../model/trainer'
 
 const initialState = { message: '', errors: {} }
 
-export default function EditTrainerForm({ trainer }: { trainer: EditableTrainer }) {
-  const updateTrainerAction = updateTrainer.bind(null, trainer.id)
+type EditTrainerFormAction = (
+  prevValue: UpdateTrainerFormState,
+  formData: FormData,
+) => Promise<UpdateTrainerFormState>
+
+type EditTrainerFormProps = {
+  trainer: EditableTrainer
+  action?: EditTrainerFormAction
+}
+
+export default function EditTrainerForm({ trainer, action }: EditTrainerFormProps) {
+  const updateTrainerAction = action ?? updateTrainer.bind(null, trainer.id)
   const [state, formAction, isPending] = useActionState(updateTrainerAction, initialState)
   const [fullName, setFullName] = useState(trainer.full_name)
   const [email, setEmail] = useState(trainer.email)

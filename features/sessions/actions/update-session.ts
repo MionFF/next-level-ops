@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sessionFormSchema } from '../model/session-form-schema'
 
-type UpdateSessionFormState = {
+export type UpdateSessionFormState = {
   message?: string
   errors?: {
     title?: string[]

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { signUpSchema } from '../model/signUpSchema'
 import { redirect } from 'next/navigation'
 
-type SignUpFormState = {
+export type SignUpFormState = {
   message?: string
   errors?: {
     fullName?: string[]

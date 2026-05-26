@@ -2,12 +2,18 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { signIn } from '../actions/signIn'
+import { signIn, type SignInFormState } from '../actions/signIn'
 
 const initialState = { message: '', errors: {} }
 
-export default function SignInForm() {
-  const [state, formAction, isPending] = useActionState(signIn, initialState)
+type SignInFormAction = (prevValue: SignInFormState, formData: FormData) => Promise<SignInFormState>
+
+type SignInFormProps = {
+  action?: SignInFormAction
+}
+
+export default function SignInForm({ action = signIn }: SignInFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

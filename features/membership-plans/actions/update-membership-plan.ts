@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { membershipPlanFormSchema } from '../model/membership-plan-form-schema'
 
-type UpdateMembershipPlanFormState = {
+export type UpdateMembershipPlanFormState = {
   message?: string
   errors?: {
     name?: string[]

@@ -44,3 +44,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# swc
+/.swc/
+
+# tests
+/test-results/
+/playwright-report/

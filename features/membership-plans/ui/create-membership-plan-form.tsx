@@ -2,7 +2,10 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { createMembershipPlan } from '../actions/create-membership-plan'
+import {
+  createMembershipPlan,
+  type CreateMembershipPlanFormState,
+} from '../actions/create-membership-plan'
 import {
   isMembershipPlanStatus,
   membershipPlanStatuses,
@@ -11,8 +14,19 @@ import {
 
 const initialState = { message: '', errors: {} }
 
-export default function CreateMembershipPlanForm() {
-  const [state, formAction, isPending] = useActionState(createMembershipPlan, initialState)
+type CreateMembershipPlanFormAction = (
+  prevValue: CreateMembershipPlanFormState,
+  formData: FormData,
+) => Promise<CreateMembershipPlanFormState>
+
+type CreateMembershipPlanFormProps = {
+  action?: CreateMembershipPlanFormAction
+}
+
+export default function CreateMembershipPlanForm({
+  action = createMembershipPlan,
+}: CreateMembershipPlanFormProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [durationDays, setDurationDays] = useState('')

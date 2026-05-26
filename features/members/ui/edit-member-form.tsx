@@ -2,14 +2,24 @@
 
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
-import { updateMember } from '../actions/update-member'
+import { updateMember, type UpdateMemberFormState } from '../actions/update-member'
 import type { EditableMember, MemberStatus } from '../model/member'
 import { isMemberStatus, memberStatuses, memberStatusLabels } from '../model/member'
 
 const initialState = { message: '', errors: {} }
 
-export default function EditMemberForm({ member }: { member: EditableMember }) {
-  const updateMemberAction = updateMember.bind(null, member.id)
+type EditMemberFormAction = (
+  prevValue: UpdateMemberFormState,
+  formData: FormData,
+) => Promise<UpdateMemberFormState>
+
+type EditMemberFormProps = {
+  member: EditableMember
+  action?: EditMemberFormAction
+}
+
+export default function EditMemberForm({ member, action }: EditMemberFormProps) {
+  const updateMemberAction = action ?? updateMember.bind(null, member.id)
   const [state, formAction, isPending] = useActionState(updateMemberAction, initialState)
   const [fullName, setFullName] = useState(member.full_name)
   const [email, setEmail] = useState(member.email)
