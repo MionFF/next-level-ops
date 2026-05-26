@@ -405,3 +405,82 @@ Follow-up needed:
 
 - Add tests for completed and in-progress bookings not exposing cancellation.
 - Verify server-side cancellation does not allow invalid cancellation paths during Milestone 7B.
+
+## 2026-05-21 — 2026-05-26
+
+### Milestone 7B testing strategy and quality gate
+
+- Milestone 7B adds a pragmatic MVP quality gate instead of chasing 100% test coverage.
+- Test coverage focuses on critical product paths, role boundaries, destructive flows, and high-risk business logic.
+- Unit tests cover pure model/domain helpers once, including derived statuses and sorting logic for sessions and bookings.
+- Logic covered at the unit layer is not repeatedly re-tested through RTL unless user-visible behavior requires it.
+- RTL tests focus on isolated UI contracts: form rendering, submitted `FormData`, validation/action errors, filters, list states, cancellation controls, and auth form UI behavior.
+- RTL tests intentionally avoid Supabase auth, protected routing, RLS, cookies, and implementation details.
+- Form components expose server actions through optional `action` props to make client UI behavior testable without changing production behavior.
+- Shared RTL test helpers are allowed when duplication becomes painful, such as extracting submitted `FormData`.
+- E2E tests complement RTL tests; they do not replace lower-level tests.
+- E2E tests cover real auth, protected role-based routes, server actions, Supabase mutations, RLS/RPC-sensitive flows, URL search params, and cross-role cancellation behavior.
+- E2E tests intentionally cover only the most valuable flows:
+  - auth/access boundaries
+  - admin member create/edit/filter flow
+  - admin trainer/member/session/booking creation flow
+  - admin booking cancellation
+  - client own-booking cancellation
+  - sessions/bookings discoverability through URL params
+  - admin/client navigation smoke
+- Not every component, validation branch, filter combination, class name, or CRUD path is covered by E2E.
+- Dedicated E2E admin and client auth accounts are used for Playwright tests.
+- E2E credentials are stored in `.env.local` and documented as empty keys in `.env.example`.
+- The E2E client account is linked to a stable `Fixture Client Member` through `profiles.member_id`.
+- E2E-created data uses the `E2E ` prefix so test records can be identified and cleaned safely.
+- Stable fixtures use the `Fixture ` prefix and must not be removed by cleanup scripts.
+- E2E tests create real trainers, members, sessions, and bookings through the UI instead of mocking Supabase.
+- A manual SQL cleanup script is kept in `scripts/cleanup-e2e-data.sql` and should be run from Supabase SQL Editor when test data cleanup is needed.
+- Cleanup targets `E2E ` records only and must not unlink or delete stable fixture records.
+- Playwright is configured to run with one worker because tests share a real Supabase project and stable auth fixtures.
+- Playwright browser installation is limited to Chromium for the MVP testing stage.
+- Coverage is used as a snapshot/reporting tool, not as a target that forces low-value tests.
+
+Reason:
+
+- Provides a strong hiring-grade quality signal without turning the portfolio project into a test-count exercise.
+- Keeps tests focused on production risk: auth, roles, server actions, RLS/RPC-sensitive mutations, CRUD, filters, cancellation, and routing.
+- Keeps form UI testable without mocking Supabase-backed server actions or changing production behavior.
+- Avoids brittle tests that duplicate implementation details or assert styling instead of behavior.
+- Keeps the testing suite maintainable for a solo developer while still proving full-stack behavior.
+- Preserves clear separation between fast RTL/unit confidence and slower realistic E2E confidence.
+- Allows real Supabase-backed E2E flows without polluting the database permanently.
+- Protects stable client fixture data from cleanup mistakes.
+- Keeps E2E runtime predictable and reduces flakes caused by parallel access to shared auth users and database state.
+
+Alternatives considered:
+
+- Chasing 100% test coverage.
+- Testing every UI component and every class name.
+- Testing every form validation branch through E2E.
+- Mocking Supabase in E2E.
+- Using generated fixture records without cleanup conventions.
+- Using permanent fixture trainers/members for all admin E2E flows.
+- Running Playwright tests in parallel workers.
+- Adding Cypress or an additional test runner.
+- Adding MSW before a clear need existed.
+
+Trade-offs:
+
+- Some lower-risk UI branches remain untested.
+- E2E tests depend on a real Supabase project and stable test users.
+- E2E tests are slower than RTL and require environment setup.
+- Form component APIs are slightly wider because test actions can be injected, but this avoids a larger container/presentational refactor during the MVP stage.
+- Cleanup is manual through SQL Editor for now.
+- Stable fixture data must be protected by naming conventions.
+- Playwright runs serially, so the E2E suite is slower but more reliable.
+- The suite proves critical behavior, not exhaustive correctness of every possible state.
+
+Follow-up needed:
+
+- Run `npm run quality` and `npm run e2e` before merging testing changes.
+- Run `npm run test:coverage` when a coverage snapshot is useful.
+- Keep `/coverage` ignored and exclude generated coverage output from ESLint.
+- Run the E2E cleanup SQL script manually when test data accumulates.
+- Revisit automated cleanup only if manual SQL cleanup becomes painful.
+- Keep future tests focused on critical behavior, not coverage inflation.
