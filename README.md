@@ -14,18 +14,33 @@ Current focus: packaging, documentation, screenshots, and presentation polish.
 
 ## Screenshots
 
-Screenshots will be added during the packaging stage.
+### Admin dashboard overview
 
-<!--
-Suggested screenshots:
-- Admin dashboard overview
-- Members screen
-- Sessions discoverability
-- Bookings discoverability
-- Client cabinet overview
-- Client bookings / cancellation flow
-- Mobile navigation
--->
+![Admin dashboard overview](docs/assets/screenshots/admin-dashboard-overview.png)
+
+### Members screen
+
+![Members screen](docs/assets/screenshots/admin-members.png)
+
+### Sessions discoverability
+
+![Sessions discoverability](docs/assets/screenshots/admin-sessions-discoverability.png)
+
+### Bookings discoverability
+
+![Bookings discoverability](docs/assets/screenshots/admin-bookings-discoverability.png)
+
+### Client cabinet overview
+
+![Client cabinet overview](docs/assets/screenshots/client-cabinet-overview.png)
+
+### Client bookings and cancellation
+
+![Client bookings and cancellation](docs/assets/screenshots/client-bookings-cancellation.png)
+
+### Mobile navigation
+
+![Mobile navigation](docs/assets/screenshots/mobile-navigation.png)
 
 ## Core features
 
