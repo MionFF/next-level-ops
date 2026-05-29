@@ -42,6 +42,13 @@ Current focus: packaging, documentation, screenshots, and presentation polish.
 
 ![Mobile navigation](docs/assets/screenshots/mobile-navigation.png)
 
+## Demo
+
+Hosted demo and local demo instructions:
+
+- https://next-level-ops.vercel.app
+- [Demo Instructions](docs/demo.md)
+
 ## Core features
 
 ### Admin
