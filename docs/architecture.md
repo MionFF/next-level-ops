@@ -29,7 +29,7 @@ High-level route areas:
 /dashboard
 /dashboard/members
 /dashboard/trainers
-/dashboard/membership-plans
+/dashboard/plans
 /dashboard/sessions
 /dashboard/bookings
 /cabinet

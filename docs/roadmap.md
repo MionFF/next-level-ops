@@ -1,5 +1,8 @@
 # Next Level Ops — MVP Roadmap
 
+> Historical roadmap for the completed MVP phase.
+> The current post-MVP hardening plan lives in [Post-MVP Roadmap](./post-mvp-roadmap.md).
+
 ## Milestone 0 — Foundation
 
 - visual direction
