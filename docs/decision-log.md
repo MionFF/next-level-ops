@@ -484,3 +484,29 @@ Follow-up needed:
 - Run the E2E cleanup SQL script manually when test data accumulates.
 - Revisit automated cleanup only if manual SQL cleanup becomes painful.
 - Keep future tests focused on critical behavior, not coverage inflation.
+
+## 2026-06-25
+
+### Post-MVP hardening arc
+
+- MVP is complete.
+- The project is moving into a post-MVP hardening arc.
+- `docs/roadmap.md` remains the historical MVP roadmap.
+- `docs/post-mvp-roadmap.md` becomes the current execution roadmap.
+- Milestone 0 is limited to documentation alignment and does not change product behavior.
+
+Reason:
+
+- The next phase should be driven by production priorities instead of ad hoc feature work.
+- Access-control boundaries, business invariants, manual MVP workflows, operational scalability, loading/performance, and final packaging need a clear sequence.
+- Keeping MVP and post-MVP roadmaps separate prevents documentation drift and scope confusion.
+
+Trade-offs:
+
+- No runtime behavior changes are included in this milestone.
+- Feature work is intentionally deferred until the baseline documentation contract is merged.
+
+Follow-up needed:
+
+- Start Milestone 1 only after this baseline PR is merged.
+- Use the post-MVP roadmap as the execution contract for the next PRs.

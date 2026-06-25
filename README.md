@@ -10,7 +10,11 @@ Next Level Ops helps studio staff manage members, trainers, membership plans, se
 
 MVP complete.
 
-Current focus: packaging, documentation, screenshots, and presentation polish.
+Current focus: post-MVP hardening: access-control boundaries, business invariants, manual workflow reduction, operational scalability, performance/loading, and documentation alignment.
+
+See the current roadmap:
+
+- [Post-MVP Roadmap](docs/post-mvp-roadmap.md)
 
 ## Screenshots
 
