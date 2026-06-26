@@ -78,6 +78,8 @@ Supabase Auth owns authentication identity through `auth.users`.
 
 `public.profiles` is the application-level user profile table. It stores the app role (`admin` or `client`) and, for client users, can link the authenticated profile to a real studio member through `profiles.member_id`.
 
+`profiles.role` and `profiles.member_id` are access-control fields. Authenticated users may read their own profile and may update only safe self-service fields such as `full_name`. Users must not be able to self-assign roles or self-link to members. Role assignment and member linking remain system/admin-controlled flows.
+
 ### Members
 
 `public.members` represents real fitness studio clients. Members are business records managed by admins. They are not automatically created when someone signs up.

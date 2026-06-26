@@ -510,3 +510,31 @@ Follow-up needed:
 
 - Start Milestone 1 only after this baseline PR is merged.
 - Use the post-MVP roadmap as the execution contract for the next PRs.
+
+## 2026-06-26
+
+### Profile access-control hardening
+
+- Replaced the broad `Users can update own profile` policy with a narrower own-profile update policy.
+- Authenticated users may update only their own `full_name`.
+- Authenticated users cannot self-update `profiles.role`.
+- Authenticated users cannot self-update `profiles.member_id`.
+- Own-profile read access remains available.
+- Role assignment and profile-member linking remain system/admin-controlled.
+
+Reason:
+
+- `profiles.role` controls access to admin/client areas.
+- `profiles.member_id` controls client ownership of member, membership, booking, session, trainer, and plan data.
+- These fields are access-control boundaries and must not be client-controlled.
+
+Trade-offs:
+
+- The app does not add profile editing UI in this milestone.
+- Admin role assignment and profile-member linking remain manual/admin-controlled until later milestones.
+- This milestone hardens the database boundary without expanding product behavior.
+
+Follow-up needed:
+
+- Implement admin-controlled profile-member linking in the dedicated post-MVP milestone.
+- Keep future profile editing limited to safe self-service fields unless explicitly reviewed.
