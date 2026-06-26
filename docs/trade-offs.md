@@ -75,6 +75,12 @@ Some setup work requires Supabase SQL Editor or manual database updates.
 
 Add admin UI for linking profiles to members and managing user roles safely.
 
+### Post-MVP hardening note
+
+Profile self-updates are restricted to safe fields only. Authenticated users may update their own `full_name`, but cannot self-update `profiles.role` or `profiles.member_id`.
+
+This keeps role assignment and profile-member linking controlled by system/admin flows instead of client-controlled updates.
+
 ## Auth user, profile, and member are separate concepts
 
 ### Decision
