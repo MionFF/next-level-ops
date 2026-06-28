@@ -1,6 +1,7 @@
 import {
   getBookingDisplayBadge,
   getDerivedBookingStatus,
+  canCancelBooking,
   isDerivedBookingStatus,
   sortBookings,
   type Booking,
@@ -108,6 +109,70 @@ describe('booking model', () => {
       })
 
       expect(getDerivedBookingStatus(booking)).toBe('confirmed')
+    })
+  })
+
+  describe('canCancelBooking', () => {
+    it('returns true for future confirmed booking', () => {
+      const booking = createBooking({
+        status: 'confirmed',
+        session: {
+          id: 'future-session',
+          title: 'Future Session',
+          starts_at: '2026-05-22T10:00:00.000Z',
+          ends_at: '2026-05-22T11:00:00.000Z',
+          trainer: null,
+        },
+      })
+
+      expect(canCancelBooking(booking, NOW)).toBe(true)
+    })
+
+    it('returns false for cancelled booking', () => {
+      const booking = createBooking({
+        status: 'cancelled',
+      })
+
+      expect(canCancelBooking(booking, NOW)).toBe(false)
+    })
+
+    it('returns false for in-progress booking', () => {
+      const booking = createBooking({
+        status: 'confirmed',
+        session: {
+          id: 'current-session',
+          title: 'Current Session',
+          starts_at: '2026-05-21T11:00:00.000Z',
+          ends_at: '2026-05-21T13:00:00.000Z',
+          trainer: null,
+        },
+      })
+
+      expect(canCancelBooking(booking, NOW)).toBe(false)
+    })
+
+    it('returns false for completed booking', () => {
+      const booking = createBooking({
+        status: 'confirmed',
+        session: {
+          id: 'past-session',
+          title: 'Past Session',
+          starts_at: '2026-05-21T09:00:00.000Z',
+          ends_at: '2026-05-21T10:00:00.000Z',
+          trainer: null,
+        },
+      })
+
+      expect(canCancelBooking(booking, NOW)).toBe(false)
+    })
+
+    it('returns false when booking has no session data', () => {
+      const booking = createBooking({
+        status: 'confirmed',
+        session: null,
+      })
+
+      expect(canCancelBooking(booking, NOW)).toBe(false)
     })
   })
 

@@ -58,7 +58,24 @@ export function getDerivedBookingStatus(booking: Booking): DerivedBookingStatus 
   return 'confirmed'
 }
 
-/** Sort priority: confirmed < in_progress < completed < cancelled */
+export type CancellableBooking = {
+  status: BookingStatus
+  session: { starts_at: string } | null
+}
+
+export function canCancelBooking(booking: CancellableBooking, now = new Date()): boolean {
+  if (booking.status !== 'confirmed') {
+    return false
+  }
+
+  if (!booking.session?.starts_at) {
+    return false
+  }
+
+  return new Date(booking.session.starts_at) > now
+}
+
+// Sort priority: confirmed < in_progress < completed < cancelled
 const derivedStatusSortOrder: Record<DerivedBookingStatus, number> = {
   confirmed: 0,
   in_progress: 1,
