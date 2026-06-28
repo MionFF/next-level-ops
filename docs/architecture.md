@@ -164,6 +164,14 @@ Most product mutations are implemented with server actions.
 
 Server actions handle form submissions, validate data, call Supabase, and trigger revalidation where needed. Form components use `useActionState` and expose optional action props for test injection, while production defaults still use the real server actions.
 
+### Booking invariants
+
+Admin booking creation uses the constrained `public.create_admin_booking` RPC. The server action validates the form and admin access, then delegates session/member validation, future-session checks, capacity enforcement, duplicate confirmed booking prevention, and insert behavior to the RPC.
+
+The RPC locks the target session row during creation, so concurrent booking attempts for the same session cannot bypass capacity checks.
+
+Admin cancellation remains a server action, but it is guarded by the shared booking domain rule: only future confirmed bookings can be cancelled.
+
 This keeps production behavior unchanged while making UI behavior testable without mocking Supabase-backed actions.
 
 ## Client booking cancellation

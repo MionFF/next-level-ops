@@ -538,3 +538,30 @@ Follow-up needed:
 
 - Implement admin-controlled profile-member linking in the dedicated post-MVP milestone.
 - Keep future profile editing limited to safe self-service fields unless explicitly reviewed.
+
+## 2026-06-26
+
+### Booking business invariants hardening
+
+- Moved admin booking creation invariants into a constrained Supabase RPC: `public.create_admin_booking`.
+- The RPC checks that the caller is an authenticated admin.
+- The RPC validates that the session exists, the member exists, the session is not cancelled, and the session is still in the future.
+- The RPC enforces capacity before insert and prevents duplicate confirmed bookings for the same member/session pair.
+- Booking creation is serialized per session row with `FOR UPDATE` to avoid the `count confirmed -> insert` race window.
+- Admin booking cancellation now checks that a booking is both confirmed and linked to a future session before allowing cancellation.
+
+Reason:
+
+- Booking capacity and duplicate prevention are business invariants, not just UI/server-action conveniences.
+- Admin cancellation must not rely only on UI-derived booking status.
+- The database-backed workflow keeps critical booking creation rules close to the data.
+
+Trade-offs:
+
+- `createBooking` server action now orchestrates form validation, auth guard, RPC call, message mapping, revalidation, and redirect.
+- Admin cancellation remains a server action guarded by a shared domain helper.
+- No client self-booking, waitlists, payments, or new booking statuses were added.
+
+Follow-up needed:
+
+- Keep future booking lifecycle changes aligned between UI, server actions, and RPC/database rules.
