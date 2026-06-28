@@ -14,6 +14,43 @@ export type CreateBookingFormState = {
   }
 }
 
+type CreateAdminBookingResult =
+  | {
+      ok: true
+      booking_id: string
+    }
+  | {
+      ok: false
+      code: string
+    }
+
+function isCreateAdminBookingResult(value: unknown): value is CreateAdminBookingResult {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  if (!('ok' in value) || typeof value.ok !== 'boolean') {
+    return false
+  }
+
+  if (value.ok === true) {
+    return 'booking_id' in value && typeof value.booking_id === 'string'
+  }
+
+  return 'code' in value && typeof value.code === 'string'
+}
+
+const createBookingErrorMessages: Record<string, string> = {
+  not_admin: 'You are not allowed to create bookings.',
+  session_not_found: 'Selected session was not found.',
+  member_not_found: 'Selected member was not found.',
+  session_cancelled: 'This session is cancelled.',
+  session_not_future: 'This session is no longer available for booking.',
+  session_full: 'This session is fully booked.',
+  duplicate_booking: 'This member already has a booking for this session.',
+  insert_failed: 'Could not create booking. Please try again.',
+}
+
 export async function createBooking(
   _prevValue: CreateBookingFormState,
   formData: FormData,
@@ -45,64 +82,24 @@ export async function createBooking(
   const { sessionId, memberId } = validated.data
   const supabase = await createClient()
 
-  const { data: session, error: sessionError } = await supabase
-    .from('sessions')
-    .select('id, status, capacity, starts_at, ends_at')
-    .eq('id', sessionId)
-    .single()
-
-  if (sessionError || !session) {
-    return { message: 'Could not create booking. Please try again.' }
-  }
-
-  if (session.status === 'cancelled') {
-    return { message: 'This session is cancelled.' }
-  }
-
-  const now = new Date()
-
-  if (new Date(session.starts_at) <= now || new Date(session.ends_at) <= now) {
-    return { message: 'This session is no longer available for booking.' }
-  }
-
-  const { count: confirmedCount, error: countError } = await supabase
-    .from('bookings')
-    .select('id', { count: 'exact', head: true })
-    .eq('session_id', sessionId)
-    .eq('status', 'confirmed')
-
-  if (countError) {
-    return { message: 'Could not create booking. Please try again.' }
-  }
-
-  if (confirmedCount != null && confirmedCount >= session.capacity) {
-    return { message: 'This session is fully booked.' }
-  }
-
-  const { data: existingBooking, error: duplicateError } = await supabase
-    .from('bookings')
-    .select('id')
-    .eq('session_id', sessionId)
-    .eq('member_id', memberId)
-    .eq('status', 'confirmed')
-    .maybeSingle()
-
-  if (duplicateError) {
-    return { message: 'Could not create booking. Please try again.' }
-  }
-
-  if (existingBooking) {
-    return { message: 'This member already has a booking for this session.' }
-  }
-
-  const { error: insertError } = await supabase.from('bookings').insert({
-    session_id: sessionId,
-    member_id: memberId,
-    status: 'confirmed',
+  const { data: result, error } = await supabase.rpc('create_admin_booking', {
+    p_session_id: sessionId,
+    p_member_id: memberId,
   })
 
-  if (insertError) {
+  if (error) {
     return { message: 'Could not create booking. Please try again.' }
+  }
+
+  if (!isCreateAdminBookingResult(result)) {
+    return { message: 'Could not create booking. Please try again.' }
+  }
+
+  if (!result.ok) {
+    return {
+      message:
+        createBookingErrorMessages[result.code] ?? 'Could not create booking. Please try again.',
+    }
   }
 
   revalidatePath('/dashboard/bookings')

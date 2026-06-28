@@ -57,6 +57,34 @@ Membership assignment is manual and does not represent a real paid subscription 
 
 Add payments only after the operational model is stable.
 
+## Booking creation RPC
+
+### Decision
+
+Admin booking creation is handled through a constrained Supabase RPC: `public.create_admin_booking`.
+
+### Reason
+
+Booking creation depends on business invariants that must stay consistent under concurrent requests:
+
+- the caller must be an admin;
+- the session must exist;
+- the member must exist;
+- the session must not be cancelled;
+- the session must be in the future;
+- the session must not be full;
+- the member must not already have a confirmed booking for the same session.
+
+The RPC serializes booking creation per session row with `FOR UPDATE`, avoiding the `count confirmed -> insert` race window.
+
+### Trade-off
+
+The server action becomes thinner and delegates core booking creation rules to the database-backed workflow. This adds RPC complexity, but keeps capacity and duplicate protection closer to the data.
+
+### Future improvement
+
+If booking rules grow, keep extending the constrained RPC deliberately instead of spreading critical invariants across UI-only checks.
+
 ## Manual role and profile-member linking
 
 ### Decision
