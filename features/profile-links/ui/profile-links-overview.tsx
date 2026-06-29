@@ -1,4 +1,6 @@
 import type { ClientProfile, LinkedProfileMemberPair, MemberOption } from '../model/profile-link'
+import ProfileLinkForm from './profile-link-form'
+import UnlinkProfileMemberButton from './unlink-profile-member-button'
 
 type ProfileLinksOverviewProps = {
   unlinkedProfiles: ClientProfile[]
@@ -145,7 +147,9 @@ export default function ProfileLinksOverview({
                           <td className='px-4 py-3 text-[var(--muted)]'>
                             <div className='truncate'>{pair.member.email}</div>
                           </td>
-                          <td className='px-4 py-3 text-right text-[var(--muted)]'>—</td>
+                          <td className='px-4 py-3 text-right'>
+                            <UnlinkProfileMemberButton profileId={pair.profile.id} />
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -190,7 +194,9 @@ export default function ProfileLinksOverview({
                           <p className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                             Actions
                           </p>
-                          <p className='mt-1 text-sm text-[var(--muted)]'>—</p>
+                          <div className='mt-2'>
+                            <UnlinkProfileMemberButton profileId={pair.profile.id} />
+                          </div>
                         </div>
                       </div>
                     </li>
@@ -205,6 +211,8 @@ export default function ProfileLinksOverview({
               title='Ready to link'
               description='Profiles and members currently available for the next linking step.'
             />
+
+            <ProfileLinkForm profiles={unlinkedProfiles} members={unlinkedMembers} />
 
             <div className='grid min-w-0 gap-4 lg:grid-cols-2'>
               <PreviewCard
