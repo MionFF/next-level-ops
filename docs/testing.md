@@ -2,7 +2,7 @@
 
 Next Level Ops uses testing as an MVP quality gate, not as a 100% coverage target.
 
-The goal is to protect critical product behavior: auth, role boundaries, forms, filters, booking flows, cancellation, and navigation.
+The goal is to protect critical product behavior: auth, role boundaries, forms, filters, booking flows, cancellation, profile-member linking, and navigation.
 
 ## Test layers
 
@@ -31,6 +31,7 @@ Covered areas:
 - filters and discoverability controls
 - list empty/error states
 - cancellation controls
+- profile-member linking UI states and form submissions
 - submitted `FormData`
 - validation and action error rendering
 
@@ -50,6 +51,7 @@ Covered flows:
 - admin booking cancellation
 - client cabinet access
 - client own-booking cancellation
+- admin profile-member linking and unlinking
 - sessions/bookings discoverability through URL params
 - admin/client navigation smoke
 
@@ -57,11 +59,19 @@ E2E tests use dedicated admin/client test accounts and stable fixture data.
 
 ## E2E data strategy
 
-E2E-created records use the `E2E ` prefix so they can be identified and cleaned safely.
+E2E-created records use generated `E2E ... e2e-<timestamp>` names so they can be identified and cleaned safely.
 
-Stable fixture records use the `Fixture ` prefix and should not be removed by cleanup scripts.
+Stable fixture records must not match the generated cleanup pattern and should not be removed by cleanup scripts.
 
 Cleanup is handled manually through `scripts/cleanup-e2e-data.sql` when test data accumulates.
+
+## E2E stability notes
+
+Playwright runs with one worker because the suite uses a real Supabase project, shared auth test accounts, and stable fixture data.
+
+E2E helpers wait for app readiness before submitting server-action forms. This avoids clicking submit before the Next.js client router/action layer is ready during cold starts or dev-server reloads.
+
+Cancellation tests wait for deterministic UI outcomes instead of `networkidle`, because the app can keep background requests open during Supabase-backed flows.
 
 ## Commands
 

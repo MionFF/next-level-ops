@@ -30,6 +30,7 @@ High-level route areas:
 /dashboard/members
 /dashboard/trainers
 /dashboard/plans
+/dashboard/profile-links
 /dashboard/sessions
 /dashboard/bookings
 /cabinet
@@ -158,6 +159,36 @@ This is why `profiles.member_id` exists: the cabinet starts from the currently a
 
 If a client profile is not linked to a member record, the cabinet can render an empty/unlinked state instead of exposing unrelated data.
 
+## Profile-member linking workflow
+
+Client sign-up creates an app profile, but it does not create a studio member record automatically.
+
+Admins manage the profile-member relationship from `/dashboard/profile-links`. The page shows:
+
+- unlinked client profiles
+- unlinked studio members
+- current linked profile-member pairs
+
+Linking and unlinking are intentionally admin-controlled because `profiles.member_id` is an access-control field for the client cabinet ownership chain.
+
+The UI does not update `profiles.member_id` through broad table update access. It calls constrained Supabase RPCs:
+
+```txt
+public.link_profile_to_member(p_profile_id uuid, p_member_id uuid)
+public.unlink_profile_from_member(p_profile_id uuid)
+```
+
+The RPCs:
+
+- require the caller to be an admin
+- allow linking only client profiles
+- prevent linking an already linked profile
+- prevent linking a member that is already linked to another profile
+- update only `public.profiles.member_id`
+- return structured success/error codes for server action message mapping
+
+If a profile is unlinked, the client cabinet keeps rendering the unlinked state instead of exposing unrelated member data.
+
 ## Mutation model
 
 Most product mutations are implemented with server actions.
@@ -258,8 +289,8 @@ Testing is treated as an MVP quality gate, not as a 100% coverage target.
 Test layers:
 
 - **Unit tests** cover pure model/domain helpers such as derived statuses and sorting logic.
-- **RTL tests** cover UI contracts: forms, validation/action errors, filters, lists, auth forms, and cancellation controls.
-- **E2E tests** cover critical full-stack flows with real Supabase-backed behavior: auth/access, admin CRUD, booking creation/cancellation, client cancellation, discoverability, and navigation smoke.
+- **RTL tests** cover UI contracts: forms, validation/action errors, filters, lists, auth forms, cancellation controls, and profile-member linking UI.
+- **E2E tests** cover critical full-stack flows with real Supabase-backed behavior: auth/access, admin CRUD, booking creation/cancellation, client cancellation, profile-member linking, discoverability, and navigation smoke.
 
 E2E tests use dedicated admin/client test accounts and stable fixture data. Test-created records use an `E2E ` prefix so they can be cleaned safely.
 
@@ -271,7 +302,7 @@ Database schema is versioned under `supabase/migrations`.
 
 Migrations document schema changes, RLS policies, triggers, indexes, and RPC functions required for the app to work. Structural database changes should be captured in migrations rather than living only in the Supabase UI or SQL Editor.
 
-Some MVP setup still requires manual database work, such as assigning admin roles or linking a client profile to a member record. Those are accepted MVP trade-offs, not hidden product features.
+Some setup still requires manual database work, such as assigning admin roles. Client profile-to-member linking is now handled through the admin profile links workflow.
 
 ## Known limitations
 
@@ -282,7 +313,6 @@ The MVP intentionally does not include:
 - trainer portal
 - advanced analytics
 - automatic member lifecycle/payment automation
-- automated admin UI for profile-member linking
 - light theme
 - localization
 - custom backend outside Supabase

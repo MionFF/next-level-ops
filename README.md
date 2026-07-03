@@ -64,6 +64,7 @@ Hosted demo and local demo instructions:
 - Sessions management
 - Booking creation
 - Booking cancellation
+- Profile-member linking management
 - URL-driven search and filters
 - Operational sorting and derived statuses
 - Responsive dashboard shell
@@ -85,6 +86,7 @@ Hosted demo and local demo instructions:
 - Role-aware root redirect
 - Forbidden page for invalid role access
 - Supabase RLS-backed data boundaries
+- Admin-controlled profile-member linking through constrained RPCs
 - RPC-based client cancellation flow
 
 ## Tech stack
@@ -125,6 +127,7 @@ Important architecture decisions:
 - Server actions handle mutations.
 - Client components are used only for interactive UI.
 - Auth users, app profiles, and studio members are separate concepts.
+- Client profile-to-member linking is admin-controlled and handled through constrained RPCs.
 - Route protection and database-level access control are treated as separate layers.
 - Client booking cancellation is handled through a constrained database RPC instead of broad direct table updates.
 
@@ -185,6 +188,7 @@ Cover user-facing UI behavior:
 - auth UI
 - validation/action errors
 - cancellation controls
+- profile-member linking UI states
 
 ### Playwright E2E tests
 
@@ -197,6 +201,7 @@ Cover critical full-stack flows:
 - client cabinet access
 - client own-booking cancellation
 - sessions/bookings discoverability
+- admin profile-member linking flow
 - admin/client navigation smoke
 
 Testing details:
@@ -251,8 +256,9 @@ supabase/migrations
 Some MVP setup is manual:
 
 - assign admin role
-- create/link client profile to a member
 - prepare stable E2E fixtures if running Playwright tests
+
+Client profile-to-member linking is handled from `/dashboard/profile-links` after admin access is configured.
 
 ### 5. Run the development server
 
@@ -315,7 +321,6 @@ The MVP intentionally does not include:
 - trainer portal
 - advanced analytics
 - automatic membership lifecycle automation
-- automated admin UI for profile-member linking
 - light theme
 - localization
 - custom backend outside Supabase
@@ -345,6 +350,7 @@ It shows:
 - Supabase Auth/RLS/RPC integration
 - typed forms and mutations
 - URL-driven discoverability
+- secure profile-member linking flow
 - secure cancellation flow
 - responsive dashboard UX
 - unit, RTL, and E2E testing strategy

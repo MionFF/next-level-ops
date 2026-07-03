@@ -565,3 +565,51 @@ Trade-offs:
 Follow-up needed:
 
 - Keep future booking lifecycle changes aligned between UI, server actions, and RPC/database rules.
+
+## 2026-07-03
+
+### Profile-member linking workflow
+
+- Added `/dashboard/profile-links` as the admin workflow for managing client profile-to-member links.
+- The page shows unlinked client profiles, unlinked members, and current linked pairs.
+- Admins can link one client profile to one available member.
+- Admins can unlink an existing profile-member pair.
+- Linking and unlinking use constrained Supabase RPCs:
+  - `public.link_profile_to_member(p_profile_id uuid, p_member_id uuid)`
+  - `public.unlink_profile_from_member(p_profile_id uuid)`
+- The RPCs update only `public.profiles.member_id`.
+- Direct broad profile updates remain unavailable for access-control fields.
+- Client self-linking, invite flows, Auth Admin API user lookup, profile creation, member creation, search, pagination, and advanced CRM behavior are out of scope.
+- The client cabinet continues to render an unlinked state when `profiles.member_id` is missing.
+- The workflow is covered by RTL and Playwright E2E tests.
+
+Reason:
+
+- `profiles.member_id` controls the client cabinet ownership chain.
+- Manual SQL linking was an MVP setup cost and a post-MVP operational blocker.
+- Linking must be admin-controlled because a client must not be able to attach their profile to arbitrary member data.
+- A constrained RPC keeps the mutation narrow and auditable without granting broad update access to `public.profiles`.
+- A dedicated page keeps the workflow explicit instead of overloading the members screen.
+
+Alternatives considered:
+
+- Keep profile-member linking manual in Supabase SQL Editor.
+- Let clients self-link to member records.
+- Add profile linking directly to the members page.
+- Build a broader user-management or invite system.
+- Use Supabase Auth Admin API for email-based user lookup.
+- Add search, pagination, or profile/member creation inside the linking page.
+
+Trade-offs:
+
+- Admins now have a real internal workflow for linking profiles to members.
+- The workflow uses simple native selects and overview sections instead of advanced searchable controls.
+- The page loads current profiles and members for a small operational dataset.
+- Larger datasets may need search, pagination, or member/profile indicators later.
+- Admin role assignment remains manual.
+
+Follow-up needed:
+
+- Surface linked/unlinked indicators in the members operations table during the members table milestone.
+- Revisit search/pagination for profile links only if data volume makes native selects painful.
+- Keep future user-management work separate from the profile-member linking boundary.

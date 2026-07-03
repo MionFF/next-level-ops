@@ -85,29 +85,32 @@ The server action becomes thinner and delegates core booking creation rules to t
 
 If booking rules grow, keep extending the constrained RPC deliberately instead of spreading critical invariants across UI-only checks.
 
-## Manual role and profile-member linking
+## Manual admin role assignment, admin-managed profile-member linking
 
 ### Decision
 
-Admin role assignment and client profile-to-member linking are handled manually for the MVP.
+Admin role assignment remains manual. Client profile-to-member linking is now handled through a dedicated admin workflow at `/dashboard/profile-links`.
 
 ### Reason
 
-This prevents privilege escalation and avoids building internal admin tooling too early.
+`profiles.role` and `profiles.member_id` are access-control fields. Users must not be able to self-assign admin access or self-link to arbitrary member records.
+
+The project keeps admin role assignment manual to avoid adding user-management scope. Profile-member linking, however, became a necessary internal workflow because the client cabinet depends on a correct `auth user -> profile -> member` chain.
 
 ### Trade-off
 
-Some setup work requires Supabase SQL Editor or manual database updates.
+The app now has operational UI for linking client profiles to member records, but it still does not include full user administration, invite flows, Supabase Auth Admin API integration, or client self-linking.
+
+The linking page uses native selects and simple overview sections. Search, pagination, member/profile creation, and advanced CRM behavior are intentionally out of scope for this milestone.
 
 ### Future improvement
 
-Add admin UI for linking profiles to members and managing user roles safely.
+Add deeper user lifecycle tooling only if it becomes part of the product scope:
 
-### Post-MVP hardening note
-
-Profile self-updates are restricted to safe fields only. Authenticated users may update their own `full_name`, but cannot self-update `profiles.role` or `profiles.member_id`.
-
-This keeps role assignment and profile-member linking controlled by system/admin flows instead of client-controlled updates.
+- admin user creation or invites
+- safer admin role management UI
+- search/pagination for larger profile/member lists
+- profile-link indicators in the members operations table
 
 ## Auth user, profile, and member are separate concepts
 
