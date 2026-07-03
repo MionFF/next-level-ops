@@ -42,7 +42,9 @@ test.describe('booking cancellation flows', () => {
       .first()
       .click()
 
-    await page.waitForLoadState('networkidle')
+    await expect(targetBooking.filter({ hasText: 'Cancelled' }).first()).toBeVisible({
+      timeout: 15_000,
+    })
     await page.reload({ waitUntil: 'domcontentloaded' })
 
     const cancelledBooking = bookingItem(page, sessionTitle).filter({ hasText: memberName })
@@ -85,7 +87,7 @@ test.describe('booking cancellation flows', () => {
       .first()
       .click()
 
-    await clientPage.waitForLoadState('networkidle')
+    await expect(bookingItem(clientPage, sessionTitle)).toHaveCount(0, { timeout: 15_000 })
     await clientPage.reload({ waitUntil: 'domcontentloaded' })
 
     await expect(bookingItem(clientPage, sessionTitle)).toHaveCount(0)
