@@ -1,9 +1,9 @@
 export function getSubmittedFormData(action: jest.Mock) {
-  const formData = action.mock.calls[0]?.[1] as FormData | undefined
+  const submittedValue = action.mock.calls[0]?.[1]
 
-  if (!formData) {
+  if (!(submittedValue instanceof FormData)) {
     throw new Error('Expected action to be called with FormData')
   }
 
-  return formData
+  return submittedValue
 }

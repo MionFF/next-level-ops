@@ -18,3 +18,9 @@ export async function selectOptionByText(page: Page, label: string, text: string
 
   await select.selectOption(value)
 }
+
+export async function waitForAppReady(page: Page) {
+  await page.waitForLoadState('domcontentloaded')
+  await page.waitForFunction(() => document.readyState !== 'loading')
+  await page.locator('body').evaluate(() => new Promise(requestAnimationFrame))
+}
