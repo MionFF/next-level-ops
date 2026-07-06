@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { memberStatusLabels, type MemberDetails as MemberDetailsType } from '../model/member'
+import type { MemberMembership } from '../model/member-membership'
 import { formatDate } from '@/shared/lib/format-date'
+import { MemberMembershipSection } from './member-membership-section'
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
@@ -11,7 +13,13 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function MemberDetails({ member }: { member: MemberDetailsType }) {
+export function MemberDetails({
+  member,
+  memberships,
+}: {
+  member: MemberDetailsType
+  memberships: MemberMembership[]
+}) {
   return (
     <>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
@@ -47,6 +55,8 @@ export function MemberDetails({ member }: { member: MemberDetailsType }) {
           <DetailItem label='Updated' value={formatDate(member.updated_at)} />
         </dl>
       </section>
+
+      <MemberMembershipSection memberships={memberships} />
     </>
   )
 }
