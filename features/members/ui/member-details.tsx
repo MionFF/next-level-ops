@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { memberStatusLabels, type MemberDetails as MemberDetailsType } from '../model/member'
-import type { MemberMembership } from '../model/member-membership'
+import type { MemberMembership, MemberMembershipPlanOption } from '../model/member-membership'
 import { formatDate } from '@/shared/lib/format-date'
 import { MemberMembershipSection } from './member-membership-section'
 
@@ -16,9 +16,11 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 export function MemberDetails({
   member,
   memberships,
+  activePlans,
 }: {
   member: MemberDetailsType
   memberships: MemberMembership[]
+  activePlans: MemberMembershipPlanOption[]
 }) {
   return (
     <>
@@ -56,7 +58,11 @@ export function MemberDetails({
         </dl>
       </section>
 
-      <MemberMembershipSection memberships={memberships} />
+      <MemberMembershipSection
+        memberId={member.id}
+        memberships={memberships}
+        activePlans={activePlans}
+      />
     </>
   )
 }

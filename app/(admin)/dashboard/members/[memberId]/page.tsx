@@ -2,6 +2,7 @@ import { MemberDetails, MemberDetailsError } from '@/features/members/ui/member-
 import {
   getMemberMembershipStatus,
   type MemberMembership,
+  type MemberMembershipPlanOption,
   type StoredMemberMembershipStatus,
 } from '@/features/members/model/member-membership'
 import { createClient } from '@/lib/supabase/server'
@@ -63,17 +64,20 @@ export default async function MemberDetailsPage({ params }: MemberDetailsPagePro
   const { memberId } = await params
   const supabase = await createClient()
 
-  const [{ data: member, error: memberError }, { data: memberships, error: membershipsError }] =
-    await Promise.all([
-      supabase
-        .from('members')
-        .select('id, full_name, email, phone, status, created_at, updated_at')
-        .eq('id', memberId)
-        .maybeSingle(),
-      supabase
-        .from('member_memberships')
-        .select(
-          `
+  const [
+    { data: member, error: memberError },
+    { data: memberships, error: membershipsError },
+    { data: activePlans, error: activePlansError },
+  ] = await Promise.all([
+    supabase
+      .from('members')
+      .select('id, full_name, email, phone, status, created_at, updated_at')
+      .eq('id', memberId)
+      .maybeSingle(),
+    supabase
+      .from('member_memberships')
+      .select(
+        `
         id,
         starts_at,
         ends_at,
@@ -85,12 +89,17 @@ export default async function MemberDetailsPage({ params }: MemberDetailsPagePro
           price_cents
         )
       `,
-        )
-        .eq('member_id', memberId)
-        .order('starts_at', { ascending: false }),
-    ])
+      )
+      .eq('member_id', memberId)
+      .order('starts_at', { ascending: false }),
+    supabase
+      .from('membership_plans')
+      .select('id, name, duration_days')
+      .eq('status', 'active')
+      .order('name', { ascending: true }),
+  ])
 
-  if (memberError || membershipsError) {
+  if (memberError || membershipsError || activePlansError) {
     return <MemberDetailsError />
   }
 
@@ -102,5 +111,11 @@ export default async function MemberDetailsPage({ params }: MemberDetailsPagePro
     .map(membership => normalizeMembership(membership))
     .filter((membership): membership is MemberMembership => Boolean(membership))
 
-  return <MemberDetails member={member} memberships={memberMemberships} />
+  return (
+    <MemberDetails
+      member={member}
+      memberships={memberMemberships}
+      activePlans={(activePlans ?? []) satisfies MemberMembershipPlanOption[]}
+    />
+  )
 }

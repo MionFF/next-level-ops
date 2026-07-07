@@ -16,6 +16,8 @@ export type MemberMembershipPlan = {
   price_cents: number
 }
 
+export type MemberMembershipPlanOption = Pick<MemberMembershipPlan, 'id' | 'name' | 'duration_days'>
+
 export type MemberMembership = {
   id: string
   starts_at: string
@@ -45,4 +47,24 @@ export function getMemberMembershipStatus(
   }
 
   return 'active'
+}
+
+export function canCancelMemberMembership(membership: MemberMembership) {
+  return membership.derived_status === 'active' || membership.derived_status === 'upcoming'
+}
+
+export function getDateInputValue(date: Date) {
+  return date.toISOString().slice(0, 10)
+}
+
+export function getMembershipDefaultStartDate(currentMembership: MemberMembership | undefined) {
+  if (currentMembership) {
+    return getDateInputValue(new Date(currentMembership.ends_at))
+  }
+
+  return getDateInputValue(new Date())
+}
+
+export function getTodayDateInputValue() {
+  return getDateInputValue(new Date())
 }

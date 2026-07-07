@@ -1,9 +1,15 @@
 import { formatDate } from '@/shared/lib/format-date'
 import {
+  canCancelMemberMembership,
+  getMembershipDefaultStartDate,
+  getTodayDateInputValue,
   memberMembershipStatusLabels,
   type MemberMembership,
+  type MemberMembershipPlanOption,
   type MemberMembershipStatus,
 } from '../model/member-membership'
+import { AssignMemberMembershipForm } from './assign-member-membership-form'
+import { CancelMemberMembershipButton } from './cancel-member-membership-button'
 
 function EmptyState({ message }: { message: string }) {
   return (
@@ -29,7 +35,15 @@ function MembershipPlanName({ membership }: { membership: MemberMembership }) {
   )
 }
 
-function MembershipMobileCard({ membership }: { membership: MemberMembership }) {
+function MembershipMobileCard({
+  membership,
+  memberId,
+  canShowCancel,
+}: {
+  membership: MemberMembership
+  memberId: string
+  canShowCancel: boolean
+}) {
   return (
     <li className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'>
       <div className='border-b border-[var(--border)] py-3'>
@@ -48,79 +62,167 @@ function MembershipMobileCard({ membership }: { membership: MemberMembership }) 
         </p>
       </div>
 
-      <div className='py-3'>
+      <div className={canShowCancel ? 'border-b border-[var(--border)] py-3' : 'py-3'}>
         <p className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>Status</p>
         <p className='mt-1'>
           <MembershipStatus status={membership.derived_status} />
         </p>
       </div>
+
+      {canShowCancel && (
+        <div className='py-3'>
+          <CancelMemberMembershipButton memberId={memberId} membershipId={membership.id} />
+        </div>
+      )}
     </li>
   )
 }
 
-function MembershipTable({ memberships }: { memberships: MemberMembership[] }) {
+function MembershipTable({
+  memberships,
+  memberId,
+  getCanShowCancel,
+}: {
+  memberships: MemberMembership[]
+  memberId: string
+  getCanShowCancel: (membership: MemberMembership) => boolean
+}) {
   return (
     <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] lg:block'>
       <table className='min-w-full table-fixed divide-y divide-[var(--border)] bg-[var(--surface-2)] text-left text-sm'>
         <thead className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
           <tr>
-            <th className='w-[40%] px-4 py-3'>Plan</th>
-            <th className='w-[20%] px-4 py-3'>Starts</th>
-            <th className='w-[20%] px-4 py-3'>Ends</th>
-            <th className='w-[20%] px-4 py-3'>Status</th>
+            <th className='w-[34%] px-4 py-3'>Plan</th>
+            <th className='w-[18%] px-4 py-3'>Starts</th>
+            <th className='w-[18%] px-4 py-3'>Ends</th>
+            <th className='w-[15%] px-4 py-3'>Status</th>
+            <th className='w-[15%] px-4 py-3 text-right'>Actions</th>
           </tr>
         </thead>
         <tbody className='divide-y divide-[var(--border)]'>
-          {memberships.map(membership => (
-            <tr key={membership.id} className='text-[var(--foreground)]'>
-              <td className='px-4 py-3'>
-                <MembershipPlanName membership={membership} />
-              </td>
-              <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(membership.starts_at)}</td>
-              <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(membership.ends_at)}</td>
-              <td className='px-4 py-3'>
-                <MembershipStatus status={membership.derived_status} />
-              </td>
-            </tr>
-          ))}
+          {memberships.map(membership => {
+            const canShowCancel = getCanShowCancel(membership)
+
+            return (
+              <tr key={membership.id} className='text-[var(--foreground)]'>
+                <td className='px-4 py-3'>
+                  <MembershipPlanName membership={membership} />
+                </td>
+                <td className='px-4 py-3 text-[var(--muted)]'>
+                  {formatDate(membership.starts_at)}
+                </td>
+                <td className='px-4 py-3 text-[var(--muted)]'>{formatDate(membership.ends_at)}</td>
+                <td className='px-4 py-3'>
+                  <MembershipStatus status={membership.derived_status} />
+                </td>
+                <td className='px-4 py-3 text-right'>
+                  {canShowCancel ? (
+                    <div className='flex justify-end'>
+                      <CancelMemberMembershipButton
+                        memberId={memberId}
+                        membershipId={membership.id}
+                      />
+                    </div>
+                  ) : (
+                    <span className='text-sm text-[var(--muted)]'>—</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
   )
 }
 
-function MembershipList({ memberships }: { memberships: MemberMembership[] }) {
+function MembershipList({
+  memberships,
+  memberId,
+  getCanShowCancel,
+}: {
+  memberships: MemberMembership[]
+  memberId: string
+  getCanShowCancel: (membership: MemberMembership) => boolean
+}) {
   return (
     <>
-      <MembershipTable memberships={memberships} />
+      <MembershipTable
+        memberships={memberships}
+        memberId={memberId}
+        getCanShowCancel={getCanShowCancel}
+      />
 
       <ul className='grid gap-3 lg:hidden'>
         {memberships.map(membership => (
-          <MembershipMobileCard key={membership.id} membership={membership} />
+          <MembershipMobileCard
+            key={membership.id}
+            membership={membership}
+            memberId={memberId}
+            canShowCancel={getCanShowCancel(membership)}
+          />
         ))}
       </ul>
     </>
   )
 }
 
-function CurrentMembership({ membership }: { membership: MemberMembership | undefined }) {
+function CurrentMembership({
+  membership,
+  memberId,
+}: {
+  membership: MemberMembership | undefined
+  memberId: string
+}) {
   if (!membership) {
     return <EmptyState message='No active membership.' />
   }
 
-  return <MembershipList memberships={[membership]} />
+  return (
+    <MembershipList
+      memberships={[membership]}
+      memberId={memberId}
+      getCanShowCancel={candidate => canCancelMemberMembership(candidate)}
+    />
+  )
 }
 
-function MembershipHistory({ memberships }: { memberships: MemberMembership[] }) {
+function MembershipHistory({
+  memberships,
+  currentMembershipId,
+  memberId,
+}: {
+  memberships: MemberMembership[]
+  currentMembershipId: string | undefined
+  memberId: string
+}) {
   if (memberships.length === 0) {
     return <EmptyState message='No membership history.' />
   }
 
-  return <MembershipList memberships={memberships} />
+  return (
+    <MembershipList
+      memberships={memberships}
+      memberId={memberId}
+      getCanShowCancel={membership =>
+        membership.id !== currentMembershipId && membership.derived_status === 'upcoming'
+      }
+    />
+  )
 }
 
-export function MemberMembershipSection({ memberships }: { memberships: MemberMembership[] }) {
+export function MemberMembershipSection({
+  memberId,
+  memberships,
+  activePlans,
+}: {
+  memberId: string
+  memberships: MemberMembership[]
+  activePlans: MemberMembershipPlanOption[]
+}) {
   const currentMembership = memberships.find(membership => membership.derived_status === 'active')
+  const defaultStartDate = getMembershipDefaultStartDate(currentMembership)
+  const minStartDate = getTodayDateInputValue()
 
   return (
     <section className='mt-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6 max-lg:border-0 max-lg:bg-transparent max-lg:p-2'>
@@ -135,16 +237,28 @@ export function MemberMembershipSection({ memberships }: { memberships: MemberMe
       </div>
 
       <div className='mt-6 space-y-6'>
+        <AssignMemberMembershipForm
+          memberId={memberId}
+          plans={activePlans}
+          defaultStartDate={defaultStartDate}
+          minStartDate={minStartDate}
+          isRenewal={Boolean(currentMembership)}
+        />
+
         <section className='space-y-3'>
           <h3 className='text-base font-semibold text-[var(--foreground)]'>Current membership</h3>
 
-          <CurrentMembership membership={currentMembership} />
+          <CurrentMembership membership={currentMembership} memberId={memberId} />
         </section>
 
         <section className='space-y-3'>
           <h3 className='text-base font-semibold text-[var(--foreground)]'>Membership history</h3>
 
-          <MembershipHistory memberships={memberships} />
+          <MembershipHistory
+            memberships={memberships}
+            currentMembershipId={currentMembership?.id}
+            memberId={memberId}
+          />
         </section>
       </div>
     </section>
