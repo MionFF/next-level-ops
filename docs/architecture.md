@@ -13,7 +13,7 @@ The MVP has two authenticated roles:
 
 Unauthenticated users can access only public auth routes.
 
-The product intentionally keeps booking creation admin-managed in the MVP. Client self-booking, payments, Stripe, trainer accounts, and full membership lifecycle automation are out of scope.
+The product intentionally keeps booking creation and membership assignment admin-managed in the MVP. Client self-booking, payments, Stripe, checkout, trainer accounts, and full membership lifecycle automation are out of scope.
 
 ## Route structure
 
@@ -91,17 +91,37 @@ Supabase Auth owns authentication identity through `auth.users`.
 
 ### Membership plans
 
-`public.membership_plans` stores reusable plan/catalog records. A plan is not the same as an assigned active membership.
+`public.membership_plans` stores reusable plan/catalog records.
+
+A plan is not the same as an assigned member membership. Plans define reusable commercial attributes such as name, description, duration, price, and catalog status.
 
 ### Member memberships
 
 `public.member_memberships` connects a member to a membership plan for a specific date range. It represents concrete member-plan assignments.
 
+```txt
+membership_plans
+  -> reusable catalog of plans the studio sells
+
+member_memberships
+  -> concrete plan assignments for specific members
+```
+
 The current membership model is deliberately simple:
 
 - stored statuses: `active`, `cancelled`
-- expired state is derived from dates where needed
-- payments and renewal automation are out of scope
+- runtime states: `active`, `upcoming`, `expired`, `cancelled`
+- `expired` is derived from dates and is not written back to the database
+- payments, checkout, freezing, and renewal automation are out of scope
+
+Runtime states are derived from stored status and dates:
+
+```txt
+active    = status active + now inside starts_at/ends_at
+upcoming  = status active + starts_at is in the future
+expired   = status active + ends_at is in the past
+cancelled = stored status cancelled
+```
 
 ### Sessions
 
@@ -188,6 +208,51 @@ The RPCs:
 - return structured success/error codes for server action message mapping
 
 If a profile is unlinked, the client cabinet keeps rendering the unlinked state instead of exposing unrelated member data.
+
+## Member membership management
+
+Admins manage a member's assigned memberships from the member detail page:
+
+```txt
+/dashboard/members/[memberId]
+```
+
+The page shows:
+
+- current membership
+- membership history
+- assign/renew form
+- cancellation controls for active/upcoming memberships
+
+The workflow supports assigning a membership when the member has no current active membership, renewing a membership by creating the next non-overlapping period, and cancelling active or upcoming memberships.
+
+Membership assignment is implemented through server actions and existing admin RLS access, not through a dedicated RPC. Unlike `profiles.member_id`, `member_memberships` is not an access-control field. It is a normal admin-managed business entity.
+
+The assign action validates:
+
+- caller is admin
+- member exists
+- selected plan exists
+- selected plan is active
+- start date is today or later
+- end date is calculated from `membership_plans.duration_days`
+- the new period does not overlap another active membership period for the same member
+
+The overlap rule is:
+
+```txt
+existing.starts_at < new.ends_at
+AND
+existing.ends_at > new.starts_at
+```
+
+This blocks parallel active/scheduled memberships while still allowing adjacent renewal where the new membership starts exactly when the previous one ends.
+
+The cancel action updates `member_memberships.status` to `cancelled`; it does not delete the row.
+
+Client cabinet reads the linked member's currently active membership through the ownership chain and renders a no-active-membership state when no current membership exists.
+
+Payments, billing, invoices, checkout, client self-purchase, freezing/pausing memberships, discounts, and automatic renewal are out of scope.
 
 ## Mutation model
 
@@ -289,8 +354,8 @@ Testing is treated as an MVP quality gate, not as a 100% coverage target.
 Test layers:
 
 - **Unit tests** cover pure model/domain helpers such as derived statuses and sorting logic.
-- **RTL tests** cover UI contracts: forms, validation/action errors, filters, lists, auth forms, cancellation controls, and profile-member linking UI.
-- **E2E tests** cover critical full-stack flows with real Supabase-backed behavior: auth/access, admin CRUD, booking creation/cancellation, client cancellation, profile-member linking, discoverability, and navigation smoke.
+- **RTL tests** cover UI contracts: forms, validation/action errors, filters, lists, auth forms, cancellation controls, profile-member linking UI, and member membership management UI.
+- **E2E tests** cover critical full-stack flows with real Supabase-backed behavior: auth/access, admin CRUD, booking creation/cancellation, client cancellation, profile-member linking, member membership assignment/cancellation, discoverability, and navigation smoke.
 
 E2E tests use dedicated admin/client test accounts and stable fixture data. Test-created records use an `E2E ` prefix so they can be cleaned safely.
 
@@ -309,10 +374,12 @@ Some setup still requires manual database work, such as assigning admin roles. C
 The MVP intentionally does not include:
 
 - payments or Stripe integration
+- billing, invoices, checkout, or client self-purchase
+- freezing/pausing memberships
+- automatic membership renewal or expiration jobs
 - client self-booking
 - trainer portal
 - advanced analytics
-- automatic member lifecycle/payment automation
 - light theme
 - localization
 - custom backend outside Supabase

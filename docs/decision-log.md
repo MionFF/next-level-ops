@@ -613,3 +613,58 @@ Follow-up needed:
 - Surface linked/unlinked indicators in the members operations table during the members table milestone.
 - Revisit search/pagination for profile links only if data volume makes native selects painful.
 - Keep future user-management work separate from the profile-member linking boundary.
+
+## 2026-07-06
+
+### Member membership management
+
+- Added admin-managed membership assignment and cancellation from `/dashboard/members/[memberId]`.
+- Kept `membership_plans` as the reusable plan catalog.
+- Used `member_memberships` for concrete member-plan assignments.
+- The member detail page now shows current membership and membership history.
+- Membership history includes active, upcoming, expired, and cancelled UI states.
+- Stored membership statuses remain limited to `active` and `cancelled`.
+- `expired` is derived from `ends_at` and is not written to the database.
+- Membership assignment uses a server action and existing admin RLS access.
+- No new RPC was added for member membership assignment.
+- Assignment validates admin access, member existence, active plan existence, non-past start date, calculated end date, and non-overlapping active membership periods.
+- Renewing a membership uses the same assignment flow with a default start date based on the current membership end date.
+- Cancelling a membership updates `member_memberships.status` to `cancelled` and preserves the row in history.
+- Client cabinet reflects the linked member's active membership after admin assignment/cancellation.
+- Payments, billing, invoices, checkout, discounts, freezing, automatic renewal, and client self-purchase remain out of scope.
+- Added unit/RTL coverage for membership model helpers, assignment form, cancellation button, membership section states, and action visibility.
+- Added Playwright coverage for the cross-role flow: admin assigns membership, linked client sees active membership, admin cancels membership, linked client sees no active membership.
+
+Reason:
+
+- `membership_plans` are catalog/reference data, not assigned memberships.
+- Admins need to manage a specific member's membership lifecycle from the member detail page.
+- The member detail page matches the operational mental model: open a member, manage that member's membership.
+- `member_memberships` is a normal admin-managed business entity, unlike `profiles.member_id`, which is an access-control field.
+- Existing admin RLS and server actions are sufficient for this workflow.
+- Keeping `expired` derived avoids unnecessary background jobs or stored state drift.
+- Manual assignment/cancellation strengthens the product without expanding into payments or subscription automation.
+
+Alternatives considered:
+
+- Creating a separate `/dashboard/memberships` page.
+- Managing assigned memberships from the plans page.
+- Adding a Supabase RPC for assignment/cancellation.
+- Writing expired status back to the database.
+- Allowing admins to create already-expired memberships by assigning past start dates.
+- Adding payments, checkout, invoices, freezing, or automatic renewal.
+- Adding client self-purchase.
+
+Trade-offs:
+
+- Admins can manage memberships operationally, but the app still does not automate billing or subscriptions.
+- Membership expiration is derived at render/query time instead of being materialized in the database.
+- Server actions hold the current assignment/cancellation workflow rather than delegating to RPC.
+- Overlap protection is enforced in the server action for the current admin-managed flow.
+- Native selects and compact forms are acceptable for the current dataset size.
+
+Follow-up needed:
+
+- Keep future membership lifecycle changes aligned between member detail UI, server actions, client cabinet reads, and tests.
+- Consider deeper lifecycle automation only if payment/subscription scope is explicitly added.
+- Revisit stronger database-level invariants only if membership assignment becomes multi-channel or concurrent enough to justify it.

@@ -2,7 +2,7 @@
 
 Next Level Ops uses testing as an MVP quality gate, not as a 100% coverage target.
 
-The goal is to protect critical product behavior: auth, role boundaries, forms, filters, booking flows, cancellation, profile-member linking, and navigation.
+The goal is to protect critical product behavior: auth, role boundaries, forms, filters, booking flows, cancellation, profile-member linking, member membership management, and navigation.
 
 ## Test layers
 
@@ -16,9 +16,12 @@ Covered areas:
 - booking sorting
 - derived session statuses
 - session sorting
+- member membership derived statuses
+- member membership date helpers
+- membership cancellation eligibility
 - status guards and small helpers where useful
 
-These tests are fast and protect logic used by UI filtering, badges, counts, and operational sorting.
+These tests are fast and protect logic used by UI filtering, badges, counts, operational sorting, membership status rendering, and action visibility.
 
 ### React Testing Library tests
 
@@ -32,6 +35,9 @@ Covered areas:
 - list empty/error states
 - cancellation controls
 - profile-member linking UI states and form submissions
+- member membership assignment form
+- member membership cancellation button
+- member membership current/history states
 - submitted `FormData`
 - validation and action error rendering
 
@@ -52,6 +58,7 @@ Covered flows:
 - client cabinet access
 - client own-booking cancellation
 - admin profile-member linking and unlinking
+- admin member membership assignment/cancellation reflected in linked client cabinet
 - sessions/bookings discoverability through URL params
 - admin/client navigation smoke
 
@@ -63,6 +70,8 @@ E2E-created records use generated `E2E ... e2e-<timestamp>` names so they can be
 
 Stable fixture records must not match the generated cleanup pattern and should not be removed by cleanup scripts.
 
+Membership E2E creates fresh client/member records and uses an existing active membership plan from the catalog instead of creating new plan catalog data.
+
 Cleanup is handled manually through `scripts/cleanup-e2e-data.sql` when test data accumulates.
 
 ## E2E stability notes
@@ -72,6 +81,8 @@ Playwright runs with one worker because the suite uses a real Supabase project, 
 E2E helpers wait for app readiness before submitting server-action forms. This avoids clicking submit before the Next.js client router/action layer is ready during cold starts or dev-server reloads.
 
 Cancellation tests wait for deterministic UI outcomes instead of `networkidle`, because the app can keep background requests open during Supabase-backed flows.
+
+Membership E2E assertions avoid matching hidden `<option>` text from native selects. They assert visible state inside the relevant section instead.
 
 ## Commands
 
@@ -95,6 +106,7 @@ The suite does not try to cover:
 - every visual detail
 - every validation branch through E2E
 - every CRUD variation
+- every membership lifecycle edge case through E2E
 - implementation details
 - 100% coverage
 
