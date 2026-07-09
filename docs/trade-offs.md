@@ -57,6 +57,48 @@ Membership assignment is manual and does not represent a real paid subscription 
 
 Add payments only after the operational model is stable.
 
+## Admin-managed member memberships instead of payment lifecycle automation
+
+### Decision
+
+Member memberships are managed manually by admins from the member detail page.
+
+`membership_plans` remain reusable catalog records. `member_memberships` represent concrete plan assignments for specific members and date ranges.
+
+### Reason
+
+The project currently focuses on operational workflows, not commerce automation.
+
+Admin-managed assignment and cancellation are enough to model the studio's current membership state without adding payments, Stripe, invoices, checkout, automatic renewal, freezing, discounts, or client self-purchase.
+
+The workflow also keeps the product mental model clear:
+
+```txt
+plan = what the studio sells
+member membership = what a specific member currently has or had
+```
+
+### Trade-off
+
+The app now supports real assigned memberships, but it still does not represent a full paid subscription lifecycle.
+
+Admins must assign, renew, and cancel memberships manually. Expiration is derived from dates rather than stored or processed by a background job.
+
+### Future improvement
+
+Add payment or subscription lifecycle automation only if it becomes a product requirement.
+
+Possible future directions:
+
+- payments/checkout
+- invoices
+- membership freezing
+- automatic renewal
+- client self-purchase
+- richer membership lifecycle reporting
+
+These remain out of scope for the current milestone.
+
 ## Booking creation RPC
 
 ### Decision
@@ -152,7 +194,7 @@ Keep sensitive mutations behind explicit database functions when they need stron
 
 ### Decision
 
-Statuses like `Completed`, `In progress`, and `Full` are derived from time, capacity, and confirmed bookings instead of stored directly in the database.
+Statuses like `Completed`, `In progress`, `Full`, and membership `Expired` are derived from time and related data instead of stored directly in the database.
 
 ### Reason
 
