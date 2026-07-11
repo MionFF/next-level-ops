@@ -14,7 +14,7 @@ function getParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
 }
 
-export default async function membersPage({ searchParams }: MembersPageProps) {
+export default async function MembersPage({ searchParams }: MembersPageProps) {
   const params = await searchParams
 
   const search = getParam(params.search)?.trim() ?? ''
@@ -24,8 +24,22 @@ export default async function membersPage({ searchParams }: MembersPageProps) {
   const supabase = await createClient()
 
   let query = supabase
-    .from('members')
-    .select('id, full_name, email, phone, status, created_at')
+    .from('member_operations')
+    .select(
+      `
+        id,
+        full_name,
+        email,
+        phone,
+        status,
+        created_at,
+        is_profile_linked,
+        membership_status,
+        membership_plan_name,
+        membership_starts_at,
+        membership_ends_at
+      `,
+    )
     .order('created_at', { ascending: false })
 
   if (search) {
@@ -36,12 +50,14 @@ export default async function membersPage({ searchParams }: MembersPageProps) {
     query = query.eq('status', status)
   }
 
-  const { data: members, error } = await query
+  const { data, error } = await query
+
+  const members = data ?? []
 
   return (
     <>
       <MembersFilters search={search} status={status} />
-      <MembersList members={members ?? []} errorMessage={error?.message} />
+      <MembersList members={members} errorMessage={error?.message} />
     </>
   )
 }

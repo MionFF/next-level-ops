@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { Member } from '../model/member'
+import type { MemberOperationRow } from '../model/member'
 import { formatDate } from '@/shared/lib/format-date'
 
 export default function MembersList({
   members,
   errorMessage,
 }: {
-  members: Member[]
+  members: MemberOperationRow[]
   errorMessage: string | undefined
 }) {
   return (
