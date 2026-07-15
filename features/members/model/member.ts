@@ -14,10 +14,22 @@ export const membershipOperationalStatuses = [
   'none',
 ] as const
 
+export const membershipOperationalStatusLabels: Record<MembershipOperationalStatus, string> = {
+  active: 'Active',
+  upcoming: 'Upcoming',
+  expired: 'Expired',
+  cancelled: 'Cancelled',
+  none: 'No membership',
+}
+
+export const profileLinkStatuses = ['linked', 'unlinked'] as const
+
 export type MemberStatus = (typeof memberStatuses)[number]
-export type MemberStatusFilter = MemberStatus | 'all'
 
 export type MembershipOperationalStatus = (typeof membershipOperationalStatuses)[number]
+
+export type ProfileLinkStatus = (typeof profileLinkStatuses)[number]
+export type ProfileLinkFilter = ProfileLinkStatus | 'all'
 
 export type Member = {
   id: string
@@ -44,4 +56,20 @@ export type EditableMember = Pick<Member, 'id' | 'full_name' | 'email' | 'phone'
 
 export function isMemberStatus(value: string | undefined): value is MemberStatus {
   return value === 'active' || value === 'paused' || value === 'inactive'
+}
+
+export function isProfileLinkStatus(value: string | undefined): value is ProfileLinkStatus {
+  return value === 'linked' || value === 'unlinked'
+}
+
+export function isMembershipOperationalStatus(
+  value: string | undefined,
+): value is MembershipOperationalStatus {
+  return (
+    value === 'active' ||
+    value === 'upcoming' ||
+    value === 'expired' ||
+    value === 'cancelled' ||
+    value === 'none'
+  )
 }

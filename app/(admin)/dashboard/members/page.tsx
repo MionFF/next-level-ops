@@ -1,4 +1,9 @@
-import { isMemberStatus } from '@/features/members/model/member'
+import {
+  isMemberStatus,
+  isMembershipOperationalStatus,
+  isProfileLinkStatus,
+} from '@/features/members/model/member'
+import { getMembersSearchFilter } from '@/features/members/model/members-query'
 import { getMembersHref } from '@/features/members/model/members-url'
 import MembersFilters from '@/features/members/ui/members-filters'
 import MembersList from '@/features/members/ui/members-list'
@@ -12,12 +17,22 @@ type MembersPageProps = {
   searchParams: Promise<{
     search?: string | string[]
     status?: string | string[]
+    profile?: string | string[]
+    membership?: string | string[]
     page?: string | string[]
   }>
 }
 
 function getParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
+}
+
+function getParams(value: string | string[] | undefined) {
+  if (!value) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [value]
 }
 
 function getPage(value: string | undefined) {
@@ -38,9 +53,25 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const params = await searchParams
 
   const search = getParam(params.search)?.trim() ?? ''
-  const statusParam = getParam(params.status)
-  const status = isMemberStatus(statusParam) ? statusParam : 'all'
+
+  const selectedStatuses = Array.from(new Set(getParams(params.status).filter(isMemberStatus)))
+
+  const profileParam = getParam(params.profile)
+  const profile = isProfileLinkStatus(profileParam) ? profileParam : 'all'
+
+  const selectedMemberships = Array.from(
+    new Set(getParams(params.membership).filter(isMembershipOperationalStatus)),
+  )
+
   const page = getPage(getParam(params.page))
+  const searchFilter = search ? getMembersSearchFilter(search) : null
+
+  const filtersKey = [
+    search,
+    selectedStatuses.join(','),
+    profile,
+    selectedMemberships.join(','),
+  ].join('|')
 
   const supabase = await createClient()
 
@@ -49,12 +80,20 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
     head: true,
   })
 
-  if (search) {
-    countQuery = countQuery.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+  if (searchFilter) {
+    countQuery = countQuery.or(searchFilter)
   }
 
-  if (status !== 'all') {
-    countQuery = countQuery.eq('status', status)
+  if (selectedStatuses.length > 0) {
+    countQuery = countQuery.in('status', selectedStatuses)
+  }
+
+  if (profile !== 'all') {
+    countQuery = countQuery.eq('is_profile_linked', profile === 'linked')
+  }
+
+  if (selectedMemberships.length > 0) {
+    countQuery = countQuery.in('membership_status', selectedMemberships)
   }
 
   const { count, error: countError } = await countQuery
@@ -62,7 +101,14 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   if (countError) {
     return (
       <>
-        <MembersFilters search={search} status={status} />
+        <MembersFilters
+          key={filtersKey}
+          search={search}
+          selectedStatuses={selectedStatuses}
+          profile={profile}
+          selectedMemberships={selectedMemberships}
+        />
+
         <MembersList members={[]} errorMessage={countError.message} />
       </>
     )
@@ -75,7 +121,9 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
     redirect(
       getMembersHref({
         search,
-        status,
+        statuses: selectedStatuses,
+        profile,
+        memberships: selectedMemberships,
         page: totalPages,
       }),
     )
@@ -105,12 +153,20 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
     .order('id', { ascending: false })
     .range(from, to)
 
-  if (search) {
-    membersQuery = membersQuery.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`)
+  if (searchFilter) {
+    membersQuery = membersQuery.or(searchFilter)
   }
 
-  if (status !== 'all') {
-    membersQuery = membersQuery.eq('status', status)
+  if (selectedStatuses.length > 0) {
+    membersQuery = membersQuery.in('status', selectedStatuses)
+  }
+
+  if (profile !== 'all') {
+    membersQuery = membersQuery.eq('is_profile_linked', profile === 'linked')
+  }
+
+  if (selectedMemberships.length > 0) {
+    membersQuery = membersQuery.in('membership_status', selectedMemberships)
   }
 
   const { data, error } = await membersQuery
@@ -119,7 +175,13 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
 
   return (
     <>
-      <MembersFilters search={search} status={status} />
+      <MembersFilters
+        key={filtersKey}
+        search={search}
+        selectedStatuses={selectedStatuses}
+        profile={profile}
+        selectedMemberships={selectedMemberships}
+      />
 
       <MembersList members={members} errorMessage={error?.message} />
 
@@ -130,7 +192,9 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           totalCount={totalCount}
           totalPages={totalPages}
           search={search}
-          status={status}
+          statuses={selectedStatuses}
+          profile={profile}
+          memberships={selectedMemberships}
         />
       )}
     </>

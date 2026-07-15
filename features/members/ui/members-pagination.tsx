@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { MemberStatusFilter } from '../model/member'
+import type { MemberStatus, MembershipOperationalStatus, ProfileLinkFilter } from '../model/member'
 import { getMembersHref } from '../model/members-url'
 
 type MembersPaginationProps = {
@@ -8,7 +8,9 @@ type MembersPaginationProps = {
   totalCount: number
   totalPages: number
   search: string
-  status: MemberStatusFilter
+  statuses: MemberStatus[]
+  profile: ProfileLinkFilter
+  memberships: MembershipOperationalStatus[]
 }
 
 type PaginationControlProps = {
@@ -44,7 +46,9 @@ export default function MembersPagination({
   totalCount,
   totalPages,
   search,
-  status,
+  statuses,
+  profile,
+  memberships,
 }: MembersPaginationProps) {
   const firstResult = (currentPage - 1) * pageSize + 1
   const lastResult = Math.min(currentPage * pageSize, totalCount)
@@ -52,25 +56,33 @@ export default function MembersPagination({
   const firstHref = getMembersHref({
     page: 1,
     search,
-    status,
+    statuses,
+    profile,
+    memberships,
   })
 
   const previousHref = getMembersHref({
     page: currentPage - 1,
     search,
-    status,
+    statuses,
+    profile,
+    memberships,
   })
 
   const nextHref = getMembersHref({
     page: currentPage + 1,
     search,
-    status,
+    statuses,
+    profile,
+    memberships,
   })
 
   const lastHref = getMembersHref({
     page: totalPages,
     search,
-    status,
+    statuses,
+    profile,
+    memberships,
   })
 
   const isFirstPage = currentPage === 1
@@ -79,7 +91,7 @@ export default function MembersPagination({
   return (
     <nav
       aria-label='Members pagination'
-      className='mt-4 grid gap-4 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center'
+      className='mt-4 grid gap-4 py-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:rounded-[var(--radius-md)] sm:border sm:border-[var(--border)] sm:bg-[var(--surface)] sm:px-4'
     >
       <p className='text-center text-sm text-[var(--muted)] sm:text-left'>
         Showing{' '}
@@ -121,8 +133,6 @@ export default function MembersPagination({
           </>
         )}
       </div>
-
-      <div aria-hidden='true' className='hidden sm:block' />
     </nav>
   )
 }
