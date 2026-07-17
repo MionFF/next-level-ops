@@ -668,3 +668,34 @@ Follow-up needed:
 - Keep future membership lifecycle changes aligned between member detail UI, server actions, client cabinet reads, and tests.
 - Consider deeper lifecycle automation only if payment/subscription scope is explicitly added.
 - Revisit stronger database-level invariants only if membership assignment becomes multi-channel or concurrent enough to justify it.
+
+## 2026-07-11 — 2026-07-17
+
+### Members operations read model and scalable list workflow
+
+- Replaced the members full-list workflow with a server-side operations read model.
+- Search now covers member name, email, and phone.
+- Member status, profile-link state, and membership state are URL-driven filters.
+- Exact counts and page ranges are handled in the Supabase query layer.
+- The list shows profile-link and membership indicators in a desktop operations table and responsive card view.
+- Filter, list, and pagination behavior is covered with RTL tests; critical member flows remain covered by Playwright.
+- Server-action E2E submissions wait for Next.js hydration through the framework's test-only marker, and Playwright always starts the server with that environment.
+
+Reason:
+
+- Member operations need database-side filtering and pagination before dataset growth makes full-list loading a blocker.
+- URL state keeps operational views reload-safe, shareable, and server-rendered.
+- A dedicated read model avoids pushing cross-entity operational assembly into the client.
+- Hydration-aware E2E synchronization prevents native form submissions before Server Actions are attached.
+
+Trade-offs:
+
+- The members query is more complex because it combines operational data from members, profile links, and memberships.
+- Desktop and responsive card markup duplicate presentation and must remain behaviorally aligned.
+- E2E readiness depends on a Next.js test-only hydration marker, so framework upgrades must keep this helper under review.
+- Playwright cannot reuse an arbitrary local dev server because the test environment must be deterministic.
+
+Follow-up needed:
+
+- Apply the same database-side scalability principles to sessions and bookings in Milestone 6.
+- Revisit shared responsive primitives only if duplication becomes a recurring maintenance cost.

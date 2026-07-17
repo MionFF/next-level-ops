@@ -1,6 +1,26 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { loginAsAdmin } from './utils/auth'
+import { waitForAppReady } from './utils/forms'
 import { createE2EEmail, createE2EName, createE2ERunId } from './utils/test-data'
+
+function visibleMemberLink(page: Page, name: string) {
+  return page
+    .getByRole('link', {
+      name,
+      exact: true,
+    })
+    .filter({ visible: true })
+    .first()
+}
+
+function visibleExactText(page: Page, text: string) {
+  return page
+    .getByText(text, {
+      exact: true,
+    })
+    .filter({ visible: true })
+    .first()
+}
 
 test.describe('admin member flow', () => {
   test('creates, edits, filters, and resets a member', async ({ page }) => {
@@ -15,7 +35,13 @@ test.describe('admin member flow', () => {
 
     await loginAsAdmin(page)
 
-    await page.goto('/dashboard/members', { waitUntil: 'domcontentloaded' })
+    await page.goto('/dashboard/members', {
+      waitUntil: 'domcontentloaded',
+    })
+
+    await expect(page.getByRole('heading', { name: /^members$/i })).toBeVisible({
+      timeout: 15_000,
+    })
 
     await page.getByRole('link', { name: /add member/i }).click()
 
@@ -27,20 +53,27 @@ test.describe('admin member flow', () => {
     await page.getByLabel('Phone').fill(memberPhone)
     await page.getByLabel('Status').selectOption('active')
 
+    await waitForAppReady(page)
+
     await Promise.all([
-      page.waitForURL(/\/dashboard\/members\/?$/, { timeout: 15_000 }),
+      page.waitForURL(/\/dashboard\/members\/?$/, {
+        timeout: 15_000,
+      }),
       page.getByRole('button', { name: /create member/i }).click(),
     ])
 
     await expect(page.getByRole('heading', { name: /^members$/i })).toBeVisible()
-    await expect(page.getByText(memberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
 
-    await page.getByRole('link', { name: memberName }).first().click()
+    const createdMemberLink = visibleMemberLink(page, memberName)
+
+    await expect(createdMemberLink).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
+
+    await createdMemberLink.click()
 
     await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/)
-    await expect(page.getByText(memberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
+    await expect(visibleExactText(page, memberName)).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
 
     await page.getByRole('link', { name: /edit member/i }).click()
 
@@ -51,29 +84,140 @@ test.describe('admin member flow', () => {
     await page.getByLabel('Phone').fill(updatedMemberPhone)
     await page.getByLabel('Status').selectOption('paused')
 
+    await waitForAppReady(page)
+
     await page.getByRole('button', { name: /save member/i }).click()
 
-    await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/, { timeout: 15_000 })
-    await expect(page.getByText(updatedMemberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
-    await expect(page.getByText(updatedMemberPhone).first()).toBeVisible()
-    await expect(page.getByText(/paused/i).first()).toBeVisible()
+    await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/, {
+      timeout: 15_000,
+    })
 
-    await page.goto('/dashboard/members')
+    await expect(visibleExactText(page, updatedMemberName)).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
+    await expect(visibleExactText(page, updatedMemberPhone)).toBeVisible()
+    await expect(
+      page
+        .getByText(/paused/i)
+        .filter({ visible: true })
+        .first(),
+    ).toBeVisible()
 
-    await page.getByLabel('Search').fill(updatedMemberName)
-    await page.getByLabel('Status').selectOption('paused')
-    await page.getByRole('button', { name: /apply filters/i }).click()
+    await Promise.all([
+      page.waitForURL(/\/dashboard\/members\/?$/, {
+        waitUntil: 'domcontentloaded',
+      }),
+      page.getByRole('link', { name: 'Members', exact: true }).click(),
+    ])
 
-    await expect(page).toHaveURL(/\/dashboard\/members\?.*search=/)
-    await expect(page).toHaveURL(/status=paused/)
-    await expect(page.getByText(updatedMemberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
+    const filters = page.locator('form').filter({
+      has: page.getByRole('searchbox', {
+        name: 'Search',
+        exact: true,
+      }),
+    })
 
-    await page.getByRole('link', { name: /reset/i }).click()
+    const searchInput = filters.getByRole('searchbox', {
+      name: 'Search',
+      exact: true,
+    })
 
-    await expect(page).toHaveURL(/\/dashboard\/members$/)
-    await expect(page.getByLabel('Search')).toHaveValue('')
-    await expect(page.getByLabel('Status')).toHaveValue('all')
+    await expect(searchInput).toBeVisible({
+      timeout: 15_000,
+    })
+
+    await searchInput.fill(updatedMemberName)
+
+    const memberStatusTrigger = filters.getByRole('button', {
+      name: 'Member status: All',
+      exact: true,
+    })
+
+    await expect(memberStatusTrigger).toBeVisible()
+    await memberStatusTrigger.click()
+    await expect(memberStatusTrigger).toHaveAttribute('aria-expanded', 'true')
+
+    const pausedStatus = filters.getByRole('checkbox', {
+      name: 'Member status: Paused',
+      exact: true,
+    })
+
+    const inactiveStatus = filters.getByRole('checkbox', {
+      name: 'Member status: Inactive',
+      exact: true,
+    })
+
+    await expect(pausedStatus).toBeVisible()
+    await pausedStatus.check()
+    await inactiveStatus.check()
+
+    await filters.getByRole('button', { name: 'Apply filters', exact: true }).click()
+
+    await expect
+      .poll(
+        () => {
+          const url = new URL(page.url())
+
+          return {
+            pathname: url.pathname,
+            search: url.searchParams.get('search'),
+            statuses: url.searchParams.getAll('status').sort(),
+          }
+        },
+        {
+          timeout: 15_000,
+        },
+      )
+      .toEqual({
+        pathname: '/dashboard/members',
+        search: updatedMemberName,
+        statuses: ['inactive', 'paused'],
+      })
+
+    await expect(visibleMemberLink(page, updatedMemberName)).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
+
+    await filters.getByRole('button', { name: 'Reset', exact: true }).click()
+
+    await expect
+      .poll(
+        () => {
+          const url = new URL(page.url())
+
+          return {
+            pathname: url.pathname,
+            search: url.search,
+          }
+        },
+        {
+          timeout: 15_000,
+        },
+      )
+      .toEqual({
+        pathname: '/dashboard/members',
+        search: '',
+      })
+
+    await expect(searchInput).toHaveValue('')
+
+    await expect(
+      filters.getByRole('button', {
+        name: 'Member status: All',
+        exact: true,
+      }),
+    ).toBeVisible()
+
+    await expect(
+      filters.getByRole('button', {
+        name: 'Profile: All profiles',
+        exact: true,
+      }),
+    ).toBeVisible()
+
+    await expect(
+      filters.getByRole('button', {
+        name: 'Membership: All',
+        exact: true,
+      }),
+    ).toBeVisible()
   })
 })

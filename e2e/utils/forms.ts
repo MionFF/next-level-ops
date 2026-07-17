@@ -21,6 +21,10 @@ export async function selectOptionByText(page: Page, label: string, text: string
 
 export async function waitForAppReady(page: Page) {
   await page.waitForLoadState('domcontentloaded')
-  await page.waitForFunction(() => document.readyState !== 'loading')
-  await page.locator('body').evaluate(() => new Promise(requestAnimationFrame))
+
+  // Next exposes this marker in test mode after React hydration,
+  // preventing native form submission before Server Actions are attached.
+  await page.waitForFunction(() => Reflect.get(window, '__NEXT_HYDRATED') === true, undefined, {
+    timeout: 15_000,
+  })
 }

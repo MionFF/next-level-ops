@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import { waitForAppReady } from './forms'
 
 export function getRequiredEnv(name: string) {
   const value = process.env[name]
@@ -29,16 +30,24 @@ export async function loginAsClient(page: Page) {
 }
 
 async function login(page: Page, email: string, password: string, destination: RegExp) {
-  await page.goto('/sign-in')
+  await page.goto('/sign-in', {
+    waitUntil: 'domcontentloaded',
+  })
+
+  await expect(
+    page.getByRole('heading', {
+      name: /sign in/i,
+    }),
+  ).toBeVisible()
 
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(password)
 
-  await Promise.all([
-    page.waitForURL(destination, {
-      timeout: 15_000,
-      waitUntil: 'domcontentloaded',
-    }),
-    page.getByRole('button', { name: 'Sign in' }).click(),
-  ])
+  await waitForAppReady(page)
+
+  await page.getByRole('button', { name: 'Sign in' }).click()
+
+  await expect(page).toHaveURL(destination, {
+    timeout: 20_000,
+  })
 }
