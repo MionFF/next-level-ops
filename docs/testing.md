@@ -32,6 +32,8 @@ Covered areas:
 - create/edit admin forms
 - auth forms
 - filters and discoverability controls
+- member operations table/card states and indicators
+- member filters and pagination URL contracts
 - list empty/error states
 - cancellation controls
 - profile-member linking UI states and form submissions
@@ -78,9 +80,11 @@ Cleanup is handled manually through `scripts/cleanup-e2e-data.sql` when test dat
 
 Playwright runs with one worker because the suite uses a real Supabase project, shared auth test accounts, and stable fixture data.
 
-E2E helpers wait for app readiness before submitting server-action forms. This avoids clicking submit before the Next.js client router/action layer is ready during cold starts or dev-server reloads.
+Server-action submissions wait for Next.js hydration through the framework's test-only hydration marker. Playwright starts its own dev server with the required test environment instead of reusing an arbitrary local server.
 
 Cancellation tests wait for deterministic UI outcomes instead of `networkidle`, because the app can keep background requests open during Supabase-backed flows.
+
+Responsive member E2E assertions target visible content so duplicated desktop table and mobile card markup does not create ambiguous locators.
 
 Membership E2E assertions avoid matching hidden `<option>` text from native selects. They assert visible state inside the relevant section instead.
 

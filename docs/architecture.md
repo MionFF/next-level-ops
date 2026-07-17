@@ -314,7 +314,7 @@ Client-side responsibilities:
 - cancel buttons and pending UI states
 - small interactive controls where browser state is required
 
-Large list components are kept as server-rendered/dumb UI where possible. For example, bookings and sessions discoverability keep filtering and sorting in the route page, while the filter controls are isolated client components.
+Large list components are kept as server-rendered/dumb UI where possible. Route pages own URL parsing and server reads, while client components own only draft filter state and URL updates.
 
 ## Discoverability model
 
@@ -322,7 +322,11 @@ Admin screens use discoverability only where it meaningfully improves operationa
 
 ### Members
 
-Members support search/status filtering because staff need to find clients quickly.
+The members screen uses a dedicated operations read model assembled server-side from members, profile links, and membership data.
+
+Search across name, email, and phone; member status; linked/unlinked profile state; membership state; exact counts; and range pagination are handled in the Supabase query layer. URL search params remain the source of truth, while the client filter component owns only draft controls and navigation updates.
+
+The same result set is rendered as a wide operations table on large screens and responsive cards below that breakpoint. Both views expose member, contact, member status, profile-link state, membership plan/state, created date, and detail/edit actions.
 
 ### Sessions
 
@@ -354,7 +358,7 @@ Testing is treated as an MVP quality gate, not as a 100% coverage target.
 Test layers:
 
 - **Unit tests** cover pure model/domain helpers such as derived statuses and sorting logic.
-- **RTL tests** cover UI contracts: forms, validation/action errors, filters, lists, auth forms, cancellation controls, profile-member linking UI, and member membership management UI.
+- **RTL tests** cover UI contracts: forms, validation/action errors, filters, lists, auth forms, cancellation controls, profile-member linking UI, member membership management UI, and members operations pagination/filter behavior.
 - **E2E tests** cover critical full-stack flows with real Supabase-backed behavior: auth/access, admin CRUD, booking creation/cancellation, client cancellation, profile-member linking, member membership assignment/cancellation, discoverability, and navigation smoke.
 
 E2E tests use dedicated admin/client test accounts and stable fixture data. Test-created records use an `E2E ` prefix so they can be cleaned safely.
