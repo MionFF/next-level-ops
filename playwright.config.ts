@@ -38,8 +38,12 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
+    env: {
+      // Enables Next's test-only hydration marker used by waitForAppReady().
+      __NEXT_TEST_MODE: '1',
+    },
     url: 'http://localhost:3000/sign-in',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 

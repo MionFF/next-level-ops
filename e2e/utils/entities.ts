@@ -54,7 +54,15 @@ export async function createE2EMember(page: Page, runId: string) {
     page.getByRole('button', { name: /create member/i }).click(),
   ])
 
-  await expect(page.getByText(memberName).first()).toBeVisible()
+  await expect(
+    page
+      .getByRole('link', {
+        name: memberName,
+        exact: true,
+      })
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible()
 
   return { memberName, memberEmail }
 }

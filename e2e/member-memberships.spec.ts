@@ -1,42 +1,35 @@
 import { expect, test, type Page } from '@playwright/test'
 import { loginAsAdmin } from './utils/auth'
-import { createE2EClient } from './utils/entities'
+import { createE2EClient, createE2EMember } from './utils/entities'
 import { selectOptionByText, waitForAppReady } from './utils/forms'
 import { gotoAppPage } from './utils/navigation'
-import { createE2EEmail, createE2EName, createE2ERunId } from './utils/test-data'
+import { createE2ERunId } from './utils/test-data'
 
 function getTodayDateInputValue() {
   return new Date().toISOString().slice(0, 10)
 }
 
 function getSectionByHeading(page: Page, heading: RegExp | string) {
-  return page
-    .getByRole('heading', { name: heading })
-    .first()
-    .locator('xpath=ancestor::section[1]')
+  return page.getByRole('heading', { name: heading }).first().locator('xpath=ancestor::section[1]')
 }
 
-async function createMemberForMembershipFlow(page: Page, runId: string) {
-  const memberName = createE2EName('Member', runId)
-  const memberEmail = createE2EEmail('member', runId)
+function getVisibleMemberLink(page: Page, memberName: string) {
+  return page
+    .getByRole('link', {
+      name: memberName,
+      exact: true,
+    })
+    .filter({ visible: true })
+    .first()
+}
 
-  await gotoAppPage(page, '/dashboard/members/new')
-  await expect(page.getByRole('heading', { name: /add member/i })).toBeVisible()
-
-  await page.getByLabel('Full name').fill(memberName)
-  await page.getByLabel('Email').fill(memberEmail)
-  await page.getByLabel('Phone').fill('+1 555 0101')
-  await page.getByLabel('Status').selectOption('active')
-
-  await waitForAppReady(page)
-
-  await page.getByRole('button', { name: /create member/i }).click()
-
-  await expect(page).toHaveURL(/\/dashboard\/members\/?$/, { timeout: 15_000 })
-  await expect(page.getByText(memberName).first()).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByText(memberEmail).first()).toBeVisible()
-
-  return { memberName, memberEmail }
+function getVisibleExactText(page: Page, text: string) {
+  return page
+    .getByText(text, {
+      exact: true,
+    })
+    .filter({ visible: true })
+    .first()
 }
 
 async function selectFirstAvailableMembershipPlan(page: Page) {
@@ -79,7 +72,9 @@ test.describe('member membership flow', () => {
 
       await loginAsAdmin(adminPage)
 
-      const { memberName, memberEmail } = await createMemberForMembershipFlow(adminPage, runId)
+      const { memberName, memberEmail } = await createE2EMember(adminPage, runId)
+
+      await expect(getVisibleExactText(adminPage, memberEmail)).toBeVisible()
 
       await gotoAppPage(adminPage, '/dashboard/profile-links')
       await expect(adminPage.getByRole('heading', { name: /profile links/i })).toBeVisible()
@@ -100,7 +95,9 @@ test.describe('member membership flow', () => {
 
       await gotoAppPage(adminPage, '/dashboard/members')
 
-      await expect(adminPage.getByRole('link', { name: memberName }).first()).toBeVisible({
+      const memberLink = getVisibleMemberLink(adminPage, memberName)
+
+      await expect(memberLink).toBeVisible({
         timeout: 15_000,
       })
 
@@ -109,7 +106,7 @@ test.describe('member membership flow', () => {
           timeout: 15_000,
           waitUntil: 'domcontentloaded',
         }),
-        adminPage.getByRole('link', { name: memberName }).first().click(),
+        memberLink.click(),
       ])
 
       await expect(adminPage.getByRole('heading', { name: memberName })).toBeVisible()

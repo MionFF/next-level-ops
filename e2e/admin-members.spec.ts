@@ -1,6 +1,26 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { loginAsAdmin } from './utils/auth'
+import { waitForAppReady } from './utils/forms'
 import { createE2EEmail, createE2EName, createE2ERunId } from './utils/test-data'
+
+function visibleMemberLink(page: Page, name: string) {
+  return page
+    .getByRole('link', {
+      name,
+      exact: true,
+    })
+    .filter({ visible: true })
+    .first()
+}
+
+function visibleExactText(page: Page, text: string) {
+  return page
+    .getByText(text, {
+      exact: true,
+    })
+    .filter({ visible: true })
+    .first()
+}
 
 test.describe('admin member flow', () => {
   test('creates, edits, filters, and resets a member', async ({ page }) => {
@@ -33,6 +53,8 @@ test.describe('admin member flow', () => {
     await page.getByLabel('Phone').fill(memberPhone)
     await page.getByLabel('Status').selectOption('active')
 
+    await waitForAppReady(page)
+
     await Promise.all([
       page.waitForURL(/\/dashboard\/members\/?$/, {
         timeout: 15_000,
@@ -41,14 +63,17 @@ test.describe('admin member flow', () => {
     ])
 
     await expect(page.getByRole('heading', { name: /^members$/i })).toBeVisible()
-    await expect(page.getByText(memberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
 
-    await page.getByRole('link', { name: memberName }).first().click()
+    const createdMemberLink = visibleMemberLink(page, memberName)
+
+    await expect(createdMemberLink).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
+
+    await createdMemberLink.click()
 
     await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/)
-    await expect(page.getByText(memberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
+    await expect(visibleExactText(page, memberName)).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
 
     await page.getByRole('link', { name: /edit member/i }).click()
 
@@ -59,16 +84,23 @@ test.describe('admin member flow', () => {
     await page.getByLabel('Phone').fill(updatedMemberPhone)
     await page.getByLabel('Status').selectOption('paused')
 
+    await waitForAppReady(page)
+
     await page.getByRole('button', { name: /save member/i }).click()
 
     await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+$/, {
       timeout: 15_000,
     })
 
-    await expect(page.getByText(updatedMemberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
-    await expect(page.getByText(updatedMemberPhone).first()).toBeVisible()
-    await expect(page.getByText(/paused/i).first()).toBeVisible()
+    await expect(visibleExactText(page, updatedMemberName)).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
+    await expect(visibleExactText(page, updatedMemberPhone)).toBeVisible()
+    await expect(
+      page
+        .getByText(/paused/i)
+        .filter({ visible: true })
+        .first(),
+    ).toBeVisible()
 
     await Promise.all([
       page.waitForURL(/\/dashboard\/members\/?$/, {
@@ -78,8 +110,12 @@ test.describe('admin member flow', () => {
     ])
 
     const filters = page.locator('form').filter({
-      has: page.getByRole('searchbox', { name: 'Search', exact: true }),
+      has: page.getByRole('searchbox', {
+        name: 'Search',
+        exact: true,
+      }),
     })
+
     const searchInput = filters.getByRole('searchbox', {
       name: 'Search',
       exact: true,
@@ -104,6 +140,7 @@ test.describe('admin member flow', () => {
       name: 'Member status: Paused',
       exact: true,
     })
+
     const inactiveStatus = filters.getByRole('checkbox', {
       name: 'Member status: Inactive',
       exact: true,
@@ -136,8 +173,8 @@ test.describe('admin member flow', () => {
         statuses: ['inactive', 'paused'],
       })
 
-    await expect(page.getByText(updatedMemberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
+    await expect(visibleMemberLink(page, updatedMemberName)).toBeVisible()
+    await expect(visibleExactText(page, memberEmail)).toBeVisible()
 
     await filters.getByRole('button', { name: 'Reset', exact: true }).click()
 
