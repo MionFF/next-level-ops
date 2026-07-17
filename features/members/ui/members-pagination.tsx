@@ -13,29 +13,104 @@ type MembersPaginationProps = {
   memberships: MembershipOperationalStatus[]
 }
 
+type PaginationDirection = 'first' | 'previous' | 'next' | 'last'
+
 type PaginationControlProps = {
   href: string
-  children: React.ReactNode
+  label: string
+  direction: PaginationDirection
 }
 
-function PaginationLink({ href, children }: PaginationControlProps) {
+type DisabledPaginationControlProps = {
+  label: string
+  direction: PaginationDirection
+}
+
+function PaginationIcon({ direction }: { direction: PaginationDirection }) {
+  if (direction === 'first') {
+    return (
+      <svg aria-hidden='true' viewBox='0 0 20 20' fill='none' className='size-4'>
+        <path
+          d='M5 4v12M15 5l-5 5 5 5'
+          stroke='currentColor'
+          strokeWidth='1.75'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+    )
+  }
+
+  if (direction === 'previous') {
+    return (
+      <svg aria-hidden='true' viewBox='0 0 20 20' fill='none' className='size-4'>
+        <path
+          d='M12.5 5l-5 5 5 5'
+          stroke='currentColor'
+          strokeWidth='1.75'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+    )
+  }
+
+  if (direction === 'next') {
+    return (
+      <svg aria-hidden='true' viewBox='0 0 20 20' fill='none' className='size-4'>
+        <path
+          d='M7.5 5l5 5-5 5'
+          stroke='currentColor'
+          strokeWidth='1.75'
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+    )
+  }
+
+  return (
+    <svg aria-hidden='true' viewBox='0 0 20 20' fill='none' className='size-4'>
+      <path
+        d='M15 4v12M5 5l5 5-5 5'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  )
+}
+
+function PaginationLink({ href, label, direction }: PaginationControlProps) {
   return (
     <Link
       href={href}
-      className='inline-flex min-h-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--primary)]/50 hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40'
+      aria-label={`${label} page`}
+      className='inline-flex min-h-9 min-w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-2 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--primary)]/50 hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 sm:min-w-0 sm:px-3'
     >
-      {children}
+      <span className='sm:hidden'>
+        <PaginationIcon direction={direction} />
+      </span>
+
+      <span className='hidden sm:inline'>{label}</span>
     </Link>
   )
 }
 
-function DisabledPaginationControl({ children }: { children: React.ReactNode }) {
+function DisabledPaginationControl({ label, direction }: DisabledPaginationControlProps) {
   return (
     <span
+      role='link'
+      aria-label={`${label} page`}
       aria-disabled='true'
-      className='inline-flex min-h-9 cursor-default select-none items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--muted)] opacity-45'
+      className='inline-flex min-h-9 min-w-9 cursor-default select-none items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-2 py-1.5 text-sm font-medium text-[var(--muted)] opacity-45 sm:min-w-0 sm:px-3'
     >
-      {children}
+      <span className='sm:hidden'>
+        <PaginationIcon direction={direction} />
+      </span>
+
+      <span className='hidden sm:inline'>{label}</span>
     </span>
   )
 }
@@ -91,7 +166,7 @@ export default function MembersPagination({
   return (
     <nav
       aria-label='Members pagination'
-      className='mt-4 grid gap-4 py-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:rounded-[var(--radius-md)] sm:border sm:border-[var(--border)] sm:bg-[var(--surface)] sm:px-4'
+      className='mt-4 grid min-w-0 gap-4 py-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:rounded-[var(--radius-md)] sm:border sm:border-[var(--border)] sm:bg-[var(--surface)] sm:px-4'
     >
       <p className='text-center text-sm text-[var(--muted)] sm:text-left'>
         Showing{' '}
@@ -101,35 +176,36 @@ export default function MembersPagination({
         of <span className='font-medium text-[var(--foreground)]'>{totalCount}</span>
       </p>
 
-      <div className='flex flex-wrap items-center justify-center gap-2'>
+      <div className='flex min-w-0 items-center justify-center gap-1 sm:gap-2'>
         {isFirstPage ? (
           <>
-            <DisabledPaginationControl>First</DisabledPaginationControl>
-            <DisabledPaginationControl>Previous</DisabledPaginationControl>
+            <DisabledPaginationControl label='First' direction='first' />
+            <DisabledPaginationControl label='Previous' direction='previous' />
           </>
         ) : (
           <>
-            <PaginationLink href={firstHref}>First</PaginationLink>
-            <PaginationLink href={previousHref}>Previous</PaginationLink>
+            <PaginationLink href={firstHref} label='First' direction='first' />
+            <PaginationLink href={previousHref} label='Previous' direction='previous' />
           </>
         )}
 
         <span
           aria-current='page'
-          className='inline-flex min-h-9 min-w-16 cursor-default select-none items-center justify-center rounded-[var(--radius-sm)] border border-[var(--primary)]/30 bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--foreground)]'
+          aria-label={`Page ${currentPage} of ${totalPages}`}
+          className='inline-flex min-h-9 min-w-14 cursor-default select-none items-center justify-center rounded-[var(--radius-sm)] border border-[var(--primary)]/30 bg-[var(--primary)]/10 px-2 py-1.5 text-sm font-semibold text-[var(--foreground)] sm:min-w-16 sm:px-3'
         >
           {currentPage} of {totalPages}
         </span>
 
         {isLastPage ? (
           <>
-            <DisabledPaginationControl>Next</DisabledPaginationControl>
-            <DisabledPaginationControl>Last</DisabledPaginationControl>
+            <DisabledPaginationControl label='Next' direction='next' />
+            <DisabledPaginationControl label='Last' direction='last' />
           </>
         ) : (
           <>
-            <PaginationLink href={nextHref}>Next</PaginationLink>
-            <PaginationLink href={lastHref}>Last</PaginationLink>
+            <PaginationLink href={nextHref} label='Next' direction='next' />
+            <PaginationLink href={lastHref} label='Last' direction='last' />
           </>
         )}
       </div>

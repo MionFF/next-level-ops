@@ -98,7 +98,7 @@ export default function MembersMultiSelectFilter<T extends string>({
 
         <svg
           aria-hidden='true'
-          className={`size-4 shrink-0 text-[var(--muted)] transition-transform ${
+          className={`size-4 shrink-0 text-[var(--muted)] transition-transform duration-200 ease-out motion-reduce:transition-none ${
             open ? 'rotate-180' : ''
           }`}
           fill='none'
@@ -109,31 +109,41 @@ export default function MembersMultiSelectFilter<T extends string>({
         </svg>
       </button>
 
-      {open && (
-        <div className='static z-30 mt-1 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg md:absolute md:left-0 md:min-w-[14rem]'>
-          {options.map(option => {
-            const checked = selectedValues.includes(option.value)
+      <div
+        aria-hidden={!open}
+        inert={!open}
+        className={`static z-30 mt-1 grid w-full origin-top transition-[grid-template-rows,opacity,transform] duration-200 ease-out motion-reduce:transition-none md:absolute md:left-0 md:min-w-[14rem] ${
+          open
+            ? 'grid-rows-[1fr] translate-y-0 opacity-100'
+            : 'pointer-events-none grid-rows-[0fr] -translate-y-1 opacity-0'
+        }`}
+      >
+        <div className='min-h-0 overflow-hidden'>
+          <div className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
+            {options.map(option => {
+              const checked = selectedValues.includes(option.value)
 
-            return (
-              <label
-                key={option.value}
-                className='flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
-              >
-                <input
-                  type='checkbox'
-                  checked={checked}
-                  disabled={disabled}
-                  aria-label={`${label}: ${option.label}`}
-                  onChange={() => onToggle(option.value)}
-                  className='size-4 accent-[var(--primary)]'
-                />
+              return (
+                <label
+                  key={option.value}
+                  className='flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
+                >
+                  <input
+                    type='checkbox'
+                    checked={checked}
+                    disabled={disabled}
+                    aria-label={`${label}: ${option.label}`}
+                    onChange={() => onToggle(option.value)}
+                    className='size-4 accent-[var(--primary)]'
+                  />
 
-                <span className='text-sm text-[var(--foreground)]'>{option.label}</span>
-              </label>
-            )
-          })}
+                  <span className='text-sm text-[var(--foreground)]'>{option.label}</span>
+                </label>
+              )
+            })}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
