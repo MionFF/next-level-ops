@@ -12,8 +12,8 @@ import {
   type ProfileLinkFilter,
 } from '../model/member'
 import { getMembersHref } from '../model/members-url'
-import MembersMultiSelectFilter from './members-multi-select-filter'
-import MembersSingleSelectFilter from './members-single-select-filter'
+import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
+import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
 
 type MembersFiltersProps = {
   search: string
@@ -173,7 +173,7 @@ export default function MembersFilters({
               />
             </label>
 
-            <MembersMultiSelectFilter
+            <MultiSelectFilter
               label='Member status'
               options={memberStatusOptions}
               selectedValues={draftStatuses}
@@ -181,7 +181,7 @@ export default function MembersFilters({
               onToggle={toggleStatus}
             />
 
-            <MembersSingleSelectFilter
+            <SingleSelectFilter
               label='Profile'
               name='profile-filter'
               options={profileOptions}
@@ -190,7 +190,7 @@ export default function MembersFilters({
               onChange={setDraftProfile}
             />
 
-            <MembersMultiSelectFilter
+            <MultiSelectFilter
               label='Membership'
               options={membershipOptions}
               selectedValues={draftMemberships}

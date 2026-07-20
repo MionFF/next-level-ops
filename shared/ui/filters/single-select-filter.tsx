@@ -1,29 +1,25 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { FilterOption } from './filter-option'
 
-type FilterOption<T extends string> = {
-  value: T
-  label: string
-}
-
-type MembersSingleSelectFilterProps<T extends string> = {
+type SingleSelectFilterProps<T extends string> = {
   label: string
   name: string
   options: readonly FilterOption<T>[]
   value: T
-  disabled: boolean
+  disabled?: boolean
   onChange: (value: T) => void
 }
 
-export default function MembersSingleSelectFilter<T extends string>({
+export function SingleSelectFilter<T extends string>({
   label,
   name,
   options,
   value,
   disabled,
   onChange,
-}: MembersSingleSelectFilterProps<T>) {
+}: SingleSelectFilterProps<T>) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -119,7 +115,7 @@ export default function MembersSingleSelectFilter<T extends string>({
         }`}
       >
         <div className='min-h-0 overflow-hidden'>
-          <div className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
+          <div className='max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
             {options.map(option => {
               const checked = value === option.value
 
