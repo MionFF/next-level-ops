@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { Booking, getBookingDisplayBadge, getDerivedBookingStatus } from '../model/booking'
+import { getBookingDisplayBadge, type BookingOperationRow } from '../model/booking'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 import CancelBookingButton from './cancel-booking-button'
 
 type BookingsListProps = {
-  bookings: Booking[]
+  bookings: BookingOperationRow[]
   errorMessage?: string
   hasActiveFilters: boolean
 }
@@ -61,8 +61,7 @@ export default function BookingsList({
               </thead>
               <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
                 {bookings.map(booking => {
-                  const derived = getDerivedBookingStatus(booking)
-                  const badge = getBookingDisplayBadge(derived)
+                  const badge = getBookingDisplayBadge(booking.derived_status)
 
                   return (
                     <tr
@@ -70,25 +69,19 @@ export default function BookingsList({
                       className='text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)]/50'
                     >
                       <td className='px-4 py-3 font-medium'>
-                        <div className='line-clamp-2 max-w-full'>
-                          {booking.member?.full_name ?? 'Unknown'}
-                        </div>
+                        <div className='line-clamp-2 max-w-full'>{booking.member_name}</div>
                       </td>
                       <td className='px-4 py-3 max-w-full truncate text-[var(--muted)]'>
-                        {booking.member?.email ?? '—'}
+                        {booking.member_email}
                       </td>
                       <td className='px-4 py-3 font-medium'>
-                        <div className='line-clamp-2 max-w-full'>
-                          {booking.session?.title ?? 'Unknown'}
-                        </div>
+                        <div className='line-clamp-2 max-w-full'>{booking.session_title}</div>
                       </td>
                       <td className='px-4 py-3 truncate max-w-full text-[var(--muted)]'>
-                        {booking.session?.trainer?.full_name ?? 'Unknown'}
+                        {booking.trainer_name}
                       </td>
                       <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
-                        {booking.session?.starts_at
-                          ? formatDateTime(booking.session.starts_at)
-                          : '—'}
+                        {formatDateTime(booking.session_starts_at)}
                       </td>
                       <td className='px-4 py-3 whitespace-nowrap'>
                         <span
@@ -101,7 +94,7 @@ export default function BookingsList({
                         {formatDate(booking.created_at)}
                       </td>
                       <td className='px-4 py-3 whitespace-nowrap text-center'>
-                        {derived === 'confirmed' ? (
+                        {booking.is_cancellable ? (
                           <CancelBookingButton bookingId={booking.id} />
                         ) : (
                           <span className='text-xs text-[var(--muted)]'>—</span>
@@ -116,8 +109,7 @@ export default function BookingsList({
 
           <ul className='flex min-w-0 flex-col gap-3 xl:hidden'>
             {bookings.map(booking => {
-              const derived = getDerivedBookingStatus(booking)
-              const badge = getBookingDisplayBadge(derived)
+              const badge = getBookingDisplayBadge(booking.derived_status)
 
               return (
                 <li
@@ -127,23 +119,14 @@ export default function BookingsList({
                   <div className='grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3'>
                     <div className='min-w-0'>
                       <p className='block max-w-full truncate font-semibold text-[var(--foreground)]'>
-                        {booking.member?.full_name ?? 'Unknown member'}
+                        {booking.member_name}
                       </p>
 
                       <div className='mt-2 min-w-0 space-y-1 text-sm text-[var(--muted)]'>
-                        <p className='max-w-full truncate'>{booking.member?.email ?? '—'}</p>
-                        <p className='max-w-full truncate'>
-                          Session: {booking.session?.title ?? 'Unknown'}
-                        </p>
-                        <p className='max-w-full truncate'>
-                          Trainer: {booking.session?.trainer?.full_name ?? 'Unknown'}
-                        </p>
-                        <p>
-                          Starts:{' '}
-                          {booking.session?.starts_at
-                            ? formatDateTime(booking.session.starts_at)
-                            : '—'}
-                        </p>
+                        <p className='max-w-full truncate'>{booking.member_email}</p>
+                        <p className='max-w-full truncate'>Session: {booking.session_title}</p>
+                        <p className='max-w-full truncate'>Trainer: {booking.trainer_name}</p>
+                        <p>Starts: {formatDateTime(booking.session_starts_at)}</p>
                         <p>Created: {formatDate(booking.created_at)}</p>
                       </div>
 
@@ -155,7 +138,7 @@ export default function BookingsList({
                     </div>
 
                     <div className='flex shrink-0 justify-end'>
-                      {derived === 'confirmed' ? (
+                      {booking.is_cancellable ? (
                         <CancelBookingButton bookingId={booking.id} />
                       ) : (
                         <span className='text-xs text-[var(--muted)]'>—</span>

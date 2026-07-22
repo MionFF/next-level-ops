@@ -1,34 +1,35 @@
 import { render, screen } from '@testing-library/react'
-import type { Session } from '../model/session'
+import type { SessionOperationRow } from '../model/session'
 import SessionsList from './sessions-list'
 
-const sessions: Session[] = [
+const sessions: SessionOperationRow[] = [
   {
     id: 'session-1',
     title: 'Future Strength',
     trainer_id: 'trainer-1',
-    trainer: {
-      id: 'trainer-1',
-      full_name: 'Sam Coach',
-    },
+    trainer_name: 'Sam Coach',
     starts_at: '2026-06-01T10:00:00.000Z',
     ends_at: '2026-06-01T11:00:00.000Z',
     capacity: 20,
     status: 'scheduled',
     created_at: '2026-05-20T10:00:00.000Z',
     confirmed_bookings_count: 8,
+    derived_status: 'scheduled',
+    available_spots: 12,
   },
   {
     id: 'session-2',
     title: 'Full Mobility',
     trainer_id: 'trainer-2',
-    trainer: null,
+    trainer_name: 'Mia Trainer',
     starts_at: '2026-06-02T18:00:00.000Z',
     ends_at: '2026-06-02T19:00:00.000Z',
     capacity: 12,
     status: 'scheduled',
     created_at: '2026-05-21T10:00:00.000Z',
     confirmed_bookings_count: 12,
+    derived_status: 'full',
+    available_spots: 0,
   },
 ]
 
@@ -84,7 +85,7 @@ describe('SessionsList', () => {
     expect(screen.getAllByText('Scheduled').length).toBeGreaterThan(0)
 
     expect(screen.getAllByText('Full Mobility').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Unknown').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Mia Trainer').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/12 \/ 12 booked/).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Full').length).toBeGreaterThan(0)
   })

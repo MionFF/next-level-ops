@@ -25,6 +25,21 @@ export type Session = {
   confirmed_bookings_count: number
 }
 
+export type SessionOperationRow = {
+  id: string
+  title: string
+  trainer_id: string
+  trainer_name: string
+  starts_at: string
+  ends_at: string
+  capacity: number
+  status: SessionStatus
+  created_at: string
+  confirmed_bookings_count: number
+  derived_status: DerivedSessionStatus
+  available_spots: number
+}
+
 export type EditableSession = Pick<
   Session,
   'id' | 'title' | 'trainer_id' | 'starts_at' | 'ends_at' | 'capacity' | 'status'
@@ -44,9 +59,7 @@ export function isDerivedSessionStatus(value: string | undefined): value is Deri
   )
 }
 
-export function getDerivedSessionStatus(session: Session): DerivedSessionStatus {
-  const now = new Date()
-
+export function getDerivedSessionStatus(session: Session, now = new Date()): DerivedSessionStatus {
   if (session.status === 'cancelled') {
     return 'cancelled'
   }
@@ -121,6 +134,27 @@ export function sortSessions(sessions: Session[]): Session[] {
 
     // Active/future: ascending; completed/cancelled: descending
     if (statusA === 'in_progress' || statusA === 'scheduled' || statusA === 'full') {
+      return startsAtA - startsAtB
+    }
+
+    return startsAtB - startsAtA
+  })
+}
+
+export function sortSessionOperationRows(rows: SessionOperationRow[]): SessionOperationRow[] {
+  return [...rows].sort((a, b) => {
+    const orderDiff =
+      derivedStatusSortOrder[a.derived_status] - derivedStatusSortOrder[b.derived_status]
+    if (orderDiff !== 0) return orderDiff
+
+    const startsAtA = new Date(a.starts_at).getTime()
+    const startsAtB = new Date(b.starts_at).getTime()
+
+    if (
+      a.derived_status === 'in_progress' ||
+      a.derived_status === 'scheduled' ||
+      a.derived_status === 'full'
+    ) {
       return startsAtA - startsAtB
     }
 

@@ -1,8 +1,7 @@
 import {
-  Booking,
-  getDerivedBookingStatus,
   isDerivedBookingStatus,
-  sortBookings,
+  sortBookingOperationRows,
+  type BookingOperationRow,
   type DerivedBookingStatus,
 } from '@/features/bookings/model/booking'
 import BookingsFilters from '@/features/bookings/ui/bookings-filters'
@@ -36,70 +35,43 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
 
   const supabase = await createClient()
 
-  const { data: bookings, error } = await supabase
-    .from('bookings')
+  const { data, error } = await supabase
+    .from('booking_operations')
     .select(
-      'id, session_id, member_id, status, created_at, member:members(id, full_name, email), session:sessions(id, title, starts_at, ends_at, trainer:trainers(id, full_name))',
+      'id, session_id, member_id, status, created_at, member_name, member_email, session_title, session_starts_at, session_ends_at, trainer_id, trainer_name, derived_status, is_cancellable',
     )
-    .order('created_at', { ascending: false })
 
-  const normalizedBookings: Booking[] =
-    bookings?.map(booking => {
-      const member = Array.isArray(booking.member) ? (booking.member[0] ?? null) : booking.member
-
-      const session = Array.isArray(booking.session)
-        ? (booking.session[0] ?? null)
-        : booking.session
-
-      const trainer = session
-        ? Array.isArray(session.trainer)
-          ? (session.trainer[0] ?? null)
-          : session.trainer
-        : null
-
-      return {
-        ...booking,
-        member,
-        session: session
-          ? {
-              ...session,
-              trainer,
-            }
-          : null,
-      }
-    }) ?? []
+  const bookings: BookingOperationRow[] = data ?? []
 
   // Compute derived status counts from ALL bookings (before filtering)
   const statusCounts: Partial<Record<DerivedBookingStatus, number>> = {}
-  for (const b of normalizedBookings) {
-    const derived = getDerivedBookingStatus(b)
-    statusCounts[derived] = (statusCounts[derived] ?? 0) + 1
+  for (const booking of bookings) {
+    statusCounts[booking.derived_status] = (statusCounts[booking.derived_status] ?? 0) + 1
   }
 
   // Server-side filtering
-  const filteredBookings = normalizedBookings.filter(booking => {
+  const filteredBookings = bookings.filter(booking => {
     if (selectedStatuses.length > 0) {
-      const derived = getDerivedBookingStatus(booking)
-      if (!selectedStatuses.includes(derived)) return false
+      if (!selectedStatuses.includes(booking.derived_status)) return false
     }
 
     if (memberFilter) {
       const query = memberFilter.toLowerCase()
-      const name = booking.member?.full_name?.toLowerCase() ?? ''
-      const email = booking.member?.email?.toLowerCase() ?? ''
+      const name = booking.member_name.toLowerCase()
+      const email = booking.member_email.toLowerCase()
       if (!name.includes(query) && !email.includes(query)) return false
     }
 
     if (sessionFilter) {
       const query = sessionFilter.toLowerCase()
-      const title = booking.session?.title?.toLowerCase() ?? ''
+      const title = booking.session_title.toLowerCase()
       if (!title.includes(query)) return false
     }
 
     return true
   })
 
-  const sortedBookings = sortBookings(filteredBookings)
+  const sortedBookings = sortBookingOperationRows(filteredBookings)
 
   return (
     <>

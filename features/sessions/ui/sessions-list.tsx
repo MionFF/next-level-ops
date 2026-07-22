@@ -1,15 +1,15 @@
 import Link from 'next/link'
-import { getDerivedSessionStatus, getSessionDisplayBadge, type Session } from '../model/session'
+import { getSessionDisplayBadge, type SessionOperationRow } from '../model/session'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 
 type SessionsListProps = {
-  sessions: Session[]
+  sessions: SessionOperationRow[]
   errorMessage?: string
   emptyMessage?: string
 }
 
-function DisplayBadge({ session }: { session: Session }) {
-  const { text, className } = getSessionDisplayBadge(getDerivedSessionStatus(session))
+function DisplayBadge({ status }: { status: SessionOperationRow['derived_status'] }) {
+  const { text, className } = getSessionDisplayBadge(status)
   return (
     <span
       className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${className}`}
@@ -75,9 +75,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                       <div className='line-clamp-2 max-w-full'>{session.title}</div>
                     </td>
                     <td className='px-4 py-3 text-[var(--muted)]'>
-                      <div className='line-clamp-2 max-w-full'>
-                        {session.trainer?.full_name ?? 'Unknown'}
-                      </div>
+                      <div className='line-clamp-2 max-w-full'>{session.trainer_name}</div>
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDateTime(session.starts_at)}
@@ -89,7 +87,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                       {session.confirmed_bookings_count} / {session.capacity} booked
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap'>
-                      <DisplayBadge session={session} />
+                      <DisplayBadge status={session.derived_status} />
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(session.created_at)}
@@ -121,9 +119,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                     </p>
 
                     <div className='mt-2 min-w-0 space-y-1 text-sm text-[var(--muted)]'>
-                      <p className='max-w-full truncate'>
-                        Trainer: {session.trainer?.full_name ?? 'Unknown'}
-                      </p>
+                      <p className='max-w-full truncate'>Trainer: {session.trainer_name}</p>
                       <p>Starts: {formatDateTime(session.starts_at)}</p>
                       <p>Ends: {formatDateTime(session.ends_at)}</p>
                       <p>
@@ -133,7 +129,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                     </div>
 
                     <div className='mt-2'>
-                      <DisplayBadge session={session} />
+                      <DisplayBadge status={session.derived_status} />
                     </div>
                   </div>
 

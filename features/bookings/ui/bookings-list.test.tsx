@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import type { Booking } from '../model/booking'
+import type { BookingOperationRow } from '../model/booking'
 import BookingsList from './bookings-list'
 
 jest.mock('./cancel-booking-button', () => ({
@@ -9,28 +9,22 @@ jest.mock('./cancel-booking-button', () => ({
   ),
 }))
 
-function createBooking(overrides: Partial<Booking> = {}): Booking {
+function createBooking(overrides: Partial<BookingOperationRow> = {}): BookingOperationRow {
   return {
     id: 'booking-1',
     session_id: 'session-1',
     member_id: 'member-1',
     status: 'confirmed',
     created_at: '2026-05-20T10:00:00.000Z',
-    member: {
-      id: 'member-1',
-      full_name: 'Alex Morgan',
-      email: 'alex@example.com',
-    },
-    session: {
-      id: 'session-1',
-      title: 'Morning Strength',
-      starts_at: '2026-06-01T10:00:00.000Z',
-      ends_at: '2026-06-01T11:00:00.000Z',
-      trainer: {
-        id: 'trainer-1',
-        full_name: 'Sam Coach',
-      },
-    },
+    member_name: 'Alex Morgan',
+    member_email: 'alex@example.com',
+    session_title: 'Morning Strength',
+    session_starts_at: '2026-06-01T10:00:00.000Z',
+    session_ends_at: '2026-06-01T11:00:00.000Z',
+    trainer_id: 'trainer-1',
+    trainer_name: 'Sam Coach',
+    derived_status: 'confirmed',
+    is_cancellable: true,
     ...overrides,
   }
 }
@@ -73,21 +67,15 @@ describe('BookingsList', () => {
       }),
       createBooking({
         id: 'booking-2',
-        member: {
-          id: 'member-2',
-          full_name: 'Jamie Lee',
-          email: 'jamie@example.com',
-        },
-        session: {
-          id: 'session-2',
-          title: 'Evening Mobility',
-          starts_at: '2026-06-02T18:00:00.000Z',
-          ends_at: '2026-06-02T19:00:00.000Z',
-          trainer: {
-            id: 'trainer-2',
-            full_name: 'Mia Trainer',
-          },
-        },
+        member_id: 'member-2',
+        member_name: 'Jamie Lee',
+        member_email: 'jamie@example.com',
+        session_id: 'session-2',
+        session_title: 'Evening Mobility',
+        session_starts_at: '2026-06-02T18:00:00.000Z',
+        session_ends_at: '2026-06-02T19:00:00.000Z',
+        trainer_id: 'trainer-2',
+        trainer_name: 'Mia Trainer',
       }),
     ]
 
@@ -113,75 +101,60 @@ describe('BookingsList', () => {
     expect(screen.getAllByText('Confirmed').length).toBeGreaterThan(0)
   })
 
-  it('renders fallback values when booking relations are missing', () => {
-    const bookings = [
-      createBooking({
-        id: 'booking-missing-relations',
-        member: null,
-        session: null,
-      }),
-    ]
-
-    render(<BookingsList bookings={bookings} errorMessage={undefined} hasActiveFilters={false} />)
-
-    expect(screen.getAllByText(/unknown/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
-  })
-
-  it('renders cancel controls only for confirmed bookings', () => {
+  it('renders cancel controls only for rows marked cancellable', () => {
     const confirmedBooking = createBooking({
       id: 'confirmed-booking',
-      session: {
-        id: 'future-session',
-        title: 'Future Strength',
-        starts_at: '2026-06-01T10:00:00.000Z',
-        ends_at: '2026-06-01T11:00:00.000Z',
-        trainer: {
-          id: 'trainer-1',
-          full_name: 'Sam Coach',
-        },
-      },
+      session_id: 'future-session',
+      session_title: 'Future Strength',
+      is_cancellable: true,
+    })
+
+    const startedConfirmedBooking = createBooking({
+      id: 'started-confirmed-booking',
+      session_id: 'started-session',
+      session_title: 'Started Session',
+      derived_status: 'confirmed',
+      is_cancellable: false,
     })
 
     const inProgressBooking = createBooking({
       id: 'in-progress-booking',
-      session: {
-        id: 'current-session',
-        title: 'Current Session',
-        starts_at: '2026-05-21T11:00:00.000Z',
-        ends_at: '2026-05-21T13:00:00.000Z',
-        trainer: {
-          id: 'trainer-2',
-          full_name: 'Mia Trainer',
-        },
-      },
+      session_id: 'current-session',
+      session_title: 'Current Session',
+      derived_status: 'in_progress',
+      is_cancellable: false,
     })
 
     const completedBooking = createBooking({
       id: 'completed-booking',
-      session: {
-        id: 'past-session',
-        title: 'Past Session',
-        starts_at: '2026-05-20T10:00:00.000Z',
-        ends_at: '2026-05-20T11:00:00.000Z',
-        trainer: null,
-      },
+      session_id: 'past-session',
+      session_title: 'Past Session',
+      derived_status: 'completed',
+      is_cancellable: false,
     })
 
     const cancelledBooking = createBooking({
       id: 'cancelled-booking',
       status: 'cancelled',
+      derived_status: 'cancelled',
+      is_cancellable: false,
     })
 
     render(
       <BookingsList
-        bookings={[confirmedBooking, inProgressBooking, completedBooking, cancelledBooking]}
+        bookings={[
+          confirmedBooking,
+          startedConfirmedBooking,
+          inProgressBooking,
+          completedBooking,
+          cancelledBooking,
+        ]}
         errorMessage={undefined}
         hasActiveFilters={false}
       />,
     )
 
-    expect(screen.getAllByText('Confirmed').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Confirmed').length).toBeGreaterThan(2)
     expect(screen.getAllByText('In progress').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Completed').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Cancelled').length).toBeGreaterThan(0)
@@ -189,6 +162,10 @@ describe('BookingsList', () => {
     expect(
       screen.getAllByRole('button', { name: /cancel booking confirmed-booking/i }),
     ).toHaveLength(2)
+
+    expect(
+      screen.queryByRole('button', { name: /cancel booking started-confirmed-booking/i }),
+    ).not.toBeInTheDocument()
 
     expect(
       screen.queryByRole('button', { name: /cancel booking in-progress-booking/i }),

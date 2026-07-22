@@ -27,6 +27,23 @@ export type Booking = {
   } | null
 }
 
+export type BookingOperationRow = {
+  id: string
+  session_id: string
+  member_id: string
+  status: BookingStatus
+  created_at: string
+  member_name: string
+  member_email: string
+  session_title: string
+  session_starts_at: string
+  session_ends_at: string
+  trainer_id: string
+  trainer_name: string
+  derived_status: DerivedBookingStatus
+  is_cancellable: boolean
+}
+
 export function isBookingStatus(value: string | undefined): value is BookingStatus {
   return value === 'confirmed' || value === 'cancelled'
 }
@@ -35,9 +52,7 @@ export function isDerivedBookingStatus(value: string | undefined): value is Deri
   return (derivedBookingStatuses as readonly string[]).includes(value ?? '')
 }
 
-export function getDerivedBookingStatus(booking: Booking): DerivedBookingStatus {
-  const now = new Date()
-
+export function getDerivedBookingStatus(booking: Booking, now = new Date()): DerivedBookingStatus {
   if (booking.status === 'cancelled') {
     return 'cancelled'
   }
@@ -124,6 +139,23 @@ export function sortBookings(bookings: Booking[]): Booking[] {
 
     // Future/current: ascending; completed/cancelled: descending
     if (statusA === 'confirmed' || statusA === 'in_progress') {
+      return startsAtA - startsAtB
+    }
+
+    return startsAtB - startsAtA
+  })
+}
+
+export function sortBookingOperationRows(rows: BookingOperationRow[]): BookingOperationRow[] {
+  return [...rows].sort((a, b) => {
+    const orderDiff =
+      derivedStatusSortOrder[a.derived_status] - derivedStatusSortOrder[b.derived_status]
+    if (orderDiff !== 0) return orderDiff
+
+    const startsAtA = new Date(a.session_starts_at).getTime()
+    const startsAtB = new Date(b.session_starts_at).getTime()
+
+    if (a.derived_status === 'confirmed' || a.derived_status === 'in_progress') {
       return startsAtA - startsAtB
     }
 
