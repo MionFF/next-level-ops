@@ -1,35 +1,29 @@
 import { render, screen } from '@testing-library/react'
-import type { SessionOperationRow } from '../model/session'
+import type { SessionListRow } from '../model/session'
 import SessionsList from './sessions-list'
 
-const sessions: SessionOperationRow[] = [
+const sessions: SessionListRow[] = [
   {
     id: 'session-1',
     title: 'Future Strength',
-    trainer_id: 'trainer-1',
     trainer_name: 'Sam Coach',
     starts_at: '2026-06-01T10:00:00.000Z',
     ends_at: '2026-06-01T11:00:00.000Z',
     capacity: 20,
-    status: 'scheduled',
     created_at: '2026-05-20T10:00:00.000Z',
     confirmed_bookings_count: 8,
     derived_status: 'scheduled',
-    available_spots: 12,
   },
   {
     id: 'session-2',
     title: 'Full Mobility',
-    trainer_id: 'trainer-2',
     trainer_name: 'Mia Trainer',
     starts_at: '2026-06-02T18:00:00.000Z',
     ends_at: '2026-06-02T19:00:00.000Z',
     capacity: 12,
-    status: 'scheduled',
     created_at: '2026-05-21T10:00:00.000Z',
     confirmed_bookings_count: 12,
     derived_status: 'full',
-    available_spots: 0,
   },
 ]
 

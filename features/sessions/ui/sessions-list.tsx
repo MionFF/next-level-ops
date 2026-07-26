@@ -1,14 +1,14 @@
 import Link from 'next/link'
-import { getSessionDisplayBadge, type SessionOperationRow } from '../model/session'
+import { getSessionDisplayBadge, type SessionListRow } from '../model/session'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 
 type SessionsListProps = {
-  sessions: SessionOperationRow[]
+  sessions: SessionListRow[]
   errorMessage?: string
   emptyMessage?: string
 }
 
-function DisplayBadge({ status }: { status: SessionOperationRow['derived_status'] }) {
+function DisplayBadge({ status }: { status: SessionListRow['derived_status'] }) {
   const { text, className } = getSessionDisplayBadge(status)
   return (
     <span

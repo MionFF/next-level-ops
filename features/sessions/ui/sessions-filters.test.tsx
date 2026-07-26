@@ -1,15 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import SessionsFilters from './sessions-filters'
+import SessionsFilters, { type SessionsFiltersProps } from './sessions-filters'
 
 const pushMock = jest.fn()
-let pathnameMock = '/dashboard/sessions'
-let searchParamsMock = new URLSearchParams()
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
-  usePathname: () => pathnameMock,
-  useSearchParams: () => searchParamsMock,
 }))
 
 const trainers = [
@@ -17,149 +13,184 @@ const trainers = [
   { id: 'trainer-2', full_name: 'Mia Trainer' },
 ]
 
-const statusCounts = {
-  scheduled: 3,
-  in_progress: 1,
-  full: 2,
-  completed: 5,
-  cancelled: 1,
+const defaultProps: SessionsFiltersProps = {
+  search: '',
+  trainer: '',
+  trainers,
+  selectedStatuses: [],
+  from: '',
+  to: '',
+  sort: 'soonest',
+}
+
+function mockMatchMedia(matches: boolean) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  })
 }
 
 describe('SessionsFilters', () => {
   beforeEach(() => {
     pushMock.mockClear()
-    pathnameMock = '/dashboard/sessions'
-    searchParamsMock = new URLSearchParams()
+    mockMatchMedia(true)
   })
 
-  it('renders trainer filter, status filter, and actions', () => {
+  it('renders all applied filter values', () => {
     render(
       <SessionsFilters
-        trainer=''
-        trainers={trainers}
-        selectedStatuses={[]}
-        statusCounts={statusCounts}
+        {...defaultProps}
+        search='strength'
+        trainer='trainer-1'
+        selectedStatuses={['completed']}
+        from='2026-07-01'
+        to='2026-07-31'
+        sort='latest'
       />,
     )
 
-    expect(screen.getByRole('combobox')).toHaveValue('')
-    expect(screen.getByRole('option', { name: /all trainers/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /sam coach/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /mia trainer/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /status all/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /apply/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /reset/i })).toBeInTheDocument()
+    expect(screen.getByLabelText('Search')).toHaveValue('strength')
+    expect(screen.getByRole('button', { name: 'Trainer: Sam Coach' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Session status: Completed' }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('From')).toHaveValue('2026-07-01')
+    expect(screen.getByLabelText('To')).toHaveValue('2026-07-31')
+    expect(screen.getByRole('button', { name: 'Sort: Latest first' })).toBeInTheDocument()
   })
 
-  it('applies selected trainer and statuses to the URL', async () => {
+  it('applies every supported filter with canonical URL ordering', async () => {
     const user = userEvent.setup()
 
-    render(
-      <SessionsFilters
-        trainer=''
-        trainers={trainers}
-        selectedStatuses={[]}
-        statusCounts={statusCounts}
-      />,
-    )
+    render(<SessionsFilters {...defaultProps} />)
 
-    await user.selectOptions(screen.getByRole('combobox'), 'trainer-1')
-    await user.click(screen.getByRole('button', { name: /status all/i }))
-    await user.click(screen.getByLabelText(/scheduled/i))
-    await user.click(screen.getByLabelText(/full/i))
-    await user.click(screen.getByRole('button', { name: /apply/i }))
+    await user.type(screen.getByLabelText('Search'), 'Morning strength')
+
+    await user.click(screen.getByRole('button', { name: 'Trainer: All trainers' }))
+    await user.click(screen.getByLabelText('Trainer: Sam Coach'))
+
+    await user.click(screen.getByRole('button', { name: 'Session status: All' }))
+    await user.click(screen.getByLabelText('Session status: Completed'))
+    await user.click(screen.getByLabelText('Session status: Scheduled'))
+
+    await user.type(screen.getByLabelText('From'), '2026-07-01')
+    await user.type(screen.getByLabelText('To'), '2026-07-31')
+
+    await user.click(screen.getByRole('button', { name: 'Sort: Soonest first' }))
+    await user.click(screen.getByLabelText('Sort: Latest first'))
+
+    await user.click(screen.getByRole('button', { name: 'Apply filters' }))
 
     expect(pushMock).toHaveBeenCalledWith(
-      '/dashboard/sessions?trainer=trainer-1&statuses=scheduled&statuses=full',
+      '/dashboard/sessions?search=Morning+strength&trainer=trainer-1&statuses=scheduled&statuses=completed&from=2026-07-01&to=2026-07-31&sort=latest',
     )
   })
 
-  it('preserves unrelated existing search params when applying filters', async () => {
+  it('resets page to one by omitting page when filters are applied', async () => {
     const user = userEvent.setup()
-    searchParamsMock = new URLSearchParams('page=2')
 
-    render(
-      <SessionsFilters
-        trainer=''
-        trainers={trainers}
-        selectedStatuses={[]}
-        statusCounts={statusCounts}
-      />,
-    )
+    render(<SessionsFilters {...defaultProps} />)
 
-    await user.selectOptions(screen.getByRole('combobox'), 'trainer-2')
-    await user.click(screen.getByRole('button', { name: /apply/i }))
+    await user.type(screen.getByLabelText('Search'), 'Yoga')
+    await user.click(screen.getByRole('button', { name: 'Apply filters' }))
 
-    expect(pushMock).toHaveBeenCalledWith('/dashboard/sessions?page=2&trainer=trainer-2')
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/sessions?search=Yoga')
   })
 
-  it('resets filters and navigates to the base pathname', async () => {
+  it('resets every draft filter and navigates to the base URL', async () => {
     const user = userEvent.setup()
 
     render(
       <SessionsFilters
+        {...defaultProps}
+        search='strength'
         trainer='trainer-1'
-        trainers={trainers}
         selectedStatuses={['scheduled', 'full']}
-        statusCounts={statusCounts}
+        from='2026-07-01'
+        to='2026-07-31'
+        sort='latest'
       />,
     )
 
-    expect(screen.getByRole('combobox')).toHaveValue('trainer-1')
-    expect(screen.getByRole('button', { name: /status 2 selected/i })).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: /reset/i }))
+    await user.click(screen.getByRole('button', { name: 'Reset' }))
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard/sessions')
-    expect(screen.getByRole('combobox')).toHaveValue('')
-    expect(screen.getByRole('button', { name: /status all/i })).toBeInTheDocument()
+    expect(screen.getByLabelText('Search')).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Trainer: All trainers' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Session status: All' })).toBeInTheDocument()
+    expect(screen.getByLabelText('From')).toHaveValue('')
+    expect(screen.getByLabelText('To')).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Sort: Soonest first' })).toBeInTheDocument()
   })
 
-  it('closes the status dropdown on Escape', async () => {
+  it('toggles multiple statuses independently', async () => {
+    const user = userEvent.setup()
+
+    render(<SessionsFilters {...defaultProps} />)
+
+    const statusTrigger = screen.getByRole('button', { name: 'Session status: All' })
+    await user.click(statusTrigger)
+    await user.click(screen.getByLabelText('Session status: Scheduled'))
+    await user.click(screen.getByLabelText('Session status: Full'))
+
+    expect(
+      screen.getByRole('button', { name: 'Session status: 2 selected' }),
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Session status: Scheduled'))
+
+    expect(screen.getByRole('button', { name: 'Session status: Full' })).toBeInTheDocument()
+  })
+
+  it('toggles the mobile panel and reports active filter groups', async () => {
     const user = userEvent.setup()
 
     render(
       <SessionsFilters
-        trainer=''
-        trainers={trainers}
-        selectedStatuses={[]}
-        statusCounts={statusCounts}
+        {...defaultProps}
+        search='strength'
+        trainer='trainer-1'
+        selectedStatuses={['scheduled', 'full']}
+        from='2026-07-01'
+        to='2026-07-31'
+        sort='latest'
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /status all/i }))
+    const filtersToggle = screen.getByRole('button', {
+      name: /^filters\b/i,
+      expanded: false,
+    })
 
-    expect(screen.getByLabelText(/scheduled/i)).toBeInTheDocument()
+    expect(filtersToggle).toHaveTextContent('6 active filters')
 
-    await user.keyboard('{Escape}')
+    await user.click(filtersToggle)
+    expect(filtersToggle).toHaveAttribute('aria-expanded', 'true')
 
-    expect(screen.queryByLabelText(/scheduled/i)).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /status all/i })).toHaveFocus()
+    await user.click(filtersToggle)
+    expect(filtersToggle).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('syncs draft state when filter props change', () => {
-    const { rerender } = render(
+  it('surfaces a trainer options loading error without hiding other controls', () => {
+    render(
       <SessionsFilters
-        trainer=''
-        trainers={trainers}
-        selectedStatuses={[]}
-        statusCounts={statusCounts}
+        {...defaultProps}
+        trainers={[]}
+        trainerOptionsError='Database error'
       />,
     )
 
-    expect(screen.getByRole('combobox')).toHaveValue('')
-    expect(screen.getByRole('button', { name: /status all/i })).toBeInTheDocument()
-
-    rerender(
-      <SessionsFilters
-        trainer='trainer-2'
-        trainers={trainers}
-        selectedStatuses={['completed']}
-        statusCounts={statusCounts}
-      />,
-    )
-
-    expect(screen.getByRole('combobox')).toHaveValue('trainer-2')
-    expect(screen.getByRole('button', { name: /status 1 selected/i })).toBeInTheDocument()
+    expect(screen.getByText('Failed to load trainer options.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Search')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Trainer: All trainers' })).toBeInTheDocument()
   })
 })

@@ -40,6 +40,23 @@ export type SessionOperationRow = {
   available_spots: number
 }
 
+export type SessionListRow = Pick<
+  SessionOperationRow,
+  | 'id'
+  | 'title'
+  | 'trainer_name'
+  | 'starts_at'
+  | 'ends_at'
+  | 'capacity'
+  | 'created_at'
+  | 'confirmed_bookings_count'
+  | 'derived_status'
+>
+
+export const sessionSortOptions = ['soonest', 'latest'] as const
+
+export type SessionSort = (typeof sessionSortOptions)[number]
+
 export type EditableSession = Pick<
   Session,
   'id' | 'title' | 'trainer_id' | 'starts_at' | 'ends_at' | 'capacity' | 'status'
@@ -57,6 +74,10 @@ export function isDerivedSessionStatus(value: string | undefined): value is Deri
     value === 'completed' ||
     value === 'cancelled'
   )
+}
+
+export function isSessionSort(value: string | undefined): value is SessionSort {
+  return value === 'soonest' || value === 'latest'
 }
 
 export function getDerivedSessionStatus(session: Session, now = new Date()): DerivedSessionStatus {

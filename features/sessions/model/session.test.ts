@@ -2,6 +2,7 @@ import {
   getDerivedSessionStatus,
   getSessionDisplayBadge,
   isDerivedSessionStatus,
+  isSessionSort,
   sortSessionOperationRows,
   sortSessions,
   type Session,
@@ -135,6 +136,18 @@ describe('session model', () => {
       expect(isDerivedSessionStatus('confirmed')).toBe(false)
       expect(isDerivedSessionStatus('unknown')).toBe(false)
       expect(isDerivedSessionStatus(undefined)).toBe(false)
+    })
+  })
+
+  describe('isSessionSort', () => {
+    it('accepts supported session sorts', () => {
+      expect(isSessionSort('soonest')).toBe(true)
+      expect(isSessionSort('latest')).toBe(true)
+    })
+
+    it('rejects unsupported session sorts', () => {
+      expect(isSessionSort('oldest')).toBe(false)
+      expect(isSessionSort(undefined)).toBe(false)
     })
   })
 

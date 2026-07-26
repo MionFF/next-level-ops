@@ -17,6 +17,8 @@ export async function selectOptionByText(page: Page, label: string, text: string
   }
 
   await select.selectOption(value)
+
+  return value
 }
 
 export async function waitForAppReady(page: Page) {
