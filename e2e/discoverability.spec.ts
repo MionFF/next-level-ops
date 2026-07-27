@@ -17,17 +17,10 @@ test.describe('discoverability flows', () => {
     await loginAsAdmin(page)
 
     const { trainerName } = await createE2ETrainer(page, runId)
-    const { sessionTitle, startsAt, trainerId } = await createE2ESession(
-      page,
-      runId,
-      trainerName,
-    )
+    const { sessionTitle, startsAt, trainerId } = await createE2ESession(page, runId, trainerName)
     const sessionDate = startsAt.slice(0, 10)
 
-    await gotoAppPage(
-      page,
-      `/dashboard/sessions?trainer=${encodeURIComponent(trainerId)}`,
-    )
+    await gotoAppPage(page, `/dashboard/sessions?trainer=${encodeURIComponent(trainerId)}`)
     await waitForAppReady(page)
 
     const sessionsFilters = page.locator('form').filter({ has: page.getByLabel('Search') })
@@ -39,12 +32,23 @@ test.describe('discoverability flows', () => {
 
     await sessionsFilters.getByRole('button', { name: 'Session status: All' }).click()
     await sessionsFilters.getByLabel('Session status: Scheduled').click()
-    await sessionsFilters
-      .getByRole('button', { name: 'Session status: Scheduled' })
-      .click()
+    await sessionsFilters.getByRole('button', { name: 'Session status: Scheduled' }).click()
+
+    await sessionsFilters.getByLabel('From', { exact: true }).fill('2026-07-08')
+    await sessionsFilters.getByLabel('To', { exact: true }).fill('2026-07-01')
+
+    await expect(sessionsFilters.getByText('From date must be on or before To date.')).toBeVisible()
+
+    await expect(sessionsFilters.getByRole('button', { name: 'Apply filters' })).toBeDisabled()
 
     await sessionsFilters.getByLabel('From', { exact: true }).fill(sessionDate)
     await sessionsFilters.getByLabel('To', { exact: true }).fill(sessionDate)
+
+    await expect(
+      sessionsFilters.getByText('From date must be on or before To date.'),
+    ).not.toBeVisible()
+
+    await expect(sessionsFilters.getByRole('button', { name: 'Apply filters' })).toBeEnabled()
 
     await sessionsFilters.getByRole('button', { name: 'Sort: Soonest first' }).click()
     await sessionsFilters.locator('label').filter({ hasText: 'Latest first' }).click()
@@ -68,9 +72,7 @@ test.describe('discoverability flows', () => {
 
     await expect(page.getByLabel('Search')).toHaveValue(sessionTitle)
     await expect(page.getByRole('button', { name: `Trainer: ${trainerName}` })).toBeVisible()
-    await expect(
-      page.getByRole('button', { name: 'Session status: Scheduled' }),
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Session status: Scheduled' })).toBeVisible()
     await expect(page.getByLabel('From', { exact: true })).toHaveValue(sessionDate)
     await expect(page.getByLabel('To', { exact: true })).toHaveValue(sessionDate)
     await expect(page.getByRole('button', { name: 'Sort: Latest first' })).toBeVisible()
@@ -81,9 +83,7 @@ test.describe('discoverability flows', () => {
 
     await expect(page.getByLabel('Search')).toHaveValue(sessionTitle)
     await expect(page.getByRole('button', { name: `Trainer: ${trainerName}` })).toBeVisible()
-    await expect(
-      page.getByRole('button', { name: 'Session status: Scheduled' }),
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Session status: Scheduled' })).toBeVisible()
     await expect(page.getByLabel('From', { exact: true })).toHaveValue(sessionDate)
     await expect(page.getByLabel('To', { exact: true })).toHaveValue(sessionDate)
     await expect(page.getByRole('button', { name: 'Sort: Latest first' })).toBeVisible()

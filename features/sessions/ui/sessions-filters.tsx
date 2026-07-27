@@ -8,6 +8,7 @@ import {
   type DerivedSessionStatus,
   type SessionSort,
 } from '../model/session'
+import { isValidSessionDateRange } from '../model/sessions-query'
 import { getSessionsHref } from '../model/sessions-url'
 import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
 import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
@@ -51,11 +52,18 @@ export default function SessionsFilters({
 
   const [draftSearch, setDraftSearch] = useState(search)
   const [draftTrainer, setDraftTrainer] = useState(trainer)
-  const [draftStatuses, setDraftStatuses] =
-    useState<DerivedSessionStatus[]>(selectedStatuses)
+  const [draftStatuses, setDraftStatuses] = useState<DerivedSessionStatus[]>(selectedStatuses)
   const [draftFrom, setDraftFrom] = useState(from)
   const [draftTo, setDraftTo] = useState(to)
   const [draftSort, setDraftSort] = useState<SessionSort>(sort)
+
+  const hasInvalidDateRange = !isValidSessionDateRange(draftFrom, draftTo)
+
+  const dateInputClassName = `min-w-0 rounded-[var(--radius-md)] border bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+    hasInvalidDateRange
+      ? 'border-[var(--danger)] focus:border-[var(--danger)]'
+      : 'border-[var(--border)] focus:border-[var(--primary)]'
+  }`
 
   const trainerOptions = [
     { value: '', label: 'All trainers' },
@@ -80,6 +88,10 @@ export default function SessionsFilters({
   }
 
   function applyFilters() {
+    if (hasInvalidDateRange) {
+      return
+    }
+
     const href = getSessionsHref({
       search: draftSearch,
       trainer: draftTrainer,
@@ -207,7 +219,9 @@ export default function SessionsFilters({
                 value={draftFrom}
                 disabled={isPending}
                 onChange={event => setDraftFrom(event.target.value)}
-                className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+                aria-invalid={hasInvalidDateRange}
+                aria-describedby={hasInvalidDateRange ? 'sessions-date-range-error' : undefined}
+                className={dateInputClassName}
               />
             </label>
 
@@ -220,7 +234,9 @@ export default function SessionsFilters({
                 value={draftTo}
                 disabled={isPending}
                 onChange={event => setDraftTo(event.target.value)}
-                className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+                aria-invalid={hasInvalidDateRange}
+                aria-describedby={hasInvalidDateRange ? 'sessions-date-range-error' : undefined}
+                className={dateInputClassName}
               />
             </label>
 
@@ -238,7 +254,7 @@ export default function SessionsFilters({
             <div className='grid min-w-0 grid-cols-2 gap-2 md:col-span-2 xl:col-span-3 2xl:col-span-1 2xl:flex'>
               <button
                 type='submit'
-                disabled={isPending}
+                disabled={isPending || hasInvalidDateRange}
                 className='min-w-0 cursor-pointer whitespace-nowrap rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary)]/90 disabled:cursor-not-allowed disabled:opacity-50 2xl:flex-none'
               >
                 {isPending ? 'Applying…' : 'Apply filters'}
@@ -254,6 +270,16 @@ export default function SessionsFilters({
               </button>
             </div>
           </div>
+
+          {hasInvalidDateRange && (
+            <p
+              id='sessions-date-range-error'
+              role='alert'
+              className='mx-4 mb-4 rounded-[var(--radius-md)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)] md:mx-6 md:mb-6'
+            >
+              From date must be on or before To date.
+            </p>
+          )}
 
           {trainerOptionsError && (
             <p

@@ -37,13 +37,7 @@ export function isValidSessionDate(value: string | undefined): value is string {
   const month = Number(match[2])
   const day = Number(match[3])
 
-  return (
-    year >= 1 &&
-    month >= 1 &&
-    month <= 12 &&
-    day >= 1 &&
-    day <= getDaysInMonth(year, month)
-  )
+  return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= getDaysInMonth(year, month)
 }
 
 function getNextSessionDate(value: string) {
@@ -75,4 +69,12 @@ export function getSessionDateBoundaries(from: string, to: string) {
     fromInclusive: isValidSessionDate(from) ? `${from}T00:00:00.000Z` : null,
     toExclusive: isValidSessionDate(to) ? `${getNextSessionDate(to)}T00:00:00.000Z` : null,
   }
+}
+
+export function isValidSessionDateRange(from: string, to: string) {
+  if (!from || !to) {
+    return true
+  }
+
+  return from <= to
 }

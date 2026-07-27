@@ -60,9 +60,7 @@ describe('SessionsFilters', () => {
 
     expect(screen.getByLabelText('Search')).toHaveValue('strength')
     expect(screen.getByRole('button', { name: 'Trainer: Sam Coach' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Session status: Completed' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Session status: Completed' })).toBeInTheDocument()
     expect(screen.getByLabelText('From')).toHaveValue('2026-07-01')
     expect(screen.getByLabelText('To')).toHaveValue('2026-07-31')
     expect(screen.getByRole('button', { name: 'Sort: Latest first' })).toBeInTheDocument()
@@ -142,9 +140,7 @@ describe('SessionsFilters', () => {
     await user.click(screen.getByLabelText('Session status: Scheduled'))
     await user.click(screen.getByLabelText('Session status: Full'))
 
-    expect(
-      screen.getByRole('button', { name: 'Session status: 2 selected' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Session status: 2 selected' })).toBeInTheDocument()
 
     await user.click(screen.getByLabelText('Session status: Scheduled'))
 
@@ -181,16 +177,55 @@ describe('SessionsFilters', () => {
   })
 
   it('surfaces a trainer options loading error without hiding other controls', () => {
-    render(
-      <SessionsFilters
-        {...defaultProps}
-        trainers={[]}
-        trainerOptionsError='Database error'
-      />,
-    )
+    render(<SessionsFilters {...defaultProps} trainers={[]} trainerOptionsError='Database error' />)
 
     expect(screen.getByText('Failed to load trainer options.')).toBeInTheDocument()
     expect(screen.getByLabelText('Search')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Trainer: All trainers' })).toBeInTheDocument()
+  })
+
+  it('blocks applying an invalid date range', async () => {
+    const user = userEvent.setup()
+
+    render(<SessionsFilters {...defaultProps} from='2026-07-08' to='2026-07-01' />)
+
+    expect(screen.getByText('From date must be on or before To date.')).toBeInTheDocument()
+
+    expect(screen.getByLabelText('From')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('To')).toHaveAttribute('aria-invalid', 'true')
+
+    const applyButton = screen.getByRole('button', {
+      name: 'Apply filters',
+    })
+
+    expect(applyButton).toBeDisabled()
+
+    await user.click(applyButton)
+
+    expect(pushMock).not.toHaveBeenCalled()
+  })
+
+  it('allows applying after the date range becomes valid', async () => {
+    const user = userEvent.setup()
+
+    render(<SessionsFilters {...defaultProps} from='2026-07-08' to='2026-07-01' />)
+
+    await user.clear(screen.getByLabelText('To'))
+    await user.type(screen.getByLabelText('To'), '2026-07-08')
+
+    expect(screen.queryByText('From date must be on or before To date.')).not.toBeInTheDocument()
+
+    expect(screen.getByLabelText('From')).toHaveAttribute('aria-invalid', 'false')
+    expect(screen.getByLabelText('To')).toHaveAttribute('aria-invalid', 'false')
+
+    const applyButton = screen.getByRole('button', {
+      name: 'Apply filters',
+    })
+
+    expect(applyButton).toBeEnabled()
+
+    await user.click(applyButton)
+
+    expect(pushMock).toHaveBeenCalledWith('/dashboard/sessions?from=2026-07-08&to=2026-07-08')
   })
 })

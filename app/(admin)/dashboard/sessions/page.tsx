@@ -8,6 +8,7 @@ import {
   getSessionDateBoundaries,
   getSessionsSearchFilter,
   isValidSessionDate,
+  isValidSessionDateRange,
 } from '@/features/sessions/model/sessions-query'
 import { getSessionsHref } from '@/features/sessions/model/sessions-url'
 import SessionsFilters from '@/features/sessions/ui/sessions-filters'
@@ -70,6 +71,8 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
   const rawTo = getParam(params.to)
   const to = isValidSessionDate(rawTo) ? rawTo : ''
 
+  const hasInvalidDateRange = !isValidSessionDateRange(from, to)
+
   const rawSort = getParam(params.sort)
   const sort: SessionSort = isSessionSort(rawSort) ? rawSort : 'soonest'
   const page = getPage(getParam(params.page))
@@ -77,14 +80,7 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
   const searchFilter = search ? getSessionsSearchFilter(search) : null
   const { fromInclusive, toExclusive } = getSessionDateBoundaries(from, to)
 
-  const filtersKey = [
-    search,
-    trainer,
-    selectedStatuses.join(','),
-    from,
-    to,
-    sort,
-  ].join('|')
+  const filtersKey = [search, trainer, selectedStatuses.join(','), from, to, sort].join('|')
 
   const supabase = await createClient()
 
@@ -93,6 +89,28 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
     .select('id, full_name')
     .eq('status', 'active')
     .order('full_name', { ascending: true })
+
+  if (hasInvalidDateRange) {
+    const { data: trainers, error: trainersError } = await trainersQuery
+
+    return (
+      <>
+        <SessionsFilters
+          key={filtersKey}
+          search={search}
+          trainer={trainer}
+          trainers={trainers ?? []}
+          selectedStatuses={selectedStatuses}
+          from={from}
+          to={to}
+          sort={sort}
+          trainerOptionsError={trainersError?.message}
+        />
+
+        <SessionsList sessions={[]} emptyMessage='Fix the date range to view sessions.' />
+      </>
+    )
+  }
 
   let countQuery = supabase.from('session_operations').select('id', {
     count: 'exact',
@@ -136,10 +154,8 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
     sessionsQuery = sessionsQuery.lt('starts_at', toExclusive)
   }
 
-  const [
-    { data: trainers, error: trainersError },
-    { count, error: countError },
-  ] = await Promise.all([trainersQuery, countQuery])
+  const [{ data: trainers, error: trainersError }, { count, error: countError }] =
+    await Promise.all([trainersQuery, countQuery])
 
   const filterProps = {
     search,

@@ -2,19 +2,16 @@ import {
   getSessionDateBoundaries,
   getSessionsSearchFilter,
   isValidSessionDate,
+  isValidSessionDateRange,
 } from './sessions-query'
 
 describe('getSessionsSearchFilter', () => {
   it('creates a case-insensitive partial title filter', () => {
-    expect(getSessionsSearchFilter('Morning strength')).toBe(
-      'title.ilike."*Morning strength*"',
-    )
+    expect(getSessionsSearchFilter('Morning strength')).toBe('title.ilike."*Morning strength*"')
   })
 
   it('escapes quotes and backslashes for PostgREST', () => {
-    expect(getSessionsSearchFilter('Coach \\"Sam"')).toBe(
-      'title.ilike."*Coach \\\\\\"Sam\\"*"',
-    )
+    expect(getSessionsSearchFilter('Coach \\"Sam"')).toBe('title.ilike."*Coach \\\\\\"Sam\\"*"')
   })
 })
 
@@ -62,11 +59,23 @@ describe('session date helpers', () => {
   })
 
   it('handles month and year rollovers deterministically', () => {
-    expect(getSessionDateBoundaries('', '2026-12-31').toExclusive).toBe(
-      '2027-01-01T00:00:00.000Z',
-    )
-    expect(getSessionDateBoundaries('', '2028-02-29').toExclusive).toBe(
-      '2028-03-01T00:00:00.000Z',
-    )
+    expect(getSessionDateBoundaries('', '2026-12-31').toExclusive).toBe('2027-01-01T00:00:00.000Z')
+    expect(getSessionDateBoundaries('', '2028-02-29').toExclusive).toBe('2028-03-01T00:00:00.000Z')
+  })
+})
+
+describe('isValidSessionDateRange', () => {
+  it.each([
+    ['', ''],
+    ['2026-07-01', ''],
+    ['', '2026-07-08'],
+    ['2026-07-01', '2026-07-08'],
+    ['2026-07-08', '2026-07-08'],
+  ])('accepts the date range %s — %s', (from, to) => {
+    expect(isValidSessionDateRange(from, to)).toBe(true)
+  })
+
+  it('rejects a From date after the To date', () => {
+    expect(isValidSessionDateRange('2026-07-08', '2026-07-01')).toBe(false)
   })
 })
