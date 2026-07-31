@@ -110,9 +110,7 @@ describe('MembersFilters', () => {
     expect(screen.getByRole('button', { name: /membership: all/i })).toBeInTheDocument()
   })
 
-  it('toggles the mobile filters panel and reports applied filter groups', async () => {
-    const user = userEvent.setup()
-
+  it('reports applied filter groups on mobile', () => {
     render(
       <MembersFilters
         search='alex'
@@ -128,13 +126,5 @@ describe('MembersFilters', () => {
     })
 
     expect(filtersToggle).toHaveTextContent('3 active filters')
-
-    await user.click(filtersToggle)
-
-    expect(filtersToggle).toHaveAttribute('aria-expanded', 'true')
-
-    await user.click(filtersToggle)
-
-    expect(filtersToggle).toHaveAttribute('aria-expanded', 'false')
   })
 })

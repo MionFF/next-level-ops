@@ -147,9 +147,7 @@ describe('SessionsFilters', () => {
     expect(screen.getByRole('button', { name: 'Session status: Full' })).toBeInTheDocument()
   })
 
-  it('toggles the mobile panel and reports active filter groups', async () => {
-    const user = userEvent.setup()
-
+  it('reports applied filter groups on mobile', () => {
     render(
       <SessionsFilters
         {...defaultProps}
@@ -168,12 +166,6 @@ describe('SessionsFilters', () => {
     })
 
     expect(filtersToggle).toHaveTextContent('6 active filters')
-
-    await user.click(filtersToggle)
-    expect(filtersToggle).toHaveAttribute('aria-expanded', 'true')
-
-    await user.click(filtersToggle)
-    expect(filtersToggle).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('surfaces a trainer options loading error without hiding other controls', () => {

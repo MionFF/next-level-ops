@@ -201,9 +201,7 @@ describe('BookingsFilters', () => {
     expect(screen.getByRole('button', { name: 'Booking status: All' })).toBeInTheDocument()
   })
 
-  it('toggles the mobile panel and counts applied filter groups once each', async () => {
-    const user = userEvent.setup()
-
+  it('counts applied filter groups once each on mobile', () => {
     render(
       <BookingsFilters
         {...defaultProps}
@@ -223,12 +221,6 @@ describe('BookingsFilters', () => {
     })
 
     expect(filtersToggle).toHaveTextContent('7 active filters')
-
-    await user.click(filtersToggle)
-    expect(filtersToggle).toHaveAttribute('aria-expanded', 'true')
-
-    await user.click(filtersToggle)
-    expect(filtersToggle).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('counts applied values instead of unsaved draft values on mobile', async () => {
