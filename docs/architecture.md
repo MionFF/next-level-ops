@@ -330,7 +330,11 @@ The same result set is rendered as a wide operations table on large screens and 
 
 ### Sessions
 
-Sessions support trainer and multi-status filtering. Derived session statuses include:
+Sessions use the read-only `public.session_operations` view. It exposes trainer display data, confirmed booking count, available spots, and the derived operational status.
+
+The route applies title search, trainer/status filters, a session-start date range, exact count, limited sorting, and range pagination in Supabase/Postgres. URL params are the applied-state source of truth; the client filter component owns draft state and navigation only.
+
+Derived session statuses include:
 
 - scheduled
 - in progress
@@ -338,18 +342,35 @@ Sessions support trainer and multi-status filtering. Derived session statuses in
 - completed
 - cancelled
 
-Sorting prioritizes operational relevance: active/future sessions first, older completed/cancelled sessions later.
+Sorting is limited to `soonest` and `latest`, using `starts_at` and `id` for stable ordering.
 
 ### Bookings
 
-Bookings support member search, session search, and multi-status filtering. Derived booking statuses include:
+Bookings use the read-only `public.booking_operations` view. It exposes member, session, and trainer display data together with derived booking status and `is_cancellable`.
+
+The route applies member/session search, trainer/status filters, a session-start date range, exact count, limited sorting, and range pagination in Supabase/Postgres. Filtering and action visibility therefore use the same operational read model.
+
+Derived booking statuses include:
 
 - confirmed
 - in progress
 - completed
 - cancelled
 
-Filtering is URL-driven. The route page owns parsing, filtering, counting, and sorting. The filters component owns only local draft UI state and URL updates.
+For Sessions and Bookings, `From` is inclusive and `To` is converted to the next UTC day and applied as an exclusive boundary. One-sided ranges are valid; reversed ranges are blocked before querying. Pagination preserves active URL filters and redirects out-of-range pages to the last available page.
+
+### Shared operations UI
+
+Members, Sessions, and Bookings share domain-neutral UI primitives:
+
+- `SingleSelectFilter`
+- `MultiSelectFilter`
+- `OperationsFilterPanel`
+- `OperationsPagination`
+
+Shared components own dropdown behavior, accessibility, mobile filter-panel state, scrollable option lists, and pagination rendering. Feature modules keep their own options, validation, layout, URL helpers, and database queries.
+
+Native date inputs remain intentional. A custom date picker and searchable trainer combobox are outside the current scope.
 
 ## Testing strategy
 

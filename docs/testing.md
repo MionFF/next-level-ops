@@ -16,6 +16,9 @@ Covered areas:
 - booking sorting
 - derived session statuses
 - session sorting
+- Sessions/Bookings date validation and query-boundary helpers
+- Sessions/Bookings canonical URL builders
+- PostgREST search-filter escaping
 - member membership derived statuses
 - member membership date helpers
 - membership cancellation eligibility
@@ -32,6 +35,8 @@ Covered areas:
 - create/edit admin forms
 - auth forms
 - filters and discoverability controls
+- shared operations filters, filter panel, and pagination
+- Sessions/Bookings filter state, date validation, sorting, and pagination URL contracts
 - member operations table/card states and indicators
 - member filters and pagination URL contracts
 - list empty/error states
@@ -65,6 +70,12 @@ Covered flows:
 - admin/client navigation smoke
 
 E2E tests use dedicated admin/client test accounts and stable fixture data.
+
+Sessions discoverability covers trainer/status/date filters, sort state, canonical URL state, visible results, reload persistence, and Reset.
+
+Bookings discoverability covers member/session search, trainer/status/date filters, sort state, canonical URL state, visible results, reload persistence, and Reset. Existing creation and admin/client cancellation flows remain covered separately.
+
+The suite does not create large datasets only to exercise every pagination combination through E2E; pagination contracts are covered through unit/RTL tests.
 
 ## E2E data strategy
 

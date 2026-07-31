@@ -699,3 +699,45 @@ Follow-up needed:
 
 - Apply the same database-side scalability principles to sessions and bookings in Milestone 6.
 - Revisit shared responsive primitives only if duplication becomes a recurring maintenance cost.
+
+## 2026-07-20 — 2026-07-31
+
+### Sessions and bookings scalability
+
+- Added read-only admin views: `public.session_operations` and `public.booking_operations`.
+- Both views use `security_invoker = true`, preserve underlying RLS, include `public.is_admin()`, and expose only `SELECT`.
+- Session rows include trainer display data, confirmed booking count, available spots, and derived status.
+- Booking rows include member/session/trainer display data, derived status, and `is_cancellable`.
+- Sessions and Bookings now use exact counts, fixed page size 10, stable range pagination, and out-of-range redirects.
+- Filtering, sorting, counting, and pagination moved from full-list application-memory processing into Supabase/Postgres.
+- Sessions support title search, trainer/status filters, session-start date range, and `soonest` / `latest` sorting.
+- Bookings support member name/email search, session title search, trainer/status filters, session-start date range, and `soonest` / `latest` sorting.
+- URL params remain the applied-state source of truth. Applying filters resets page 1; pagination preserves canonical feature params.
+- `From` is inclusive and `To` uses the next UTC day as an exclusive boundary. One-sided ranges are valid; reversed ranges are blocked before querying.
+- Shared operations UI now includes `SingleSelectFilter`, `MultiSelectFilter`, `OperationsFilterPanel`, and `OperationsPagination`.
+- Trainer filters use a constrained-height, scrollable custom single-select. Native date inputs remain intentional.
+- Unit/RTL coverage was expanded for query helpers, URL builders, date validation, shared controls, pagination, filter state, and list contracts.
+- Playwright discoverability coverage now verifies Sessions and Bookings filters, sorting, URL state, visible results, reload persistence, and Reset.
+
+Reason:
+
+- Full-list loading and application-memory filtering did not scale and could not support correct server pagination.
+- Operational views keep derived state and joined display data aligned across counts, filters, rows, and action visibility.
+- URL-driven state keeps admin workflows reload-safe, shareable, and server-rendered.
+- Limited sorting and small shared primitives improve operations without creating a generic table/filter framework.
+
+Trade-offs:
+
+- Each route performs a separate exact-count query and paginated data query.
+- Offset/range pagination is appropriate now but may degrade at very large offsets.
+- Query-time derived states must remain synchronized with TypeScript helpers and cancellation rules.
+- Date boundaries currently use UTC; configurable studio timezones would require an explicit timezone model.
+- Thin feature wrappers and some filter wiring remain intentionally feature-owned.
+- Native date rendering varies by browser, and trainer selection is not searchable.
+
+Follow-up needed:
+
+- Revisit cursor pagination only after measured volume makes range pagination a bottleneck.
+- Revisit timezone handling only when a configurable studio timezone becomes a requirement.
+- Add searchable trainer selection only when trainer volume or observed usability justifies it.
+- Keep SQL views, TypeScript helpers, UI badges, and mutation eligibility synchronized when status rules change.
