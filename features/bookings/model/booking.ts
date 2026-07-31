@@ -44,12 +44,38 @@ export type BookingOperationRow = {
   is_cancellable: boolean
 }
 
+export type BookingListRow = Pick<
+  BookingOperationRow,
+  | 'id'
+  | 'member_name'
+  | 'member_email'
+  | 'session_title'
+  | 'session_starts_at'
+  | 'trainer_name'
+  | 'created_at'
+  | 'derived_status'
+  | 'is_cancellable'
+>
+
+export const bookingSortOptions = ['soonest', 'latest'] as const
+
+export type BookingSort = (typeof bookingSortOptions)[number]
+
 export function isBookingStatus(value: string | undefined): value is BookingStatus {
   return value === 'confirmed' || value === 'cancelled'
 }
 
 export function isDerivedBookingStatus(value: string | undefined): value is DerivedBookingStatus {
-  return (derivedBookingStatuses as readonly string[]).includes(value ?? '')
+  return (
+    value === 'confirmed' ||
+    value === 'in_progress' ||
+    value === 'completed' ||
+    value === 'cancelled'
+  )
+}
+
+export function isBookingSort(value: string | undefined): value is BookingSort {
+  return value === 'soonest' || value === 'latest'
 }
 
 export function getDerivedBookingStatus(booking: Booking, now = new Date()): DerivedBookingStatus {

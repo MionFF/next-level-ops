@@ -20,10 +20,14 @@ test.describe('admin session and booking flow', () => {
 
     await createE2EBooking(page, sessionTitle, memberName)
 
-    await expect(page.getByText(memberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
-    await expect(page.getByText(sessionTitle).first()).toBeVisible()
-    await expect(page.getByText(trainerName).first()).toBeVisible()
-    await expect(page.getByText('Confirmed').first()).toBeVisible()
+    const bookingCard = page
+      .locator('li')
+      .filter({ hasText: sessionTitle })
+      .filter({ hasText: memberName })
+
+    await expect(bookingCard.first()).toBeVisible()
+    await expect(bookingCard.first()).toContainText(memberEmail)
+    await expect(bookingCard.first()).toContainText(trainerName)
+    await expect(bookingCard.first()).toContainText('Confirmed')
   })
 })

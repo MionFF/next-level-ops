@@ -2,6 +2,7 @@ import {
   getBookingDisplayBadge,
   getDerivedBookingStatus,
   canCancelBooking,
+  isBookingSort,
   isDerivedBookingStatus,
   sortBookingOperationRows,
   sortBookings,
@@ -226,6 +227,18 @@ describe('booking model', () => {
       expect(isDerivedBookingStatus('full')).toBe(false)
       expect(isDerivedBookingStatus('unknown')).toBe(false)
       expect(isDerivedBookingStatus(undefined)).toBe(false)
+    })
+  })
+
+  describe('isBookingSort', () => {
+    it('accepts supported booking sorts', () => {
+      expect(isBookingSort('soonest')).toBe(true)
+      expect(isBookingSort('latest')).toBe(true)
+    })
+
+    it('rejects unsupported booking sorts', () => {
+      expect(isBookingSort('oldest')).toBe(false)
+      expect(isBookingSort(undefined)).toBe(false)
     })
   })
 

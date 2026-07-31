@@ -1,19 +1,15 @@
 import Link from 'next/link'
-import { getBookingDisplayBadge, type BookingOperationRow } from '../model/booking'
+import { getBookingDisplayBadge, type BookingListRow } from '../model/booking'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 import CancelBookingButton from './cancel-booking-button'
 
 type BookingsListProps = {
-  bookings: BookingOperationRow[]
+  bookings: BookingListRow[]
   errorMessage?: string
-  hasActiveFilters: boolean
+  emptyMessage?: string
 }
 
-export default function BookingsList({
-  bookings,
-  errorMessage,
-  hasActiveFilters,
-}: BookingsListProps) {
+export default function BookingsList({ bookings, errorMessage, emptyMessage }: BookingsListProps) {
   return (
     <section className='max-lg:border-0 max-lg:bg-transparent max-lg:p-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6'>
       <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
@@ -39,13 +35,13 @@ export default function BookingsList({
 
       {!errorMessage && bookings.length === 0 && (
         <div className='rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-4 py-8 text-center text-sm text-[var(--muted)]'>
-          {hasActiveFilters ? 'No bookings match your filters.' : 'No bookings found.'}
+          {emptyMessage ?? 'No bookings found.'}
         </div>
       )}
 
       {!errorMessage && bookings.length > 0 && (
         <>
-          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] xl:block'>
+          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] min-[1470px]:block'>
             <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
@@ -107,7 +103,7 @@ export default function BookingsList({
             </table>
           </div>
 
-          <ul className='flex min-w-0 flex-col gap-3 xl:hidden'>
+          <ul className='flex min-w-0 flex-col gap-3 min-[1470px]:hidden'>
             {bookings.map(booking => {
               const badge = getBookingDisplayBadge(booking.derived_status)
 

@@ -106,34 +106,89 @@ test.describe('discoverability flows', () => {
 
     const { trainerName } = await createE2ETrainer(page, runId)
     const { memberName, memberEmail } = await createE2EMember(page, runId)
-    const { sessionTitle } = await createE2ESession(page, runId, trainerName)
+    const { sessionTitle, startsAt, trainerId } = await createE2ESession(
+      page,
+      runId,
+      trainerName,
+    )
+    const sessionDate = startsAt.slice(0, 10)
 
     await createE2EBooking(page, sessionTitle, memberName)
 
-    await gotoAppPage(
-      page,
-      `/dashboard/bookings?member=${encodeURIComponent(memberEmail)}&session=${encodeURIComponent(
-        sessionTitle,
-      )}&statuses=confirmed`,
-    )
-
-    await expect(page).toHaveURL(/\/dashboard\/bookings\?/)
-    await expect(page).toHaveURL(/member=/)
-    await expect(page).toHaveURL(/session=/)
-    await expect(page).toHaveURL(/statuses=confirmed/)
-    await expect(page.getByPlaceholder(/member name or email/i)).toHaveValue(memberEmail)
-    await expect(page.getByPlaceholder(/session title/i)).toHaveValue(sessionTitle)
-    await expect(page.getByRole('button', { name: /status 1 selected/i })).toBeVisible()
-    await expect(page.getByText(memberName).first()).toBeVisible()
-    await expect(page.getByText(memberEmail).first()).toBeVisible()
-    await expect(page.getByText(sessionTitle).first()).toBeVisible()
-    await expect(page.getByText('Confirmed').first()).toBeVisible()
-
     await gotoAppPage(page, '/dashboard/bookings')
+    await waitForAppReady(page)
+
+    const bookingsFilters = page.locator('form').filter({ has: page.getByLabel('Member search') })
+
+    await bookingsFilters.getByLabel('Member search').fill(memberEmail)
+    await bookingsFilters.getByLabel('Session search').fill(sessionTitle)
+
+    await bookingsFilters.getByRole('button', { name: 'Trainer: All trainers' }).click()
+    const trainerOption = bookingsFilters.locator('label').filter({ hasText: trainerName })
+    await trainerOption.scrollIntoViewIfNeeded()
+    await trainerOption.click()
+
+    await bookingsFilters.getByRole('button', { name: 'Booking status: All' }).click()
+    await bookingsFilters.getByLabel('Booking status: Confirmed').click()
+    await bookingsFilters.getByRole('button', { name: 'Booking status: Confirmed' }).click()
+
+    await bookingsFilters.getByLabel('From', { exact: true }).fill(sessionDate)
+    await bookingsFilters.getByLabel('To', { exact: true }).fill(sessionDate)
+
+    await bookingsFilters.getByRole('button', { name: 'Sort: Soonest first' }).click()
+    await bookingsFilters.locator('label').filter({ hasText: 'Latest first' }).click()
+
+    await bookingsFilters.getByRole('button', { name: 'Apply filters' }).click()
+
+    const expectedParams = new URLSearchParams()
+    expectedParams.set('member', memberEmail)
+    expectedParams.set('session', sessionTitle)
+    expectedParams.set('trainer', trainerId)
+    expectedParams.append('statuses', 'confirmed')
+    expectedParams.set('from', sessionDate)
+    expectedParams.set('to', sessionDate)
+    expectedParams.set('sort', 'latest')
+
+    await expect(page).toHaveURL(`/dashboard/bookings?${expectedParams.toString()}`)
+
+    await expect(page.getByLabel('Member search')).toHaveValue(memberEmail)
+    await expect(page.getByLabel('Session search')).toHaveValue(sessionTitle)
+    await expect(page.getByRole('button', { name: `Trainer: ${trainerName}` })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Booking status: Confirmed' })).toBeVisible()
+    await expect(page.getByLabel('From', { exact: true })).toHaveValue(sessionDate)
+    await expect(page.getByLabel('To', { exact: true })).toHaveValue(sessionDate)
+    await expect(page.getByRole('button', { name: 'Sort: Latest first' })).toBeVisible()
+
+    const bookingCard = page
+      .locator('li')
+      .filter({ hasText: sessionTitle })
+      .filter({ hasText: memberName })
+
+    await expect(bookingCard.first()).toBeVisible()
+    await expect(bookingCard.first()).toContainText(memberEmail)
+    await expect(bookingCard.first()).toContainText(trainerName)
+    await expect(bookingCard.first()).toContainText('Confirmed')
+
+    await page.reload()
+
+    await expect(page.getByLabel('Member search')).toHaveValue(memberEmail)
+    await expect(page.getByLabel('Session search')).toHaveValue(sessionTitle)
+    await expect(page.getByRole('button', { name: `Trainer: ${trainerName}` })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Booking status: Confirmed' })).toBeVisible()
+    await expect(page.getByLabel('From', { exact: true })).toHaveValue(sessionDate)
+    await expect(page.getByLabel('To', { exact: true })).toHaveValue(sessionDate)
+    await expect(page.getByRole('button', { name: 'Sort: Latest first' })).toBeVisible()
+    await expect(bookingCard.first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Reset' }).click()
 
     await expect(page).toHaveURL(/\/dashboard\/bookings$/)
-    await expect(page.getByPlaceholder(/member name or email/i)).toHaveValue('')
-    await expect(page.getByPlaceholder(/session title/i)).toHaveValue('')
-    await expect(page.getByRole('button', { name: /status all/i })).toBeVisible()
+    await expect(page.getByLabel('Member search')).toHaveValue('')
+    await expect(page.getByLabel('Session search')).toHaveValue('')
+    await expect(page.getByRole('button', { name: 'Trainer: All trainers' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Booking status: All' })).toBeVisible()
+    await expect(page.getByLabel('From', { exact: true })).toHaveValue('')
+    await expect(page.getByLabel('To', { exact: true })).toHaveValue('')
+    await expect(page.getByRole('button', { name: 'Sort: Soonest first' })).toBeVisible()
   })
 })

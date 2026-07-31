@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import type { BookingOperationRow } from '../model/booking'
+import type { BookingListRow } from '../model/booking'
 import BookingsList from './bookings-list'
 
 jest.mock('./cancel-booking-button', () => ({
@@ -9,19 +9,14 @@ jest.mock('./cancel-booking-button', () => ({
   ),
 }))
 
-function createBooking(overrides: Partial<BookingOperationRow> = {}): BookingOperationRow {
+function createBooking(overrides: Partial<BookingListRow> = {}): BookingListRow {
   return {
     id: 'booking-1',
-    session_id: 'session-1',
-    member_id: 'member-1',
-    status: 'confirmed',
     created_at: '2026-05-20T10:00:00.000Z',
     member_name: 'Alex Morgan',
     member_email: 'alex@example.com',
     session_title: 'Morning Strength',
     session_starts_at: '2026-06-01T10:00:00.000Z',
-    session_ends_at: '2026-06-01T11:00:00.000Z',
-    trainer_id: 'trainer-1',
     trainer_name: 'Sam Coach',
     derived_status: 'confirmed',
     is_cancellable: true,
@@ -40,21 +35,21 @@ describe('BookingsList', () => {
   })
 
   it('renders error state when bookings fail to load', () => {
-    render(<BookingsList bookings={[]} errorMessage='Database error' hasActiveFilters={false} />)
+    render(<BookingsList bookings={[]} errorMessage='Database error' />)
 
     expect(screen.getByText('Failed to load bookings.')).toBeInTheDocument()
     expect(screen.queryByText('No bookings found.')).not.toBeInTheDocument()
   })
 
   it('renders empty state when there are no bookings', () => {
-    render(<BookingsList bookings={[]} errorMessage={undefined} hasActiveFilters={false} />)
+    render(<BookingsList bookings={[]} errorMessage={undefined} />)
 
     expect(screen.getByText('No bookings found.')).toBeInTheDocument()
     expect(screen.queryByText('Failed to load bookings.')).not.toBeInTheDocument()
   })
 
   it('renders filtered empty state when filters are active', () => {
-    render(<BookingsList bookings={[]} errorMessage={undefined} hasActiveFilters />)
+    render(<BookingsList bookings={[]} emptyMessage='No bookings match your filters.' />)
 
     expect(screen.getByText('No bookings match your filters.')).toBeInTheDocument()
     expect(screen.queryByText('No bookings found.')).not.toBeInTheDocument()
@@ -67,19 +62,15 @@ describe('BookingsList', () => {
       }),
       createBooking({
         id: 'booking-2',
-        member_id: 'member-2',
         member_name: 'Jamie Lee',
         member_email: 'jamie@example.com',
-        session_id: 'session-2',
         session_title: 'Evening Mobility',
         session_starts_at: '2026-06-02T18:00:00.000Z',
-        session_ends_at: '2026-06-02T19:00:00.000Z',
-        trainer_id: 'trainer-2',
         trainer_name: 'Mia Trainer',
       }),
     ]
 
-    render(<BookingsList bookings={bookings} errorMessage={undefined} hasActiveFilters={false} />)
+    render(<BookingsList bookings={bookings} errorMessage={undefined} />)
 
     expect(screen.getByRole('heading', { name: /bookings/i })).toBeInTheDocument()
 
@@ -104,14 +95,12 @@ describe('BookingsList', () => {
   it('renders cancel controls only for rows marked cancellable', () => {
     const confirmedBooking = createBooking({
       id: 'confirmed-booking',
-      session_id: 'future-session',
       session_title: 'Future Strength',
       is_cancellable: true,
     })
 
     const startedConfirmedBooking = createBooking({
       id: 'started-confirmed-booking',
-      session_id: 'started-session',
       session_title: 'Started Session',
       derived_status: 'confirmed',
       is_cancellable: false,
@@ -119,7 +108,6 @@ describe('BookingsList', () => {
 
     const inProgressBooking = createBooking({
       id: 'in-progress-booking',
-      session_id: 'current-session',
       session_title: 'Current Session',
       derived_status: 'in_progress',
       is_cancellable: false,
@@ -127,7 +115,6 @@ describe('BookingsList', () => {
 
     const completedBooking = createBooking({
       id: 'completed-booking',
-      session_id: 'past-session',
       session_title: 'Past Session',
       derived_status: 'completed',
       is_cancellable: false,
@@ -135,7 +122,6 @@ describe('BookingsList', () => {
 
     const cancelledBooking = createBooking({
       id: 'cancelled-booking',
-      status: 'cancelled',
       derived_status: 'cancelled',
       is_cancellable: false,
     })
@@ -150,7 +136,6 @@ describe('BookingsList', () => {
           cancelledBooking,
         ]}
         errorMessage={undefined}
-        hasActiveFilters={false}
       />,
     )
 

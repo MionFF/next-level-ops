@@ -111,8 +111,20 @@ export async function createE2EBooking(page: Page, sessionTitle: string, memberS
     page.getByRole('button', { name: /create booking/i }).click(),
   ])
 
-  await expect(page.getByText(sessionTitle).first()).toBeVisible()
-  await expect(page.getByText('Confirmed').first()).toBeVisible()
+  const bookingParams = new URLSearchParams({
+    member: memberSearchText,
+    session: sessionTitle,
+  })
+
+  await gotoAppPage(page, `/dashboard/bookings?${bookingParams.toString()}`)
+
+  const bookingCard = page
+    .locator('li')
+    .filter({ hasText: sessionTitle })
+    .filter({ hasText: memberSearchText })
+
+  await expect(bookingCard.first()).toBeVisible()
+  await expect(bookingCard.filter({ hasText: 'Confirmed' }).first()).toBeVisible()
 }
 
 export async function createE2EClient(page: Page, runId: string) {
