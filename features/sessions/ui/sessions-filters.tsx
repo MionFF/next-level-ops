@@ -1,226 +1,247 @@
 'use client'
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
 import {
   derivedSessionStatuses,
   getSessionDisplayBadge,
   type DerivedSessionStatus,
+  type SessionSort,
 } from '../model/session'
+import { isValidSessionDateRange } from '../model/sessions-query'
+import { getSessionsHref } from '../model/sessions-url'
+import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
+import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
+import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
 
-export type SessionalFiltersProps = {
+export type SessionsFiltersProps = {
+  search: string
   trainer: string
   trainers: { id: string; full_name: string }[]
   selectedStatuses: DerivedSessionStatus[]
-  statusCounts: Partial<Record<DerivedSessionStatus, number>>
+  from: string
+  to: string
+  sort: SessionSort
+  trainerOptionsError?: string
 }
 
+const sessionStatusOptions = derivedSessionStatuses.map(status => ({
+  value: status,
+  label: getSessionDisplayBadge(status).text,
+}))
+
+const sessionSortOptions = [
+  { value: 'soonest', label: 'Soonest first' },
+  { value: 'latest', label: 'Latest first' },
+] as const
+
 export default function SessionsFilters({
+  search,
   trainer,
   trainers,
   selectedStatuses,
-  statusCounts,
-}: SessionalFiltersProps) {
+  from,
+  to,
+  sort,
+  trainerOptionsError,
+}: SessionsFiltersProps) {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+
   const [isPending, startTransition] = useTransition()
 
+  const [draftSearch, setDraftSearch] = useState(search)
   const [draftTrainer, setDraftTrainer] = useState(trainer)
   const [draftStatuses, setDraftStatuses] = useState<DerivedSessionStatus[]>(selectedStatuses)
+  const [draftFrom, setDraftFrom] = useState(from)
+  const [draftTo, setDraftTo] = useState(to)
+  const [draftSort, setDraftSort] = useState<SessionSort>(sort)
 
-  // Sync draft state when URL changes externally
-  const trainerRef = useRef(trainer)
-  const statusesRef = useRef(selectedStatuses)
-  useEffect(() => {
-    if (trainer !== trainerRef.current) {
-      setDraftTrainer(trainer)
-      trainerRef.current = trainer
+  const hasInvalidDateRange = !isValidSessionDateRange(draftFrom, draftTo)
+
+  const dateInputClassName = `min-w-0 rounded-[var(--radius-md)] border bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+    hasInvalidDateRange
+      ? 'border-[var(--danger)] focus:border-[var(--danger)]'
+      : 'border-[var(--border)] focus:border-[var(--primary)]'
+  }`
+
+  const trainerOptions = [
+    { value: '', label: 'All trainers' },
+    ...trainers.map(option => ({ value: option.id, label: option.full_name })),
+  ]
+
+  const activeFilterGroups = [
+    search.trim().length > 0,
+    trainer.length > 0,
+    selectedStatuses.length > 0,
+    from.length > 0,
+    to.length > 0,
+    sort !== 'soonest',
+  ].filter(Boolean).length
+
+  function toggleStatus(status: DerivedSessionStatus) {
+    setDraftStatuses(current =>
+      current.includes(status)
+        ? current.filter(currentStatus => currentStatus !== status)
+        : [...current, status],
+    )
+  }
+
+  function applyFilters() {
+    if (hasInvalidDateRange) {
+      return
     }
-    if (
-      selectedStatuses.length !== statusesRef.current.length ||
-      selectedStatuses.some((s, i) => s !== statusesRef.current[i])
-    ) {
-      setDraftStatuses(selectedStatuses)
-      statusesRef.current = selectedStatuses
-    }
-  }, [trainer, selectedStatuses])
 
-  const applyFilters = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString())
-
-    if (draftTrainer) {
-      params.set('trainer', draftTrainer)
-    } else {
-      params.delete('trainer')
-    }
-
-    params.delete('statuses')
-    for (const status of draftStatuses) {
-      params.append('statuses', status)
-    }
-
-    const query = params.toString()
-    startTransition(() => {
-      router.push(query ? `${pathname}?${query}` : pathname)
+    const href = getSessionsHref({
+      search: draftSearch,
+      trainer: draftTrainer,
+      statuses: draftStatuses,
+      from: draftFrom,
+      to: draftTo,
+      sort: draftSort,
+      page: 1,
     })
-  }, [router, pathname, searchParams, draftTrainer, draftStatuses])
 
-  const resetFilters = useCallback(() => {
+    startTransition(() => {
+      router.push(href)
+    })
+  }
+
+  function resetFilters() {
+    setDraftSearch('')
     setDraftTrainer('')
     setDraftStatuses([])
+    setDraftFrom('')
+    setDraftTo('')
+    setDraftSort('soonest')
+
     startTransition(() => {
-      router.push(pathname)
+      router.push('/dashboard/sessions')
     })
-  }, [router, pathname])
+  }
 
   return (
-    <div className='mb-4 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center'>
-      <select
-        value={draftTrainer}
-        onChange={e => setDraftTrainer(e.target.value)}
-        disabled={isPending}
-        className='w-full md:w-auto rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] cursor-pointer focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed'
-      >
-        <option value=''>All trainers</option>
-        {trainers.map(t => (
-          <option key={t.id} value={t.id}>
-            {t.full_name}
-          </option>
-        ))}
-      </select>
+    <OperationsFilterPanel
+      activeFilterCount={activeFilterGroups}
+      onSubmit={event => {
+        event.preventDefault()
+        applyFilters()
+      }}
+    >
+      <div className='grid min-w-0 gap-4 border-t border-[var(--border)] p-4 md:grid-cols-2 md:border-t-0 md:p-6 xl:grid-cols-3 2xl:grid-cols-[minmax(14rem,2fr)_repeat(5,minmax(8rem,1fr))_auto] 2xl:items-end'>
+        <label htmlFor='sessions-search' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>Search</span>
 
-      <SessionStatusFilter
-        selectedStatuses={draftStatuses}
-        statusCounts={statusCounts}
-        disabled={isPending}
-        onToggle={status => {
-          setDraftStatuses(prev =>
-            prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status],
-          )
-        }}
-      />
+          <input
+            type='search'
+            id='sessions-search'
+            value={draftSearch}
+            disabled={isPending}
+            onChange={event => setDraftSearch(event.target.value)}
+            placeholder='Search by title'
+            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+          />
+        </label>
 
-      <div className='flex gap-2'>
-        <button
-          onClick={applyFilters}
-          disabled={isPending}
-          className='rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-3 py-1.5 text-sm font-medium text-[var(--primary-foreground)] cursor-pointer transition-colors hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed'
-        >
-          {isPending ? 'Applying…' : 'Apply'}
-        </button>
-
-        <button
-          onClick={resetFilters}
-          disabled={isPending}
-          className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--muted)] cursor-pointer transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
-        >
-          Reset
-        </button>
-      </div>
-    </div>
-  )
-}
-
-type SessionStatusFilterProps = {
-  selectedStatuses: DerivedSessionStatus[]
-  statusCounts: Partial<Record<DerivedSessionStatus, number>>
-  disabled: boolean
-  onToggle: (status: DerivedSessionStatus) => void
-}
-
-function SessionStatusFilter({
-  selectedStatuses,
-  statusCounts,
-  disabled,
-  onToggle,
-}: SessionStatusFilterProps) {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-
-  // Close on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    if (open) {
-      document.addEventListener('click', handleClick)
-      return () => document.removeEventListener('click', handleClick)
-    }
-  }, [open])
-
-  // Close on Escape and return focus to trigger
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        triggerRef.current?.focus()
-      }
-    }
-    if (open) {
-      document.addEventListener('keydown', handleKeyDown)
-      return () => document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open])
-
-  const isAll = selectedStatuses.length === 0
-  const label = isAll ? 'All' : `${selectedStatuses.length} selected`
-
-  return (
-    <div ref={containerRef} className='relative w-full md:w-auto'>
-      <button
-        ref={triggerRef}
-        type='button'
-        disabled={disabled}
-        onClick={() => setOpen(!open)}
-        className='flex w-full md:w-auto items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] cursor-pointer transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
-      >
-        <span className='font-medium'>Status</span>
-        <span className='text-[var(--muted)]'>{label}</span>
-        <svg
-          className={`ml-auto md:ml-0 size-3 text-[var(--muted)] transition-transform ${open ? 'rotate-180' : ''}`}
-          fill='none'
-          stroke='currentColor'
-          viewBox='0 0 24 24'
-        >
-          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-        </svg>
-      </button>
-
-      {open && (
-        <div className='static mt-1 w-full md:absolute md:left-0 md:right-auto md:z-20 md:min-w-[200px] rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
-          {derivedSessionStatuses.map(status => {
-            const badge = getSessionDisplayBadge(status)
-            const count = statusCounts[status]
-            const checked = selectedStatuses.includes(status)
-
-            return (
-              <label
-                key={status}
-                className='flex cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-sm transition-colors hover:bg-[var(--surface-2)]'
-              >
-                <input
-                  type='checkbox'
-                  checked={checked}
-                  onChange={() => onToggle(status)}
-                  className='size-3.5 accent-[var(--primary)]'
-                />
-                <span
-                  className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-1.5 py-0.5 text-xs font-medium capitalize ${badge.className}`}
-                >
-                  {badge.text}
-                </span>
-                {count !== undefined && (
-                  <span className='ml-auto text-xs tabular-nums text-[var(--muted)]'>{count}</span>
-                )}
-              </label>
-            )
-          })}
+        <div className='relative z-30 min-w-0'>
+          <SingleSelectFilter
+            label='Trainer'
+            name='trainer-filter'
+            options={trainerOptions}
+            value={draftTrainer}
+            disabled={isPending}
+            onChange={setDraftTrainer}
+          />
         </div>
+
+        <div className='relative z-20 min-w-0'>
+          <MultiSelectFilter
+            label='Session status'
+            options={sessionStatusOptions}
+            selectedValues={draftStatuses}
+            disabled={isPending}
+            onToggle={toggleStatus}
+          />
+        </div>
+
+        <label htmlFor='sessions-from' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>From</span>
+
+          <input
+            type='date'
+            id='sessions-from'
+            value={draftFrom}
+            disabled={isPending}
+            onChange={event => setDraftFrom(event.target.value)}
+            aria-invalid={hasInvalidDateRange}
+            aria-describedby={hasInvalidDateRange ? 'sessions-date-range-error' : undefined}
+            className={dateInputClassName}
+          />
+        </label>
+
+        <label htmlFor='sessions-to' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>To</span>
+
+          <input
+            type='date'
+            id='sessions-to'
+            value={draftTo}
+            disabled={isPending}
+            onChange={event => setDraftTo(event.target.value)}
+            aria-invalid={hasInvalidDateRange}
+            aria-describedby={hasInvalidDateRange ? 'sessions-date-range-error' : undefined}
+            className={dateInputClassName}
+          />
+        </label>
+
+        <div className='relative z-10 min-w-0'>
+          <SingleSelectFilter
+            label='Sort'
+            name='sessions-sort'
+            options={sessionSortOptions}
+            value={draftSort}
+            disabled={isPending}
+            onChange={setDraftSort}
+          />
+        </div>
+
+        <div className='grid min-w-0 grid-cols-2 gap-2 md:col-span-2 xl:col-span-3 2xl:col-span-1 2xl:flex'>
+          <button
+            type='submit'
+            disabled={isPending || hasInvalidDateRange}
+            className='min-w-0 cursor-pointer whitespace-nowrap rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary)]/90 disabled:cursor-not-allowed disabled:opacity-50 2xl:flex-none'
+          >
+            {isPending ? 'Applying…' : 'Apply filters'}
+          </button>
+
+          <button
+            type='button'
+            disabled={isPending}
+            onClick={resetFilters}
+            className='min-w-0 cursor-pointer whitespace-nowrap rounded-[var(--radius-md)] border border-[var(--border)] px-4 py-2 text-center font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)] disabled:cursor-not-allowed disabled:opacity-50 2xl:flex-none'
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      {hasInvalidDateRange && (
+        <p
+          id='sessions-date-range-error'
+          role='alert'
+          className='mx-4 mb-4 rounded-[var(--radius-md)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)] md:mx-6 md:mb-6'
+        >
+          From date must be on or before To date.
+        </p>
       )}
-    </div>
+
+      {trainerOptionsError && (
+        <p
+          role='status'
+          className='mx-4 mb-4 rounded-[var(--radius-md)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)] md:mx-6 md:mb-6'
+        >
+          Failed to load trainer options.
+        </p>
+      )}
+    </OperationsFilterPanel>
   )
 }

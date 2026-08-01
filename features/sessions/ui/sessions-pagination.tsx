@@ -1,40 +1,46 @@
-import type { MemberStatus, MembershipOperationalStatus, ProfileLinkFilter } from '../model/member'
-import { getMembersHref } from '../model/members-url'
+import type { DerivedSessionStatus, SessionSort } from '../model/session'
+import { getSessionsHref } from '../model/sessions-url'
 import { OperationsPagination } from '@/shared/ui/pagination/operations-pagination'
 
-type MembersPaginationProps = {
+type SessionsPaginationProps = {
   currentPage: number
   pageSize: number
   totalCount: number
   totalPages: number
   search: string
-  statuses: MemberStatus[]
-  profile: ProfileLinkFilter
-  memberships: MembershipOperationalStatus[]
+  trainer: string
+  statuses: DerivedSessionStatus[]
+  from: string
+  to: string
+  sort: SessionSort
 }
 
-export default function MembersPagination({
+export default function SessionsPagination({
   currentPage,
   pageSize,
   totalCount,
   totalPages,
   search,
+  trainer,
   statuses,
-  profile,
-  memberships,
-}: MembersPaginationProps) {
+  from,
+  to,
+  sort,
+}: SessionsPaginationProps) {
   const getPageHref = (page: number) =>
-    getMembersHref({
-      page,
+    getSessionsHref({
       search,
+      trainer,
       statuses,
-      profile,
-      memberships,
+      from,
+      to,
+      sort,
+      page,
     })
 
   return (
     <OperationsPagination
-      ariaLabel='Members pagination'
+      ariaLabel='Sessions pagination'
       currentPage={currentPage}
       pageSize={pageSize}
       totalCount={totalCount}

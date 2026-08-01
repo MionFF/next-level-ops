@@ -15,7 +15,7 @@ function bookingFilterUrl(member: string, session: string) {
 }
 
 function bookingItem(page: Page, sessionTitle: string) {
-  return page.locator('tr, li').filter({ hasText: sessionTitle })
+  return page.locator('tr, li').filter({ hasText: sessionTitle, visible: true })
 }
 
 test.describe('booking cancellation flows', () => {

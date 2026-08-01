@@ -1,27 +1,23 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { FilterOption } from './filter-option'
 
-type FilterOption<T extends string> = {
-  value: T
-  label: string
-}
-
-type MembersMultiSelectFilterProps<T extends string> = {
+type MultiSelectFilterProps<T extends string> = {
   label: string
   options: readonly FilterOption<T>[]
   selectedValues: readonly T[]
-  disabled: boolean
+  disabled?: boolean
   onToggle: (value: T) => void
 }
 
-export default function MembersMultiSelectFilter<T extends string>({
+export function MultiSelectFilter<T extends string>({
   label,
   options,
   selectedValues,
   disabled,
   onToggle,
-}: MembersMultiSelectFilterProps<T>) {
+}: MultiSelectFilterProps<T>) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -119,7 +115,7 @@ export default function MembersMultiSelectFilter<T extends string>({
         }`}
       >
         <div className='min-h-0 overflow-hidden'>
-          <div className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
+          <div className='max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
             {options.map(option => {
               const checked = selectedValues.includes(option.value)
 

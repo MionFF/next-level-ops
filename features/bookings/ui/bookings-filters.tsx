@@ -1,255 +1,272 @@
 'use client'
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
 import {
   derivedBookingStatuses,
   getBookingDisplayBadge,
+  type BookingSort,
   type DerivedBookingStatus,
 } from '../model/booking'
+import { isValidBookingDateRange } from '../model/bookings-query'
+import { getBookingsHref } from '../model/bookings-url'
+import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
+import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
+import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
 
-type BookingsFiltersProps = {
+export type BookingsFiltersProps = {
   member: string
   session: string
+  trainer: string
+  trainers: { id: string; full_name: string }[]
   selectedStatuses: DerivedBookingStatus[]
-  statusCounts: Partial<Record<DerivedBookingStatus, number>>
+  from: string
+  to: string
+  sort: BookingSort
+  trainerOptionsError?: string
 }
+
+const bookingStatusOptions = derivedBookingStatuses.map(status => ({
+  value: status,
+  label: getBookingDisplayBadge(status).text,
+}))
+
+const bookingSortOptions = [
+  { value: 'soonest', label: 'Soonest first' },
+  { value: 'latest', label: 'Latest first' },
+] as const
 
 export default function BookingsFilters({
   member,
   session,
+  trainer,
+  trainers,
   selectedStatuses,
-  statusCounts,
+  from,
+  to,
+  sort,
+  trainerOptionsError,
 }: BookingsFiltersProps) {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+
   const [isPending, startTransition] = useTransition()
 
-  // Local draft state, synchronized from URL params
   const [draftMember, setDraftMember] = useState(member)
   const [draftSession, setDraftSession] = useState(session)
+  const [draftTrainer, setDraftTrainer] = useState(trainer)
   const [draftStatuses, setDraftStatuses] = useState<DerivedBookingStatus[]>(selectedStatuses)
+  const [draftFrom, setDraftFrom] = useState(from)
+  const [draftTo, setDraftTo] = useState(to)
+  const [draftSort, setDraftSort] = useState<BookingSort>(sort)
 
-  // Sync draft state when URL changes externally
-  const memberRef = useRef(member)
-  const sessionRef = useRef(session)
-  const statusesRef = useRef(selectedStatuses)
-  useEffect(() => {
-    if (member !== memberRef.current) {
-      setDraftMember(member)
-      memberRef.current = member
-    }
-    if (session !== sessionRef.current) {
-      setDraftSession(session)
-      sessionRef.current = session
-    }
-    if (
-      selectedStatuses.length !== statusesRef.current.length ||
-      selectedStatuses.some((s, i) => s !== statusesRef.current[i])
-    ) {
-      setDraftStatuses(selectedStatuses)
-      statusesRef.current = selectedStatuses
-    }
-  }, [member, session, selectedStatuses])
+  const hasInvalidDateRange = !isValidBookingDateRange(draftFrom, draftTo)
 
-  const applyFilters = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString())
+  const dateInputClassName = `min-w-0 rounded-[var(--radius-md)] border bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+    hasInvalidDateRange
+      ? 'border-[var(--danger)] focus:border-[var(--danger)]'
+      : 'border-[var(--border)] focus:border-[var(--primary)]'
+  }`
 
-    if (draftMember.trim()) {
-      params.set('member', draftMember.trim())
-    } else {
-      params.delete('member')
-    }
+  const trainerOptions = [
+    { value: '', label: 'All trainers' },
+    ...trainers.map(option => ({
+      value: option.id,
+      label: option.full_name,
+    })),
+  ]
 
-    if (draftSession.trim()) {
-      params.set('session', draftSession.trim())
-    } else {
-      params.delete('session')
-    }
+  const activeFilterGroups = [
+    member.trim().length > 0,
+    session.trim().length > 0,
+    trainer.length > 0,
+    selectedStatuses.length > 0,
+    from.length > 0,
+    to.length > 0,
+    sort !== 'soonest',
+  ].filter(Boolean).length
 
-    params.delete('statuses')
-    for (const status of draftStatuses) {
-      params.append('statuses', status)
+  function toggleStatus(status: DerivedBookingStatus) {
+    setDraftStatuses(current =>
+      current.includes(status)
+        ? current.filter(currentStatus => currentStatus !== status)
+        : [...current, status],
+    )
+  }
+
+  function applyFilters() {
+    if (hasInvalidDateRange) {
+      return
     }
 
-    const query = params.toString()
-    startTransition(() => {
-      router.push(query ? `${pathname}?${query}` : pathname)
+    const href = getBookingsHref({
+      member: draftMember,
+      session: draftSession,
+      trainer: draftTrainer,
+      statuses: draftStatuses,
+      from: draftFrom,
+      to: draftTo,
+      sort: draftSort,
+      page: 1,
     })
-  }, [router, pathname, searchParams, draftMember, draftSession, draftStatuses])
 
-  const resetFilters = useCallback(() => {
+    startTransition(() => {
+      router.push(href)
+    })
+  }
+
+  function resetFilters() {
     setDraftMember('')
     setDraftSession('')
+    setDraftTrainer('')
     setDraftStatuses([])
+    setDraftFrom('')
+    setDraftTo('')
+    setDraftSort('soonest')
+
     startTransition(() => {
-      router.push(pathname)
+      router.push('/dashboard/bookings')
     })
-  }, [router, pathname])
+  }
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
+  return (
+    <OperationsFilterPanel
+      activeFilterCount={activeFilterGroups}
+      onSubmit={event => {
+        event.preventDefault()
         applyFilters()
-      }
-    },
-    [applyFilters],
-  )
+      }}
+    >
+      <div className='grid min-w-0 gap-4 border-t border-[var(--border)] p-4 md:grid-cols-2 md:border-t-0 md:p-6 xl:grid-cols-3'>
+        <label htmlFor='bookings-member' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>Member search</span>
 
-  return (
-    <div className='mb-4 flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center'>
-      <input
-        type='text'
-        value={draftMember}
-        onChange={e => setDraftMember(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={isPending}
-        placeholder='Member name or email…'
-        className='w-full md:w-auto rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed'
-      />
+          <input
+            type='search'
+            id='bookings-member'
+            value={draftMember}
+            disabled={isPending}
+            onChange={event => setDraftMember(event.target.value)}
+            placeholder='Name or email'
+            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+          />
+        </label>
 
-      <input
-        type='text'
-        value={draftSession}
-        onChange={e => setDraftSession(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={isPending}
-        placeholder='Session title…'
-        className='w-full md:w-auto rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed'
-      />
+        <label htmlFor='bookings-session' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>Session search</span>
 
-      <BookingsStatusFilter
-        selectedStatuses={draftStatuses}
-        statusCounts={statusCounts}
-        disabled={isPending}
-        onToggle={status => {
-          setDraftStatuses(prev =>
-            prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status],
-          )
-        }}
-      />
+          <input
+            type='search'
+            id='bookings-session'
+            value={draftSession}
+            disabled={isPending}
+            onChange={event => setDraftSession(event.target.value)}
+            placeholder='Session title'
+            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+          />
+        </label>
 
-      <div className='flex gap-2'>
-        <button
-          onClick={applyFilters}
-          disabled={isPending}
-          className='rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-3 py-1.5 text-sm font-medium text-[var(--primary-foreground)] cursor-pointer transition-colors hover:bg-[var(--primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed'
-        >
-          {isPending ? 'Applying…' : 'Apply'}
-        </button>
-
-        <button
-          onClick={resetFilters}
-          disabled={isPending}
-          className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--muted)] cursor-pointer transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
-        >
-          Reset
-        </button>
-      </div>
-    </div>
-  )
-}
-
-type BookingsStatusFilterProps = {
-  selectedStatuses: DerivedBookingStatus[]
-  statusCounts: Partial<Record<DerivedBookingStatus, number>>
-  disabled: boolean
-  onToggle: (status: DerivedBookingStatus) => void
-}
-
-function BookingsStatusFilter({
-  selectedStatuses,
-  statusCounts,
-  disabled,
-  onToggle,
-}: BookingsStatusFilterProps) {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-
-  // Close on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    if (open) {
-      document.addEventListener('click', handleClick)
-      return () => document.removeEventListener('click', handleClick)
-    }
-  }, [open])
-
-  // Close on Escape and return focus to trigger
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        triggerRef.current?.focus()
-      }
-    }
-    if (open) {
-      document.addEventListener('keydown', handleKeyDown)
-      return () => document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open])
-
-  const isAll = selectedStatuses.length === 0
-  const label = isAll ? 'All' : `${selectedStatuses.length} selected`
-
-  return (
-    <div ref={containerRef} className='relative w-full md:w-auto'>
-      <button
-        ref={triggerRef}
-        type='button'
-        disabled={disabled}
-        onClick={() => setOpen(!open)}
-        className='flex w-full md:w-auto items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] cursor-pointer transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed'
-      >
-        <span className='font-medium'>Status</span>
-        <span className='text-[var(--muted)]'>{label}</span>
-        <svg
-          className={`ml-auto md:ml-0 size-3 text-[var(--muted)] transition-transform ${open ? 'rotate-180' : ''}`}
-          fill='none'
-          stroke='currentColor'
-          viewBox='0 0 24 24'
-        >
-          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-        </svg>
-      </button>
-
-      {open && (
-        <div className='static mt-1 w-full md:absolute md:left-0 md:right-auto md:z-20 md:min-w-[200px] rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
-          {derivedBookingStatuses.map(status => {
-            const badge = getBookingDisplayBadge(status)
-            const count = statusCounts[status]
-            const checked = selectedStatuses.includes(status)
-
-            return (
-              <label
-                key={status}
-                className='flex cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-sm transition-colors hover:bg-[var(--surface-2)]'
-              >
-                <input
-                  type='checkbox'
-                  checked={checked}
-                  onChange={() => onToggle(status)}
-                  className='size-3.5 accent-[var(--primary)]'
-                />
-                <span
-                  className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-1.5 py-0.5 text-xs font-medium capitalize ${badge.className}`}
-                >
-                  {badge.text}
-                </span>
-                {count !== undefined && (
-                  <span className='ml-auto text-xs tabular-nums text-[var(--muted)]'>{count}</span>
-                )}
-              </label>
-            )
-          })}
+        <div className='relative z-30 min-w-0'>
+          <SingleSelectFilter
+            label='Trainer'
+            name='bookings-trainer-filter'
+            options={trainerOptions}
+            value={draftTrainer}
+            disabled={isPending}
+            onChange={setDraftTrainer}
+          />
         </div>
+
+        <div className='relative z-20 min-w-0'>
+          <MultiSelectFilter
+            label='Booking status'
+            options={bookingStatusOptions}
+            selectedValues={draftStatuses}
+            disabled={isPending}
+            onToggle={toggleStatus}
+          />
+        </div>
+
+        <label htmlFor='bookings-from' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>From</span>
+
+          <input
+            type='date'
+            id='bookings-from'
+            value={draftFrom}
+            disabled={isPending}
+            onChange={event => setDraftFrom(event.target.value)}
+            aria-invalid={hasInvalidDateRange}
+            aria-describedby={hasInvalidDateRange ? 'bookings-date-range-error' : undefined}
+            className={dateInputClassName}
+          />
+        </label>
+
+        <label htmlFor='bookings-to' className='flex min-w-0 flex-col gap-2'>
+          <span className='font-medium'>To</span>
+
+          <input
+            type='date'
+            id='bookings-to'
+            value={draftTo}
+            disabled={isPending}
+            onChange={event => setDraftTo(event.target.value)}
+            aria-invalid={hasInvalidDateRange}
+            aria-describedby={hasInvalidDateRange ? 'bookings-date-range-error' : undefined}
+            className={dateInputClassName}
+          />
+        </label>
+      </div>
+
+      {hasInvalidDateRange && (
+        <p
+          id='bookings-date-range-error'
+          role='alert'
+          className='mx-4 mb-4 rounded-[var(--radius-md)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)] md:mx-6 md:mb-6'
+        >
+          From date must be on or before To date.
+        </p>
       )}
-    </div>
+
+      {trainerOptionsError && (
+        <p
+          role='status'
+          className='mx-4 mb-4 rounded-[var(--radius-md)] border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)] md:mx-6 md:mb-6'
+        >
+          Failed to load trainer options.
+        </p>
+      )}
+
+      <div className='flex min-w-0 flex-col gap-4 border-t border-[var(--border)] bg-[var(--surface-2)]/20 px-4 py-4 md:flex-row md:items-end md:justify-between md:px-6'>
+        <div className='relative z-10 w-full min-w-0 md:max-w-xs'>
+          <SingleSelectFilter
+            label='Sort'
+            name='bookings-sort'
+            options={bookingSortOptions}
+            value={draftSort}
+            disabled={isPending}
+            onChange={setDraftSort}
+          />
+        </div>
+
+        <div className='grid min-w-0 grid-cols-2 gap-2 md:flex md:shrink-0 md:justify-end'>
+          <button
+            type='submit'
+            disabled={isPending || hasInvalidDateRange}
+            className='min-w-0 cursor-pointer whitespace-nowrap rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-4 py-2 font-medium text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary)]/90 disabled:cursor-not-allowed disabled:opacity-50 md:min-w-32'
+          >
+            {isPending ? 'Applying…' : 'Apply filters'}
+          </button>
+
+          <button
+            type='button'
+            disabled={isPending}
+            onClick={resetFilters}
+            className='min-w-0 cursor-pointer whitespace-nowrap rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-center font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-2)] disabled:cursor-not-allowed disabled:opacity-50 md:min-w-24'
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </OperationsFilterPanel>
   )
 }

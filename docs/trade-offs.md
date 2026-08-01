@@ -208,6 +208,78 @@ UI and filtering logic must compute derived statuses consistently.
 
 If the app grows, centralize more derived-state logic at the database or service layer.
 
+## Operations views and database-side pagination
+
+### Decision
+
+Use read-only `member_operations`, `session_operations`, and `booking_operations` views. Apply operational filters, exact counts, stable sorting, and range pagination in Supabase/Postgres.
+
+### Reason
+
+Joined display fields and derived states must stay aligned across counts, filters, rendered rows, and action visibility. Full-list loading and application-memory filtering do not scale and make pagination inaccurate.
+
+### Trade-off
+
+Route pages perform separate count and data queries, and the views become part of the read-model contract. Offset/range pagination may become slower at very large offsets.
+
+### Future improvement
+
+Consider cursor pagination only after measured data volume makes range pagination a real bottleneck.
+
+## Limited operations sorting
+
+### Decision
+
+Sessions and Bookings expose only `soonest` and `latest`, ordered by session start time with `id` as a stable tie-breaker.
+
+### Reason
+
+These options match the primary time-based workflow. Arbitrary column sorting would expand UI, URL, query, and test surface without a current use case.
+
+### Trade-off
+
+Admins cannot sort every displayed column.
+
+### Future improvement
+
+Add another sort option only for a concrete operational workflow.
+
+## Shared operations UI without a generic filter framework
+
+### Decision
+
+Share `SingleSelectFilter`, `MultiSelectFilter`, `OperationsFilterPanel`, and `OperationsPagination`, while keeping feature options, validation, layout, URL helpers, and queries feature-owned.
+
+### Reason
+
+The extracted interaction behavior is identical across Members, Sessions, and Bookings, but the complete filter forms are not.
+
+### Trade-off
+
+Thin feature pagination wrappers and some feature-specific form wiring remain.
+
+### Future improvement
+
+Extract another primitive only after repeated use proves a small stable API.
+
+## Native date inputs and non-searchable trainer selection
+
+### Decision
+
+Keep native date inputs and the shared custom trainer single-select without search. The dropdown uses constrained height and vertical scrolling.
+
+### Reason
+
+The current controls are sufficient for the dataset and avoid the accessibility, focus-management, dependency, and test surface of a custom date picker or searchable combobox.
+
+### Trade-off
+
+Date presentation varies by browser locale, and trainer selection may become inefficient with a much larger catalog.
+
+### Future improvement
+
+Revisit only when timezone requirements, trainer volume, or observed usability problems justify the added complexity.
+
 ## Server-first architecture with isolated client islands
 
 ### Decision

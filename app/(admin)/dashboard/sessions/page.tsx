@@ -1,118 +1,236 @@
 import {
-  Session,
-  getDerivedSessionStatus,
+  derivedSessionStatuses,
   isDerivedSessionStatus,
-  sortSessions,
-  type DerivedSessionStatus,
+  isSessionSort,
+  type SessionSort,
 } from '@/features/sessions/model/session'
+import {
+  getSessionDateBoundaries,
+  getSessionsSearchFilter,
+  isValidSessionDate,
+  isValidSessionDateRange,
+} from '@/features/sessions/model/sessions-query'
+import { getSessionsHref } from '@/features/sessions/model/sessions-url'
 import SessionsFilters from '@/features/sessions/ui/sessions-filters'
 import SessionsList from '@/features/sessions/ui/sessions-list'
+import SessionsPagination from '@/features/sessions/ui/sessions-pagination'
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+
+const PAGE_SIZE = 10
 
 type SessionsPageProps = {
   searchParams: Promise<{
-    trainer?: string
+    search?: string | string[]
+    trainer?: string | string[]
     statuses?: string | string[]
+    from?: string | string[]
+    to?: string | string[]
+    sort?: string | string[]
+    page?: string | string[]
   }>
 }
 
-type TrainerFilterOption = {
-  id: string
-  full_name: string
+function getParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function getParams(value: string | string[] | undefined) {
+  if (!value) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [value]
+}
+
+function getPage(value: string | undefined) {
+  if (!value) {
+    return 1
+  }
+
+  const page = Number(value)
+
+  if (!Number.isInteger(page) || page < 1) {
+    return 1
+  }
+
+  return page
 }
 
 export default async function SessionsPage({ searchParams }: SessionsPageProps) {
   const params = await searchParams
 
-  // Parse URL filters
-  const filterTrainerId = params.trainer ?? ''
-  const rawStatuses = Array.isArray(params.statuses)
-    ? params.statuses
-    : params.statuses
-      ? [params.statuses]
-      : []
-  const filterStatuses: DerivedSessionStatus[] = rawStatuses.filter(isDerivedSessionStatus)
+  const search = getParam(params.search)?.trim() ?? ''
+  const trainer = getParam(params.trainer)?.trim() ?? ''
+  const validStatuses = new Set(getParams(params.statuses).filter(isDerivedSessionStatus))
+  const selectedStatuses = derivedSessionStatuses.filter(status => validStatuses.has(status))
+
+  const rawFrom = getParam(params.from)
+  const from = isValidSessionDate(rawFrom) ? rawFrom : ''
+
+  const rawTo = getParam(params.to)
+  const to = isValidSessionDate(rawTo) ? rawTo : ''
+
+  const hasInvalidDateRange = !isValidSessionDateRange(from, to)
+
+  const rawSort = getParam(params.sort)
+  const sort: SessionSort = isSessionSort(rawSort) ? rawSort : 'soonest'
+  const page = getPage(getParam(params.page))
+
+  const searchFilter = search ? getSessionsSearchFilter(search) : null
+  const { fromInclusive, toExclusive } = getSessionDateBoundaries(from, to)
+
+  const filtersKey = [search, trainer, selectedStatuses.join(','), from, to, sort].join('|')
 
   const supabase = await createClient()
 
-  // Load sessions
-  const { data: sessions, error } = await supabase
-    .from('sessions')
-    .select(
-      'id, title, trainer_id, starts_at, ends_at, capacity, status, created_at, trainer:trainers(id, full_name)',
+  const trainersQuery = supabase
+    .from('trainers')
+    .select('id, full_name')
+    .eq('status', 'active')
+    .order('full_name', { ascending: true })
+
+  if (hasInvalidDateRange) {
+    const { data: trainers, error: trainersError } = await trainersQuery
+
+    return (
+      <>
+        <SessionsFilters
+          key={filtersKey}
+          search={search}
+          trainer={trainer}
+          trainers={trainers ?? []}
+          selectedStatuses={selectedStatuses}
+          from={from}
+          to={to}
+          sort={sort}
+          trainerOptionsError={trainersError?.message}
+        />
+
+        <SessionsList sessions={[]} emptyMessage='Fix the date range to view sessions.' />
+      </>
     )
-    .order('starts_at', { ascending: true })
-
-  // Load confirmed bookings for capacity display
-  const { data: confirmedBookings } = await supabase
-    .from('bookings')
-    .select('session_id')
-    .eq('status', 'confirmed')
-
-  const confirmedCounts = new Map<string, number>()
-  for (const booking of confirmedBookings ?? []) {
-    confirmedCounts.set(booking.session_id, (confirmedCounts.get(booking.session_id) ?? 0) + 1)
   }
 
-  // Normalize
-  const normalizedSessions: Session[] =
-    sessions?.map(session => ({
-      ...session,
-      trainer: Array.isArray(session.trainer) ? (session.trainer[0] ?? null) : session.trainer,
-      confirmed_bookings_count: confirmedCounts.get(session.id) ?? 0,
-    })) ?? []
+  let countQuery = supabase.from('session_operations').select('id', {
+    count: 'exact',
+    head: true,
+  })
 
-  // Load trainers for filter dropdown (only those with sessions)
-  const trainerIds = [...new Set(normalizedSessions.map(session => session.trainer_id))]
+  let sessionsQuery = supabase.from('session_operations').select(`
+    id,
+    title,
+    trainer_name,
+    starts_at,
+    ends_at,
+    capacity,
+    created_at,
+    confirmed_bookings_count,
+    derived_status
+  `)
 
-  let trainers: TrainerFilterOption[] = []
-
-  if (trainerIds.length > 0) {
-    const { data: trainerRows } = await supabase
-      .from('trainers')
-      .select('id, full_name')
-      .in('id', trainerIds)
-      .order('full_name', { ascending: true })
-
-    trainers = trainerRows ?? []
+  if (searchFilter) {
+    countQuery = countQuery.or(searchFilter)
+    sessionsQuery = sessionsQuery.or(searchFilter)
   }
 
-  // Apply trainer filter first
-  const trainerFiltered = filterTrainerId
-    ? normalizedSessions.filter(s => s.trainer_id === filterTrainerId)
-    : normalizedSessions
-
-  // Calculate status counts from trainer-filtered sessions (stable, not affected by selected statuses)
-  const statusCounts: Partial<Record<DerivedSessionStatus, number>> = {}
-  for (const s of trainerFiltered) {
-    const ds = getDerivedSessionStatus(s)
-    statusCounts[ds] = (statusCounts[ds] ?? 0) + 1
+  if (trainer) {
+    countQuery = countQuery.eq('trainer_id', trainer)
+    sessionsQuery = sessionsQuery.eq('trainer_id', trainer)
   }
 
-  // Apply status filter on top of trainer filter
-  const filtered =
-    filterStatuses.length > 0
-      ? trainerFiltered.filter(s => filterStatuses.includes(getDerivedSessionStatus(s)))
-      : trainerFiltered
+  if (selectedStatuses.length > 0) {
+    countQuery = countQuery.in('derived_status', selectedStatuses)
+    sessionsQuery = sessionsQuery.in('derived_status', selectedStatuses)
+  }
 
-  // Sort
-  const sortedSessions = sortSessions(filtered)
+  if (fromInclusive) {
+    countQuery = countQuery.gte('starts_at', fromInclusive)
+    sessionsQuery = sessionsQuery.gte('starts_at', fromInclusive)
+  }
 
-  const hasFilters = Boolean(filterTrainerId || filterStatuses.length > 0)
+  if (toExclusive) {
+    countQuery = countQuery.lt('starts_at', toExclusive)
+    sessionsQuery = sessionsQuery.lt('starts_at', toExclusive)
+  }
+
+  const [{ data: trainers, error: trainersError }, { count, error: countError }] =
+    await Promise.all([trainersQuery, countQuery])
+
+  const filterProps = {
+    search,
+    trainer,
+    trainers: trainers ?? [],
+    selectedStatuses,
+    from,
+    to,
+    sort,
+    trainerOptionsError: trainersError?.message,
+  }
+
+  if (countError) {
+    return (
+      <>
+        <SessionsFilters key={filtersKey} {...filterProps} />
+
+        <SessionsList sessions={[]} errorMessage={countError.message} />
+      </>
+    )
+  }
+
+  const totalCount = count ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+
+  if (page > totalPages) {
+    redirect(
+      getSessionsHref({
+        search,
+        trainer,
+        statuses: selectedStatuses,
+        from,
+        to,
+        sort,
+        page: totalPages,
+      }),
+    )
+  }
+
+  const fromIndex = (page - 1) * PAGE_SIZE
+  const toIndex = fromIndex + PAGE_SIZE - 1
+  const ascending = sort === 'soonest'
+
+  sessionsQuery = sessionsQuery
+    .order('starts_at', { ascending })
+    .order('id', { ascending })
+    .range(fromIndex, toIndex)
+
+  const { data, error } = await sessionsQuery
+  const hasFilters = Boolean(search || trainer || selectedStatuses.length > 0 || from || to)
 
   return (
     <>
-      <SessionsFilters
-        trainer={filterTrainerId}
-        trainers={trainers}
-        selectedStatuses={filterStatuses}
-        statusCounts={statusCounts}
-      />
+      <SessionsFilters key={filtersKey} {...filterProps} />
+
       <SessionsList
-        sessions={sortedSessions}
+        sessions={data ?? []}
         errorMessage={error?.message}
         emptyMessage={hasFilters ? 'No sessions match your filters.' : undefined}
       />
+
+      {!error && totalCount > 0 && (
+        <SessionsPagination
+          currentPage={page}
+          pageSize={PAGE_SIZE}
+          totalCount={totalCount}
+          totalPages={totalPages}
+          search={search}
+          trainer={trainer}
+          statuses={selectedStatuses}
+          from={from}
+          to={to}
+          sort={sort}
+        />
+      )}
     </>
   )
 }

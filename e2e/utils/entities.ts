@@ -75,7 +75,7 @@ export async function createE2ESession(page: Page, runId: string, trainerName: s
   await expect(page.getByRole('heading', { name: /add session/i })).toBeVisible()
 
   await page.getByLabel('Title').fill(sessionTitle)
-  await selectOptionByText(page, 'Trainer', trainerName)
+  const trainerId = await selectOptionByText(page, 'Trainer', trainerName)
   await page.getByLabel('Starts at').fill(startsAt)
   await page.getByLabel('Ends at').fill(endsAt)
   await page.getByLabel('Capacity').fill('10')
@@ -91,9 +91,7 @@ export async function createE2ESession(page: Page, runId: string, trainerName: s
     page.getByRole('button', { name: /create session/i }).click(),
   ])
 
-  await expect(page.getByText(sessionTitle).first()).toBeAttached()
-
-  return { sessionTitle }
+  return { sessionTitle, startsAt, endsAt, trainerId }
 }
 
 export async function createE2EBooking(page: Page, sessionTitle: string, memberSearchText: string) {
@@ -113,8 +111,20 @@ export async function createE2EBooking(page: Page, sessionTitle: string, memberS
     page.getByRole('button', { name: /create booking/i }).click(),
   ])
 
-  await expect(page.getByText(sessionTitle).first()).toBeVisible()
-  await expect(page.getByText('Confirmed').first()).toBeVisible()
+  const bookingParams = new URLSearchParams({
+    member: memberSearchText,
+    session: sessionTitle,
+  })
+
+  await gotoAppPage(page, `/dashboard/bookings?${bookingParams.toString()}`)
+
+  const bookingCard = page
+    .locator('li')
+    .filter({ hasText: sessionTitle })
+    .filter({ hasText: memberSearchText })
+
+  await expect(bookingCard.first()).toBeVisible()
+  await expect(bookingCard.filter({ hasText: 'Confirmed' }).first()).toBeVisible()
 }
 
 export async function createE2EClient(page: Page, runId: string) {

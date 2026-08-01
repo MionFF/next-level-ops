@@ -1,121 +1,260 @@
 import {
-  Booking,
-  getDerivedBookingStatus,
+  derivedBookingStatuses,
+  isBookingSort,
   isDerivedBookingStatus,
-  sortBookings,
-  type DerivedBookingStatus,
+  type BookingListRow,
+  type BookingSort,
 } from '@/features/bookings/model/booking'
+import {
+  getBookingDateBoundaries,
+  getBookingsMemberSearchFilter,
+  getBookingsSessionSearchFilter,
+  isValidBookingDate,
+  isValidBookingDateRange,
+} from '@/features/bookings/model/bookings-query'
+import { getBookingsHref } from '@/features/bookings/model/bookings-url'
 import BookingsFilters from '@/features/bookings/ui/bookings-filters'
 import BookingsList from '@/features/bookings/ui/bookings-list'
+import BookingsPagination from '@/features/bookings/ui/bookings-pagination'
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-function getParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value
-}
-
-function getArrayParam(value: string | string[] | undefined): string[] {
-  if (!value) return []
-  return Array.isArray(value) ? value : [value]
-}
+const PAGE_SIZE = 10
 
 type BookingsPageProps = {
   searchParams: Promise<{
     member?: string | string[]
     session?: string | string[]
+    trainer?: string | string[]
     statuses?: string | string[]
+    from?: string | string[]
+    to?: string | string[]
+    sort?: string | string[]
+    page?: string | string[]
   }>
+}
+
+function getParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function getParams(value: string | string[] | undefined) {
+  if (!value) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [value]
+}
+
+function getPage(value: string | undefined) {
+  if (!value) {
+    return 1
+  }
+
+  const page = Number(value)
+
+  if (!Number.isInteger(page) || page < 1) {
+    return 1
+  }
+
+  return page
 }
 
 export default async function BookingsPage({ searchParams }: BookingsPageProps) {
   const params = await searchParams
 
-  const memberFilter = getParam(params.member)?.trim() ?? ''
-  const sessionFilter = getParam(params.session)?.trim() ?? ''
-  const statusesParam = getArrayParam(params.statuses)
-  const selectedStatuses: DerivedBookingStatus[] = statusesParam.filter(isDerivedBookingStatus)
+  const member = getParam(params.member)?.trim() ?? ''
+  const session = getParam(params.session)?.trim() ?? ''
+  const trainer = getParam(params.trainer)?.trim() ?? ''
+  const validStatuses = new Set(getParams(params.statuses).filter(isDerivedBookingStatus))
+  const selectedStatuses = derivedBookingStatuses.filter(status => validStatuses.has(status))
+
+  const rawFrom = getParam(params.from)
+  const from = isValidBookingDate(rawFrom) ? rawFrom : ''
+
+  const rawTo = getParam(params.to)
+  const to = isValidBookingDate(rawTo) ? rawTo : ''
+
+  const hasInvalidDateRange = !isValidBookingDateRange(from, to)
+
+  const rawSort = getParam(params.sort)
+  const sort: BookingSort = isBookingSort(rawSort) ? rawSort : 'soonest'
+  const page = getPage(getParam(params.page))
+
+  const memberSearchFilter = member ? getBookingsMemberSearchFilter(member) : null
+  const sessionSearchFilter = session ? getBookingsSessionSearchFilter(session) : null
+  const { fromInclusive, toExclusive } = getBookingDateBoundaries(from, to)
+
+  const filtersKey = [
+    member,
+    session,
+    trainer,
+    selectedStatuses.join(','),
+    from,
+    to,
+    sort,
+  ].join('|')
 
   const supabase = await createClient()
 
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select(
-      'id, session_id, member_id, status, created_at, member:members(id, full_name, email), session:sessions(id, title, starts_at, ends_at, trainer:trainers(id, full_name))',
+  const trainersQuery = supabase
+    .from('trainers')
+    .select('id, full_name')
+    .order('full_name', { ascending: true })
+
+  if (hasInvalidDateRange) {
+    const { data: trainers, error: trainersError } = await trainersQuery
+
+    return (
+      <>
+        <BookingsFilters
+          key={filtersKey}
+          member={member}
+          session={session}
+          trainer={trainer}
+          trainers={trainers ?? []}
+          selectedStatuses={selectedStatuses}
+          from={from}
+          to={to}
+          sort={sort}
+          trainerOptionsError={trainersError?.message}
+        />
+
+        <BookingsList bookings={[]} emptyMessage='Fix the date range to view bookings.' />
+      </>
     )
-    .order('created_at', { ascending: false })
-
-  const normalizedBookings: Booking[] =
-    bookings?.map(booking => {
-      const member = Array.isArray(booking.member) ? (booking.member[0] ?? null) : booking.member
-
-      const session = Array.isArray(booking.session)
-        ? (booking.session[0] ?? null)
-        : booking.session
-
-      const trainer = session
-        ? Array.isArray(session.trainer)
-          ? (session.trainer[0] ?? null)
-          : session.trainer
-        : null
-
-      return {
-        ...booking,
-        member,
-        session: session
-          ? {
-              ...session,
-              trainer,
-            }
-          : null,
-      }
-    }) ?? []
-
-  // Compute derived status counts from ALL bookings (before filtering)
-  const statusCounts: Partial<Record<DerivedBookingStatus, number>> = {}
-  for (const b of normalizedBookings) {
-    const derived = getDerivedBookingStatus(b)
-    statusCounts[derived] = (statusCounts[derived] ?? 0) + 1
   }
 
-  // Server-side filtering
-  const filteredBookings = normalizedBookings.filter(booking => {
-    if (selectedStatuses.length > 0) {
-      const derived = getDerivedBookingStatus(booking)
-      if (!selectedStatuses.includes(derived)) return false
-    }
-
-    if (memberFilter) {
-      const query = memberFilter.toLowerCase()
-      const name = booking.member?.full_name?.toLowerCase() ?? ''
-      const email = booking.member?.email?.toLowerCase() ?? ''
-      if (!name.includes(query) && !email.includes(query)) return false
-    }
-
-    if (sessionFilter) {
-      const query = sessionFilter.toLowerCase()
-      const title = booking.session?.title?.toLowerCase() ?? ''
-      if (!title.includes(query)) return false
-    }
-
-    return true
+  let countQuery = supabase.from('booking_operations').select('id', {
+    count: 'exact',
+    head: true,
   })
 
-  const sortedBookings = sortBookings(filteredBookings)
+  let bookingsQuery = supabase.from('booking_operations').select(`
+    id,
+    member_name,
+    member_email,
+    session_title,
+    session_starts_at,
+    trainer_name,
+    created_at,
+    derived_status,
+    is_cancellable
+  `)
+
+  if (memberSearchFilter) {
+    countQuery = countQuery.or(memberSearchFilter)
+    bookingsQuery = bookingsQuery.or(memberSearchFilter)
+  }
+
+  if (sessionSearchFilter) {
+    countQuery = countQuery.or(sessionSearchFilter)
+    bookingsQuery = bookingsQuery.or(sessionSearchFilter)
+  }
+
+  if (trainer) {
+    countQuery = countQuery.eq('trainer_id', trainer)
+    bookingsQuery = bookingsQuery.eq('trainer_id', trainer)
+  }
+
+  if (selectedStatuses.length > 0) {
+    countQuery = countQuery.in('derived_status', selectedStatuses)
+    bookingsQuery = bookingsQuery.in('derived_status', selectedStatuses)
+  }
+
+  if (fromInclusive) {
+    countQuery = countQuery.gte('session_starts_at', fromInclusive)
+    bookingsQuery = bookingsQuery.gte('session_starts_at', fromInclusive)
+  }
+
+  if (toExclusive) {
+    countQuery = countQuery.lt('session_starts_at', toExclusive)
+    bookingsQuery = bookingsQuery.lt('session_starts_at', toExclusive)
+  }
+
+  const [{ data: trainers, error: trainersError }, { count, error: countError }] =
+    await Promise.all([trainersQuery, countQuery])
+
+  const filterProps = {
+    member,
+    session,
+    trainer,
+    trainers: trainers ?? [],
+    selectedStatuses,
+    from,
+    to,
+    sort,
+    trainerOptionsError: trainersError?.message,
+  }
+
+  if (countError) {
+    return (
+      <>
+        <BookingsFilters key={filtersKey} {...filterProps} />
+
+        <BookingsList bookings={[]} errorMessage={countError.message} />
+      </>
+    )
+  }
+
+  const totalCount = count ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+
+  if (page > totalPages) {
+    redirect(
+      getBookingsHref({
+        member,
+        session,
+        trainer,
+        statuses: selectedStatuses,
+        from,
+        to,
+        sort,
+        page: totalPages,
+      }),
+    )
+  }
+
+  const fromIndex = (page - 1) * PAGE_SIZE
+  const toIndex = fromIndex + PAGE_SIZE - 1
+  const ascending = sort === 'soonest'
+
+  bookingsQuery = bookingsQuery
+    .order('session_starts_at', { ascending })
+    .order('id', { ascending })
+    .range(fromIndex, toIndex)
+
+  const { data, error } = await bookingsQuery
+  const bookings: BookingListRow[] = data ?? []
+  const hasFilters = Boolean(
+    member || session || trainer || selectedStatuses.length > 0 || from || to,
+  )
 
   return (
     <>
-      <BookingsFilters
-        member={memberFilter}
-        session={sessionFilter}
-        selectedStatuses={selectedStatuses}
-        statusCounts={statusCounts}
-      />
+      <BookingsFilters key={filtersKey} {...filterProps} />
+
       <BookingsList
-        bookings={sortedBookings}
+        bookings={bookings}
         errorMessage={error?.message}
-        hasActiveFilters={
-          memberFilter !== '' || sessionFilter !== '' || selectedStatuses.length > 0
-        }
+        emptyMessage={hasFilters ? 'No bookings match your filters.' : undefined}
       />
+
+      {!error && totalCount > 0 && (
+        <BookingsPagination
+          currentPage={page}
+          pageSize={PAGE_SIZE}
+          totalCount={totalCount}
+          totalPages={totalPages}
+          member={member}
+          session={session}
+          trainer={trainer}
+          statuses={selectedStatuses}
+          from={from}
+          to={to}
+          sort={sort}
+        />
+      )}
     </>
   )
 }

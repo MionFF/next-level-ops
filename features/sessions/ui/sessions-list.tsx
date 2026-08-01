@@ -1,15 +1,15 @@
 import Link from 'next/link'
-import { getDerivedSessionStatus, getSessionDisplayBadge, type Session } from '../model/session'
+import { getSessionDisplayBadge, type SessionListRow } from '../model/session'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
 
 type SessionsListProps = {
-  sessions: Session[]
+  sessions: SessionListRow[]
   errorMessage?: string
   emptyMessage?: string
 }
 
-function DisplayBadge({ session }: { session: Session }) {
-  const { text, className } = getSessionDisplayBadge(getDerivedSessionStatus(session))
+function DisplayBadge({ status }: { status: SessionListRow['derived_status'] }) {
+  const { text, className } = getSessionDisplayBadge(status)
   return (
     <span
       className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${className}`}
@@ -51,7 +51,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
 
       {!errorMessage && sessions && sessions.length > 0 && (
         <>
-          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] xl:block'>
+          <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] min-[1470px]:block'>
             <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
@@ -75,9 +75,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                       <div className='line-clamp-2 max-w-full'>{session.title}</div>
                     </td>
                     <td className='px-4 py-3 text-[var(--muted)]'>
-                      <div className='line-clamp-2 max-w-full'>
-                        {session.trainer?.full_name ?? 'Unknown'}
-                      </div>
+                      <div className='line-clamp-2 max-w-full'>{session.trainer_name}</div>
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDateTime(session.starts_at)}
@@ -89,7 +87,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                       {session.confirmed_bookings_count} / {session.capacity} booked
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap'>
-                      <DisplayBadge session={session} />
+                      <DisplayBadge status={session.derived_status} />
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(session.created_at)}
@@ -108,7 +106,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
             </table>
           </div>
 
-          <ul className='flex min-w-0 flex-col gap-3 xl:hidden'>
+          <ul className='flex min-w-0 flex-col gap-3 min-[1470px]:hidden'>
             {sessions.map(session => (
               <li
                 key={session.id}
@@ -121,9 +119,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                     </p>
 
                     <div className='mt-2 min-w-0 space-y-1 text-sm text-[var(--muted)]'>
-                      <p className='max-w-full truncate'>
-                        Trainer: {session.trainer?.full_name ?? 'Unknown'}
-                      </p>
+                      <p className='max-w-full truncate'>Trainer: {session.trainer_name}</p>
                       <p>Starts: {formatDateTime(session.starts_at)}</p>
                       <p>Ends: {formatDateTime(session.ends_at)}</p>
                       <p>
@@ -133,7 +129,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                     </div>
 
                     <div className='mt-2'>
-                      <DisplayBadge session={session} />
+                      <DisplayBadge status={session.derived_status} />
                     </div>
                   </div>
 
