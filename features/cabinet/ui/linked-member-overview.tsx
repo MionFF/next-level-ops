@@ -1,4 +1,4 @@
-import type { CabinetProfile, LinkedMember } from '../model/cabinet-profile'
+import type { LinkedMember } from '../model/cabinet-profile'
 
 export function LinkedMemberOverview({ member }: { member: LinkedMember }) {
   return (

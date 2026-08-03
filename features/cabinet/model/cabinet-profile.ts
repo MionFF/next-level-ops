@@ -1,9 +1,3 @@
-export type CabinetProfile = {
-  id: string
-  full_name: string | null
-  member_id: string | null
-}
-
 export type LinkedMember = {
   id: string
   full_name: string
