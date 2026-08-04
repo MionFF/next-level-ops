@@ -1,5 +1,7 @@
 import { Skeleton } from '@/shared/ui/skeleton'
 
+const dashboardCardPlaceholders = Array.from({ length: 5 })
+
 function DashboardCardSkeleton({ summary = false }: { summary?: boolean }) {
   return (
     <div
@@ -13,32 +15,41 @@ function DashboardCardSkeleton({ summary = false }: { summary?: boolean }) {
   )
 }
 
-export function DashboardOverviewSkeleton() {
-  const cards = Array.from({ length: 5 })
+export function DashboardSummarySkeleton() {
+  return (
+    <section>
+      <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
+        Overview
+      </h2>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+        {dashboardCardPlaceholders.map((_, index) => (
+          <DashboardCardSkeleton key={index} summary />
+        ))}
+      </div>
+    </section>
+  )
+}
 
+function DashboardQuickActionsSkeleton() {
+  return (
+    <section>
+      <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
+        Quick actions
+      </h2>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+        {dashboardCardPlaceholders.map((_, index) => (
+          <DashboardCardSkeleton key={index} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export function DashboardOverviewSkeleton() {
   return (
     <div className='space-y-8'>
-      <section>
-        <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
-          Overview
-        </h2>
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
-          {cards.map((_, index) => (
-            <DashboardCardSkeleton key={index} summary />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
-          Quick actions
-        </h2>
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
-          {cards.map((_, index) => (
-            <DashboardCardSkeleton key={index} />
-          ))}
-        </div>
-      </section>
+      <DashboardSummarySkeleton />
+      <DashboardQuickActionsSkeleton />
     </div>
   )
 }
