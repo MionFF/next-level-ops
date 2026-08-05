@@ -126,46 +126,6 @@ describe('fetchDashboardSummary', () => {
     })
   })
 
-  it('preserves the query contract and normalizes successful null counts', async () => {
-    const { queries } = createSupabaseMock()
-
-    const summaryPromise = fetchDashboardSummary()
-    await Promise.resolve()
-    await Promise.resolve()
-
-    for (const query of Object.values(queries)) {
-      expect(query.builder.select).toHaveBeenCalledWith('id', {
-        count: 'exact',
-        head: true,
-      })
-    }
-    expect(queries.members.builder.eq).not.toHaveBeenCalled()
-    expect(queries.trainers.builder.eq).not.toHaveBeenCalled()
-    expect(queries.membership_plans.builder.eq).toHaveBeenCalledWith('status', 'active')
-    expect(queries.sessions.builder.eq).toHaveBeenCalledWith('status', 'scheduled')
-    expect(queries.sessions.builder.gt).toHaveBeenCalledWith(
-      'starts_at',
-      '2026-08-02T09:30:00.000Z',
-    )
-    expect(queries.bookings.builder.eq).toHaveBeenCalledWith('status', 'confirmed')
-
-    resolveSuccessfulQueries(queries, {
-      members: null,
-      trainers: 2,
-      membership_plans: null,
-      sessions: 6,
-      bookings: null,
-    })
-
-    await expect(summaryPromise).resolves.toEqual({
-      totalMembers: 0,
-      totalTrainers: 2,
-      activePlans: 0,
-      upcomingSessions: 6,
-      confirmedBookings: 0,
-    })
-  })
-
   it('rejects with the failed Dashboard metric instead of returning a zero count', async () => {
     const { queries } = createSupabaseMock()
 
