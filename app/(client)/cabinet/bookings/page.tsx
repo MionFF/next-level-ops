@@ -20,18 +20,11 @@ export default async function CabinetBookingsPage() {
     redirect('/forbidden')
   }
 
-  const supabase = await createClient()
-
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('member_id')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (!profileData?.member_id) {
+  if (!profile.member_id) {
     return <UnlinkedMemberState title='Upcoming bookings' />
   }
 
+  const supabase = await createClient()
   const now = new Date()
   const nowTime = now.getTime()
 
@@ -51,7 +44,7 @@ export default async function CabinetBookingsPage() {
       )
     `,
     )
-    .eq('member_id', profileData.member_id)
+    .eq('member_id', profile.member_id)
 
   const normalizedBookings: CabinetUpcomingBooking[] =
     bookings?.map(booking => {

@@ -77,7 +77,7 @@ function QuickActionCard({ label, href, linkLabel }: QuickAction) {
   )
 }
 
-export function OverviewCards({ summary }: { summary: DashboardSummary }) {
+export function DashboardSummaryCards({ summary }: { summary: DashboardSummary }) {
   const cards: SummaryCardProps[] = [
     {
       label: 'Members',
@@ -112,28 +112,30 @@ export function OverviewCards({ summary }: { summary: DashboardSummary }) {
   ]
 
   return (
-    <div className='space-y-8'>
-      <div>
-        <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
-          Overview
-        </h2>
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
-          {cards.map(card => (
-            <SummaryCard key={card.label} {...card} />
-          ))}
-        </div>
+    <section>
+      <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
+        Overview
+      </h2>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+        {cards.map(card => (
+          <SummaryCard key={card.label} {...card} />
+        ))}
       </div>
+    </section>
+  )
+}
 
-      <div>
-        <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
-          Quick actions
-        </h2>
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
-          {quickActions.map(action => (
-            <QuickActionCard key={action.label} {...action} />
-          ))}
-        </div>
+export function DashboardQuickActions() {
+  return (
+    <section>
+      <h2 className='mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]'>
+        Quick actions
+      </h2>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+        {quickActions.map(action => (
+          <QuickActionCard key={action.label} {...action} />
+        ))}
       </div>
-    </div>
+    </section>
   )
 }

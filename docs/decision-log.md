@@ -741,3 +741,69 @@ Follow-up needed:
 - Revisit timezone handling only when a configurable studio timezone becomes a requirement.
 - Add searchable trainer selection only when trainer volume or observed usability justifies it.
 - Keep SQL views, TypeScript helpers, UI badges, and mutation eligibility synchronized when status rules change.
+
+## 2026-08-02 — 2026-08-05
+
+### Dashboard performance and loading
+
+- Independent Dashboard summary reads execute in parallel.
+- Authenticated profile resolution is cached within the React server render and reused by layouts/pages that request the same auth profile.
+- Data-backed admin and client routes use route-level `loading.tsx` skeletons.
+- Skeletons match the responsive shape of the final pages and remain non-interactive.
+- Dashboard Overview and Quick Actions were separated into independent UI blocks.
+- The Dashboard summary owns the Supabase read and suspends behind an Overview-only fallback.
+- Static Quick Actions remain outside Suspense and render without waiting for summary data.
+- No client-side data-fetching library or additional client data boundary was introduced.
+
+Reason:
+
+- Independent reads should not form avoidable server query waterfalls.
+- Repeated role/member profile resolution within one render should not issue duplicate profile queries.
+- Remote server latency should produce immediate, layout-stable feedback instead of blank route content.
+- Static UI should not be blocked by unrelated database reads.
+- Existing App Router and Server Component boundaries already support the required loading behavior.
+
+Trade-offs:
+
+- Skeleton UI must remain aligned with the corresponding responsive page layouts.
+- Loading and streaming improve perceived performance but do not remove Supabase/network latency.
+- The Dashboard now has both a route-level loading boundary and one narrower summary Suspense boundary.
+
+### Index audit
+
+- Reviewed the existing indexes for members, trainers, sessions, bookings, profiles, member memberships, and membership plans.
+- Existing indexes cover the current primary-key, foreign-key, status, date, and confirmed-booking lookup paths.
+- Each primary operational table currently contains fewer than 50 rows.
+- No new composite, partial, or text-search index was added.
+- No existing index was removed.
+
+Reason:
+
+- Current data volume cannot provide meaningful evidence for additional index tuning.
+- Sequential scans on very small tables are not automatically a performance problem.
+- New indexes would add write and maintenance cost without a demonstrated read benefit.
+
+Follow-up needed:
+
+- Revisit indexes only after realistic dataset growth, a repeatable slow query plan, or deployed performance evidence.
+
+### Render and request audit
+
+- Production-mode Lighthouse audits were run against key admin and client routes in an Incognito browser environment.
+- Recorded local Performance scores ranged from 92 to 100 across the tested routes.
+- React Profiler checks covered representative Members, Sessions, and Bookings interactions.
+- Filter renders remained localized and no actionable expensive rerender pattern was found.
+- Draft filter edits produced no navigation requests.
+- Applying filters and changing pagination each produced one RSC navigation request in the checked Sessions and Bookings flows.
+- No duplicate navigation request was observed.
+- No memoization, query cleanup, or render refactor was added.
+
+Reason:
+
+- Performance changes should address measured work rather than assumed problems.
+- The observed client-side render work was small, while remaining navigation latency was concentrated in the server/network portion of the request.
+- Adding `memo`, `useMemo`, `useCallback`, caching, or new query abstractions without evidence would increase complexity without proven benefit.
+
+Follow-up needed:
+
+- Repeat targeted audits only when product behavior, data volume, hosting conditions, or deployed monitoring exposes a concrete regression.

@@ -1,8 +1,17 @@
-import { fetchDashboardSummary } from '@/features/dashboard/model/dashboard-summary'
-import { OverviewCards } from '@/features/dashboard/ui/overview-cards'
+import { Suspense } from 'react'
 
-export default async function Dashboard() {
-  const summary = await fetchDashboardSummary()
+import { DashboardSummarySkeleton } from '@/features/dashboard/ui/dashboard-overview-skeleton'
+import { DashboardQuickActions } from '@/features/dashboard/ui/overview-cards'
+import { DashboardSummary } from '@/features/dashboard/ui/dashboard-summary'
 
-  return <OverviewCards summary={summary} />
+export default function Dashboard() {
+  return (
+    <div className='space-y-8'>
+      <Suspense fallback={<DashboardSummarySkeleton />}>
+        <DashboardSummary />
+      </Suspense>
+
+      <DashboardQuickActions />
+    </div>
+  )
 }

@@ -47,6 +47,9 @@ Covered areas:
 - member membership current/history states
 - submitted `FormData`
 - validation and action error rendering
+- route-level loading-state accessibility and non-interactive skeleton contracts
+- Dashboard streaming structure: summary fallback remains visible while real Quick Actions are available
+- Dashboard summary-value and Quick Action link contracts
 
 RTL tests intentionally avoid Supabase, cookies, protected routing, and implementation details.
 
@@ -98,6 +101,58 @@ Cancellation tests wait for deterministic UI outcomes instead of `networkidle`, 
 Responsive member E2E assertions target visible content so duplicated desktop table and mobile card markup does not create ambiguous locators.
 
 Membership E2E assertions avoid matching hidden `<option>` text from native selects. They assert visible state inside the relevant section instead.
+
+## Performance verification
+
+Performance checks are targeted manual verification, not timing-based automated tests.
+
+### Lighthouse
+
+Lighthouse is run against a production build:
+
+```bash
+npm run build
+npm run start
+```
+
+Audits are performed in an Incognito window without extensions. Development-server Lighthouse results are not used as a performance baseline because development tooling, source maps, and React diagnostics distort JavaScript and main-thread metrics.
+
+Repeated local production-mode audits across the main admin and client routes produced Performance scores between 92 and 100. These results confirm the absence of an obvious local production-mode blocker; they are not a substitute for deployed production monitoring.
+
+### React Profiler
+
+React Profiler is used on the development server for targeted interaction checks. It verifies render scope and component cost rather than absolute production timing.
+
+Representative checks cover:
+
+- Members draft filters and Apply
+- Sessions draft filters, Apply, and pagination
+- Bookings draft filters, Apply, and pagination
+
+The audit found localized filter renders and no actionable expensive rerender pattern.
+
+### Network inspection
+
+Browser Network inspection verifies client navigation behavior:
+
+- editing draft filter values produces no navigation request
+- Apply produces one RSC navigation request
+- pagination produces one RSC navigation request
+- no duplicate navigation requests were observed in the checked Sessions and Bookings flows
+
+Browser Network tools do not expose individual server-to-Supabase requests made by Server Components. Deeper query instrumentation should be added only when a measured server bottleneck justifies it.
+
+### What is intentionally not automated
+
+The suite does not add:
+
+- Lighthouse score assertions
+- render-duration thresholds
+- request-duration thresholds
+- artificial production delays
+- timing-sensitive streaming E2E assertions
+
+These checks would be environment-sensitive and prone to false failures.
 
 ## Commands
 
