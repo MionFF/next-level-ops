@@ -316,6 +316,26 @@ Client-side responsibilities:
 
 Large list components are kept as server-rendered/dumb UI where possible. Route pages own URL parsing and server reads, while client components own only draft filter state and URL updates.
 
+## Performance and loading model
+
+Performance work remains server-first and measurement-led.
+
+Independent Dashboard summary reads execute in parallel instead of forming a sequential query waterfall. Authenticated profile resolution is cached within the React server render so layouts and pages can reuse the same role/member result without repeating the profile query.
+
+Data-backed routes use App Router `loading.tsx` boundaries with responsive skeletons that preserve the shape of the final screen. Loading UI stays inside the existing authenticated shell, so navigation and access-control framing remain visible during route transitions.
+
+The Dashboard has one narrower Suspense boundary around its data-dependent summary. Static Quick Actions render immediately and do not wait for the five summary reads. The full route-level Dashboard skeleton remains the initial route fallback, while the nested fallback covers only the Overview cards.
+
+Performance verification is evidence-driven:
+
+- production-mode Lighthouse audits are used instead of development-server scores
+- React Profiler is used for targeted interactive render checks
+- browser Network inspection verifies client navigation request counts
+- database indexes are added only when query plans and realistic data volume justify them
+- `memo`, `useMemo`, and `useCallback` are not added without a measured render problem
+
+The current index audit found that existing indexes cover the active query shapes and that the project dataset is too small to justify speculative composite or text-search indexes. Targeted render and request audits found no actionable duplicate navigation requests or expensive avoidable rerenders.
+
 ## Discoverability model
 
 Admin screens use discoverability only where it meaningfully improves operational usage.
@@ -410,9 +430,12 @@ The MVP intentionally does not include:
 - custom backend outside Supabase
 - Dockerized local backend environment
 
-Known performance concern:
+Known performance characteristics:
 
-- The app currently depends on Supabase as a remote BaaS. Network latency and Supabase free-tier limits can affect response time, especially during development and E2E flows. This is tracked as a trade-off and can be revisited later if the project moves beyond MVP scope.
+- The app depends on Supabase as a remote BaaS, so protected server navigations include network, authentication, RLS, and query latency.
+- Local production-mode Lighthouse audits across key admin and client routes produced Performance scores between 92 and 100. These are development verification results, not production monitoring data.
+- Route skeletons and targeted Dashboard streaming improve perceived performance but do not remove remote server latency.
+- Further optimization should be driven by measured production-like evidence rather than speculative caching, indexes, memoization, or additional client-side data infrastructure.
 
 ## Architecture principle
 
