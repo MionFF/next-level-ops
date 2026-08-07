@@ -1,407 +1,265 @@
 # Trade-offs
 
-Next Level Ops is an MVP, not a full enterprise platform.  
-This document records the main engineering and product trade-offs made during development.
+This document records the main engineering and product trade-offs in Next Level Ops.
+
+A trade-off belongs here only when the chosen approach provides a meaningful benefit while introducing a real limitation, cost, or constraint. Routine implementation decisions, feature lists, and historical changes belong elsewhere.
 
 ## Supabase as Backend-as-a-Service
 
 ### Decision
 
-Use Supabase for Auth, Postgres, RLS, migrations, RPC, and server-side data access.
+Use Supabase for Auth, Postgres, RLS, migrations, RPC, and server-side data access instead of building a custom backend.
 
-### Reason
+### Benefit
 
-Supabase allowed the project to reach a full-stack MVP level without building a custom backend, auth system, database layer, and access-control infrastructure from scratch.
+Supabase provides a production-shaped backend foundation with relatively little infrastructure work. The project can focus on product workflows, authorization, business rules, and frontend architecture instead of implementing authentication, database access, deployment, and API infrastructure from scratch.
 
-### Trade-off
+### Cost
 
-The app depends on a remote BaaS and can suffer from latency, especially on the free tier and during development/E2E flows.
+The application depends on an external platform and remote network calls.
 
-### Future improvement
+This introduces:
 
-If performance or backend flexibility becomes a blocker, the backend could be migrated to a custom API with PostgreSQL, Docker, and a dedicated auth/access layer.
+- noticeable latency, especially on the free tier;
+- dependence on Supabase availability and platform behavior;
+- less backend flexibility than a fully custom service;
+- slower real-backend E2E tests.
+
+### Revisit when
+
+Consider a custom backend only if Supabase becomes a demonstrated limitation for performance, deployment control, backend architecture, or product requirements.
+
+---
 
 ## Admin-managed bookings instead of client self-booking
 
 ### Decision
 
-Bookings are created by admins. Clients can view and cancel their own future bookings, but cannot create bookings themselves.
+Admins create bookings. Clients can view their bookings and cancel eligible future bookings, but cannot create bookings themselves.
 
-### Reason
+### Benefit
 
-Client self-booking requires stronger rules around availability, capacity, membership eligibility, duplicate bookings, race conditions, and possibly waitlists.
+The current booking flow keeps capacity, duplicate protection, session validity, and booking creation under one controlled operational workflow.
 
-### Trade-off
+It avoids exposing client self-service before membership eligibility, concurrency, availability, and booking-policy rules are fully defined.
 
-The client cabinet is useful but limited. Clients still depend on staff for booking creation.
+### Cost
 
-### Future improvement
+The client role has limited agency and still depends on staff for one of the product's most important workflows.
 
-Add client self-booking only after eligibility, availability, capacity, and concurrency rules are clearly defined.
+This creates an intentionally admin-heavy product model.
 
-## No payments or Stripe in MVP
+### Revisit when
 
-### Decision
+Client self-booking should be introduced when booking eligibility, membership rules, capacity behavior, concurrency guarantees, and cancellation policy are defined as explicit product rules.
 
-Membership plans and member memberships are modeled, but payments, Stripe, invoices, renewals, and purchase flows are out of scope.
+---
 
-### Reason
-
-The MVP focuses on studio operations, not commerce automation.
-
-### Trade-off
-
-Membership assignment is manual and does not represent a real paid subscription lifecycle.
-
-### Future improvement
-
-Add payments only after the operational model is stable.
-
-## Admin-managed member memberships instead of payment lifecycle automation
+## Manual membership management instead of a payment lifecycle
 
 ### Decision
 
-Member memberships are managed manually by admins from the member detail page.
+Model membership plans and concrete member memberships, while keeping assignment, renewal, and cancellation admin-managed.
 
-`membership_plans` remain reusable catalog records. `member_memberships` represent concrete plan assignments for specific members and date ranges.
+Payments, checkout, invoices, automatic renewal, freezing, and subscription billing are not part of the current system.
 
-### Reason
+### Benefit
 
-The project currently focuses on operational workflows, not commerce automation.
+The application can represent a member's actual current and historical membership state without introducing financial infrastructure and payment lifecycle complexity.
 
-Admin-managed assignment and cancellation are enough to model the studio's current membership state without adding payments, Stripe, invoices, checkout, automatic renewal, freezing, discounts, or client self-purchase.
-
-The workflow also keeps the product mental model clear:
+The domain remains clear:
 
 ```txt
-plan = what the studio sells
-member membership = what a specific member currently has or had
+membership plan = what the studio offers
+member membership = what a specific member has or had
 ```
 
-### Trade-off
+### Cost
 
-The app now supports real assigned memberships, but it still does not represent a full paid subscription lifecycle.
+Membership state is operational rather than financial.
 
-Admins must assign, renew, and cancel memberships manually. Expiration is derived from dates rather than stored or processed by a background job.
+The system does not prove that a membership was purchased or paid for, and admins remain responsible for assigning and renewing memberships manually.
 
-### Future improvement
+### Revisit when
 
-Add payment or subscription lifecycle automation only if it becomes a product requirement.
+Introduce payment or subscription automation only when commerce becomes a real product requirement rather than portfolio scope expansion.
 
-Possible future directions:
+---
 
-- payments/checkout
-- invoices
-- membership freezing
-- automatic renewal
-- client self-purchase
-- richer membership lifecycle reporting
-
-These remain out of scope for the current milestone.
-
-## Booking creation RPC
+## Database RPCs for sensitive booking mutations
 
 ### Decision
 
-Admin booking creation is handled through a constrained Supabase RPC: `public.create_admin_booking`.
+Keep security- and concurrency-sensitive booking mutations behind constrained Supabase RPCs.
 
-### Reason
+This currently includes:
 
-Booking creation depends on business invariants that must stay consistent under concurrent requests:
+- admin booking creation;
+- client booking cancellation.
 
-- the caller must be an admin;
-- the session must exist;
-- the member must exist;
-- the session must not be cancelled;
-- the session must be in the future;
-- the session must not be full;
-- the member must not already have a confirmed booking for the same session.
+### Benefit
 
-The RPC serializes booking creation per session row with `FOR UPDATE`, avoiding the `count confirmed -> insert` race window.
+Critical invariants are enforced close to the data.
 
-### Trade-off
+For booking creation, the database can protect capacity and duplicate-booking rules under concurrent requests.
 
-The server action becomes thinner and delegates core booking creation rules to the database-backed workflow. This adds RPC complexity, but keeps capacity and duplicate protection closer to the data.
+For client cancellation, the database can verify authenticated ownership and mutation eligibility without granting broad client update access to the `bookings` table.
 
-### Future improvement
+### Cost
 
-If booking rules grow, keep extending the constrained RPC deliberately instead of spreading critical invariants across UI-only checks.
+Business logic is split across TypeScript server actions and PostgreSQL functions.
 
-## Manual admin role assignment, admin-managed profile-member linking
+This increases architectural complexity and means changes to booking rules may require coordinated updates across SQL, TypeScript, UI behavior, and tests.
 
-### Decision
+### Revisit when
 
-Admin role assignment remains manual. Client profile-to-member linking is now handled through a dedicated admin workflow at `/dashboard/profile-links`.
+Keep using constrained RPCs for mutations that require transactional, authorization, or concurrency guarantees.
 
-### Reason
+Do not move rules into SQL merely because a mutation exists; simple mutations should remain simple.
 
-`profiles.role` and `profiles.member_id` are access-control fields. Users must not be able to self-assign admin access or self-link to arbitrary member records.
+---
 
-The project keeps admin role assignment manual to avoid adding user-management scope. Profile-member linking, however, became a necessary internal workflow because the client cabinet depends on a correct `auth user -> profile -> member` chain.
-
-### Trade-off
-
-The app now has operational UI for linking client profiles to member records, but it still does not include full user administration, invite flows, Supabase Auth Admin API integration, or client self-linking.
-
-The linking page uses native selects and simple overview sections. Search, pagination, member/profile creation, and advanced CRM behavior are intentionally out of scope for this milestone.
-
-### Future improvement
-
-Add deeper user lifecycle tooling only if it becomes part of the product scope:
-
-- admin user creation or invites
-- safer admin role management UI
-- search/pagination for larger profile/member lists
-- profile-link indicators in the members operations table
-
-## Auth user, profile, and member are separate concepts
+## Separate auth users, profiles, and members
 
 ### Decision
 
-Supabase auth users, app profiles, and studio members are modeled separately.
+Model Supabase Auth users, application profiles, and studio members as separate concepts.
 
-### Reason
+The ownership chain for a client is:
 
-An authenticated user is an identity, a profile is an app-level access record, and a member is a business record inside the fitness studio.
+```txt
+auth user
+→ profile
+→ linked member
+```
 
-### Trade-off
+### Benefit
 
-The data model is more complex than merging everything into one user table.
+Identity, application authorization, and studio business data have separate responsibilities and lifecycles.
 
-### Future improvement
+A studio member does not need to be an authenticated application user, and authentication records do not need to carry the full business model.
 
-Keep this separation, but improve admin tooling around linking and lifecycle management.
+### Cost
 
-## RPC for client booking cancellation
+The model requires explicit profile-member linking and introduces additional joins, access-control rules, admin tooling, and failure states.
 
-### Decision
+A broken link can make an otherwise valid client account unable to resolve its studio member data.
 
-Client booking cancellation uses a constrained database RPC instead of direct client table updates.
+### Revisit when
 
-### Reason
+Keep the separation unless the product model fundamentally changes.
 
-The RPC resolves the authenticated user, checks the linked member, verifies booking ownership, requires a confirmed future booking, and only updates `bookings.status`.
+Improve lifecycle and linking tooling rather than collapsing the concepts into one table purely to reduce complexity.
 
-### Trade-off
+---
 
-Cancellation rules are split between server action flow and database RPC.
-
-### Future improvement
-
-Keep sensitive mutations behind explicit database functions when they need stronger guarantees.
-
-## Derived statuses instead of storing every state
+## Derived operational statuses instead of storing every state
 
 ### Decision
 
-Statuses like `Completed`, `In progress`, `Full`, and membership `Expired` are derived from time and related data instead of stored directly in the database.
+Derive time- and relationship-dependent states instead of persisting all of them as database status values.
 
-### Reason
+Examples include:
 
-These states can change naturally over time and do not need manual updates or background jobs.
+- session `in_progress`;
+- session `completed`;
+- session `full`;
+- booking `in_progress`;
+- booking `completed`;
+- membership `expired`.
 
-### Trade-off
+### Benefit
 
-UI and filtering logic must compute derived statuses consistently.
+Derived states automatically change as time and related data change.
 
-### Future improvement
+The system avoids background jobs whose only purpose would be to keep stored status fields synchronized with reality.
 
-If the app grows, centralize more derived-state logic at the database or service layer.
+### Cost
 
-## Operations views and database-side pagination
+The same business meaning must remain consistent across database views, TypeScript helpers, UI badges, filters, and mutation eligibility.
 
-### Decision
+Time-dependent behavior also makes these states more complex than simple persisted enums.
 
-Use read-only `member_operations`, `session_operations`, and `booking_operations` views. Apply operational filters, exact counts, stable sorting, and range pagination in Supabase/Postgres.
+### Revisit when
 
-### Reason
+If status logic grows substantially, consolidate more of the read-side derivation into a single authoritative database or domain layer.
 
-Joined display fields and derived states must stay aligned across counts, filters, rendered rows, and action visibility. Full-list loading and application-memory filtering do not scale and make pagination inaccurate.
+Do not persist derived states unless there is a demonstrated reason to do so.
 
-### Trade-off
+---
 
-Route pages perform separate count and data queries, and the views become part of the read-model contract. Offset/range pagination may become slower at very large offsets.
-
-### Future improvement
-
-Consider cursor pagination only after measured data volume makes range pagination a real bottleneck.
-
-## Limited operations sorting
-
-### Decision
-
-Sessions and Bookings expose only `soonest` and `latest`, ordered by session start time with `id` as a stable tie-breaker.
-
-### Reason
-
-These options match the primary time-based workflow. Arbitrary column sorting would expand UI, URL, query, and test surface without a current use case.
-
-### Trade-off
-
-Admins cannot sort every displayed column.
-
-### Future improvement
-
-Add another sort option only for a concrete operational workflow.
-
-## Shared operations UI without a generic filter framework
+## Database operations views with exact-count offset pagination
 
 ### Decision
 
-Share `SingleSelectFilter`, `MultiSelectFilter`, `OperationsFilterPanel`, and `OperationsPagination`, while keeping feature options, validation, layout, URL helpers, and queries feature-owned.
+Use read-only operations views for Members, Sessions, and Bookings, with filtering, exact counts, stable sorting, and range pagination performed in Supabase/Postgres.
 
-### Reason
+### Benefit
 
-The extracted interaction behavior is identical across Members, Sessions, and Bookings, but the complete filter forms are not.
+Operational pages do not need to load entire datasets into application memory.
 
-### Trade-off
+The database owns filtering and pagination, while views keep joined display data and derived operational state aligned across:
 
-Thin feature pagination wrappers and some feature-specific form wiring remain.
+- result rows;
+- filters;
+- counts;
+- badges;
+- action eligibility.
 
-### Future improvement
+### Cost
 
-Extract another primitive only after repeated use proves a small stable API.
+Paginated routes usually perform both a count query and a data query.
 
-## Native date inputs and non-searchable trainer selection
+The operations views become explicit read-model contracts that must evolve with the application.
 
-### Decision
+Offset/range pagination can also become inefficient at very large offsets.
 
-Keep native date inputs and the shared custom trainer single-select without search. The dropdown uses constrained height and vertical scrolling.
+### Revisit when
 
-### Reason
+Keep the current model while datasets remain moderate.
 
-The current controls are sufficient for the dataset and avoid the accessibility, focus-management, dependency, and test surface of a custom date picker or searchable combobox.
+Consider cursor pagination, different count strategies, or additional query optimization only after measured database volume or query plans show a real problem.
 
-### Trade-off
+---
 
-Date presentation varies by browser locale, and trainer selection may become inefficient with a much larger catalog.
-
-### Future improvement
-
-Revisit only when timezone requirements, trainer volume, or observed usability problems justify the added complexity.
-
-## Server-first architecture with isolated client islands
+## Real Supabase E2E tests instead of mocked full-stack tests
 
 ### Decision
 
-Pages and layouts stay server-first. Client components are used only for interactive forms, filters, menus, and pending UI states.
+Run Playwright E2E tests against real Supabase-backed application flows rather than replacing Auth, RLS, RPC, and database behavior with mocks.
 
-### Reason
+The suite runs with one worker because tests share a remote Supabase project, test accounts, and fixture data.
 
-This matches Next.js App Router strengths and keeps data loading, access checks, and filtering close to the server.
+### Benefit
 
-### Trade-off
+E2E tests verify the boundaries most likely to fail in production:
 
-Some UI interactions require explicit client boundaries and careful prop design.
+- authentication;
+- authorization;
+- server actions;
+- RLS;
+- RPC behavior;
+- database mutations;
+- real navigation across server-rendered routes.
 
-### Future improvement
+A mocked backend would provide faster tests but substantially weaker confidence in these flows.
 
-Keep client components small and avoid moving whole screens to the client unless browser state truly requires it.
+### Cost
 
-## Optional action props for form testability
+The suite is slower and more sensitive to remote latency and network instability.
 
-### Decision
+It also requires:
 
-Form components accept optional `action` props for tests while using real server actions by default in production.
+- dedicated credentials;
+- stable fixture data;
+- generated test-data conventions;
+- cleanup of created entities;
+- serialized execution.
 
-### Reason
+Generated E2E data is therefore cleaned through the explicit `npm run e2e:cleanup` workflow instead of assuming test isolation that the current infrastructure does not provide.
 
-This makes form UI testable without mocking Supabase-backed server actions or rewriting all forms into container/presentational pairs.
+### Revisit when
 
-### Trade-off
+Parallelize or further isolate the suite only when the test environment supports independent data ownership per worker or per run.
 
-Form component APIs are slightly wider.
-
-### Future improvement
-
-If forms grow more complex, consider a cleaner container/presentational split.
-
-## Real Supabase E2E tests
-
-### Decision
-
-E2E tests use real Supabase-backed flows instead of mocking the backend.
-
-### Reason
-
-The highest-risk behavior depends on auth, server actions, RLS, RPC, and database state. Mocked E2E would not prove those flows.
-
-### Trade-off
-
-E2E tests are slower, require environment setup, and depend on stable test accounts and fixture data.
-
-### Future improvement
-
-Automate cleanup and fixture setup if manual SQL cleanup becomes painful.
-
-## Single-worker Playwright
-
-### Decision
-
-Playwright runs with one worker.
-
-### Reason
-
-E2E tests share a real Supabase project, auth accounts, and stable fixture data.
-
-### Trade-off
-
-The E2E suite is slower.
-
-### Future improvement
-
-Parallelize only after test data isolation becomes strong enough.
-
-## Responsive dashboard baseline instead of native mobile app
-
-### Decision
-
-The MVP supports responsive layouts, mobile navigation, and usable mobile screens, but does not aim to be a native mobile-first product.
-
-### Reason
-
-The core product is an operations dashboard, primarily used on desktop/tablet-like workflows.
-
-### Trade-off
-
-Mobile UX is usable but intentionally not as rich as a dedicated mobile app.
-
-### Future improvement
-
-Add deeper mobile UX or React Native only if the product direction requires it.
-
-## Limited analytics
-
-### Decision
-
-The admin dashboard provides an operational overview, but not advanced analytics, charts, forecasting, or reporting.
-
-### Reason
-
-The MVP prioritizes CRUD, bookings, roles, access, cancellation, and discoverability.
-
-### Trade-off
-
-The dashboard is useful but not a full business intelligence tool.
-
-### Future improvement
-
-Add analytics after core operational workflows are stable.
-
-## No localization or theme switching
-
-### Decision
-
-The MVP uses English UI copy and a dark visual direction.
-
-### Reason
-
-Localization and multi-theme support would add extra design and testing surface area before the core product is fully packaged.
-
-### Trade-off
-
-The app is less flexible for multi-language or light-theme users.
-
-### Future improvement
-
-Add localization and theme switching after the MVP is stable.
+A local or ephemeral Supabase environment would reduce remote-network flakiness, but it should be introduced only if the infrastructure cost becomes justified.
