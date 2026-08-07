@@ -88,7 +88,23 @@ Stable fixture records must not match the generated cleanup pattern and should n
 
 Membership E2E creates fresh client/member records and uses an existing active membership plan from the catalog instead of creating new plan catalog data.
 
-Cleanup is handled manually through `scripts/cleanup-e2e-data.sql` when test data accumulates.
+Generated E2E data can be removed through:
+
+```bash
+npm run e2e:cleanup
+```
+
+The command executes `scripts/cleanup-e2e-data.sql` against the configured Supabase PostgreSQL database
+
+It requires:
+
+- `E2E_DATABASE_URL`
+- `E2E_ALLOW_REMOTE_CLEANUP=true`
+- `E2E_CLEANUP_PROJECT_REF`
+
+Cleanup targets only generated `E2E ... e2e-*` records. Stable `Fixture ...` records must not match the cleanup patterns and are preserved.
+
+The SQL file remains the cleanup source of truth and can still be executed manually from the Supabase SQL Editor when required.
 
 ## E2E stability notes
 
