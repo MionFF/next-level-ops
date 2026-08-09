@@ -8,9 +8,5 @@ export default async function CabinetLayout({ children }: { children: React.Reac
   if (!user) return redirect('/sign-in')
   if (profile?.role !== 'client') return redirect('/forbidden')
 
-  return (
-    <ClientCabinetShell pageTitle='Overview' userLabel='Member'>
-      {children}
-    </ClientCabinetShell>
-  )
+  return <ClientCabinetShell pageTitle='Overview'>{children}</ClientCabinetShell>
 }
