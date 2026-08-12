@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { getSubmittedFormData } from '@/test/utils/form-data'
 import { AssignMemberMembershipForm } from './assign-member-membership-form'
 import type { AssignMemberMembershipFormState } from '../actions/assign-member-membership'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/assign-member-membership', () => ({
   assignMemberMembership: jest.fn(),
@@ -47,13 +48,17 @@ function renderForm(
 }
 
 describe('AssignMemberMembershipForm', () => {
-  it('renders available active plans and start date', () => {
+  it('renders available active plans and start date', async () => {
+    const user = userEvent.setup()
     renderForm()
 
     expect(screen.getByRole('heading', { name: /assign membership/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/plan/i)).toHaveDisplayValue('Select plan')
-    expect(screen.getByRole('option', { name: /monthly unlimited — 30 days/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /drop-in — 1 days/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /plan/i })).toHaveTextContent('Select plan')
+    await user.click(screen.getByRole('button', { name: /plan/i }))
+    expect(
+      screen.getByRole('radio', { name: /plan: monthly unlimited — 30 days/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /plan: drop-in — 1 days/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/start date/i)).toHaveValue('2026-07-08')
     expect(screen.getByLabelText(/start date/i)).toHaveAttribute('min', '2026-07-08')
     expect(screen.getByRole('button', { name: /assign membership/i })).toBeInTheDocument()
@@ -79,7 +84,7 @@ describe('AssignMemberMembershipForm', () => {
     const user = userEvent.setup()
     const { action } = renderForm()
 
-    await user.selectOptions(screen.getByLabelText(/plan/i), 'plan-monthly')
+    await selectSingleOption(user, /plan/i, /plan: monthly unlimited — 30 days/i)
     await user.clear(screen.getByLabelText(/start date/i))
     await user.type(screen.getByLabelText(/start date/i), '2026-07-10')
     await user.click(screen.getByRole('button', { name: /assign membership/i }))
@@ -98,7 +103,7 @@ describe('AssignMemberMembershipForm', () => {
       plans: [],
     })
 
-    expect(screen.getByLabelText(/plan/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: /plan:/i })).toBeDisabled()
     expect(screen.getByLabelText(/start date/i)).toBeDisabled()
     expect(screen.getByRole('button', { name: /assign membership/i })).toBeDisabled()
     expect(screen.getByText(/no active membership plans available/i)).toBeInTheDocument()
@@ -136,7 +141,7 @@ describe('AssignMemberMembershipForm', () => {
 
     renderForm({ action })
 
-    await user.selectOptions(screen.getByLabelText(/plan/i), 'plan-monthly')
+    await selectSingleOption(user, /plan/i, /plan: monthly unlimited — 30 days/i)
     await user.click(screen.getByRole('button', { name: /assign membership/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(

@@ -2,6 +2,16 @@ export const membershipPlanStatuses = ['active', 'inactive'] as const
 
 export type MembershipPlanStatus = (typeof membershipPlanStatuses)[number]
 
+export const membershipPlanStatusLabels: Record<MembershipPlanStatus, string> = {
+  active: 'Active',
+  inactive: 'Inactive',
+}
+
+export const membershipPlanStatusOptions = membershipPlanStatuses.map(status => ({
+  value: status,
+  label: membershipPlanStatusLabels[status],
+}))
+
 export type MembershipPlan = {
   id: string
   name: string

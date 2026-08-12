@@ -12,7 +12,7 @@ import { isValidSessionDateRange } from '../model/sessions-query'
 import { getSessionsHref } from '../model/sessions-url'
 import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
 import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
-import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 export type SessionsFiltersProps = {
   search: string
@@ -25,7 +25,7 @@ export type SessionsFiltersProps = {
   trainerOptionsError?: string
 }
 
-const sessionStatusOptions = derivedSessionStatuses.map(status => ({
+const derivedSessionStatusOptions = derivedSessionStatuses.map(status => ({
   value: status,
   label: getSessionDisplayBadge(status).text,
 }))
@@ -143,7 +143,7 @@ export default function SessionsFilters({
         </label>
 
         <div className='relative z-30 min-w-0'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Trainer'
             name='trainer-filter'
             options={trainerOptions}
@@ -156,7 +156,7 @@ export default function SessionsFilters({
         <div className='relative z-20 min-w-0'>
           <MultiSelectFilter
             label='Session status'
-            options={sessionStatusOptions}
+            options={derivedSessionStatusOptions}
             selectedValues={draftStatuses}
             disabled={isPending}
             onToggle={toggleStatus}
@@ -194,7 +194,7 @@ export default function SessionsFilters({
         </label>
 
         <div className='relative z-10 min-w-0'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Sort'
             name='sessions-sort'
             options={sessionSortOptions}

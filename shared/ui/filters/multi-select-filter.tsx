@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { FilterOption } from './filter-option'
+import type { SelectOption } from '../select-option'
 
 type MultiSelectFilterProps<T extends string> = {
   label: string
-  options: readonly FilterOption<T>[]
+  options: readonly SelectOption<T>[]
   selectedValues: readonly T[]
   disabled?: boolean
   onToggle: (value: T) => void

@@ -6,6 +6,11 @@ export const memberStatusLabels: Record<MemberStatus, string> = {
   inactive: 'Inactive',
 }
 
+export const memberStatusOptions = memberStatuses.map(status => ({
+  value: status,
+  label: memberStatusLabels[status],
+}))
+
 export const membershipOperationalStatuses = [
   'active',
   'upcoming',

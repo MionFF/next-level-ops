@@ -32,7 +32,7 @@ export function AdminShell({ children, pageTitle }: AdminShellProps) {
           </nav>
         </aside>
 
-        <div className='flex flex-col lg:min-h-screen'>
+        <div className='min-w-0 flex flex-col lg:min-h-screen'>
           <header className='sticky top-0 z-40 hidden border-b border-[var(--border)] bg-[var(--surface)] px-8 py-4 lg:block'>
             <div className='flex items-center justify-between gap-4'>
               <h1 className='text-2xl font-semibold'>{pageTitle}</h1>

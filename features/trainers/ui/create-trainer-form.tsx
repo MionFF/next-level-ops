@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { createTrainer, type CreateTrainerFormState } from '../actions/create-trainer'
-import { isTrainerStatus, trainerStatuses, type TrainerStatus } from '../model/trainer'
+import { trainerStatusOptions, type TrainerStatus } from '../model/trainer'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 const initialState = { message: '', errors: {} }
 
@@ -29,14 +30,6 @@ export default function CreateTrainerForm({ action = createTrainer }: CreateTrai
   const phoneError = state?.errors?.phone?.[0]
   const specialtyError = state?.errors?.specialty?.[0]
   const statusError = state?.errors?.status?.[0]
-
-  function handleStatusChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextStatus = event.target.value
-
-    if (isTrainerStatus(nextStatus)) {
-      setStatus(nextStatus)
-    }
-  }
 
   return (
     <form
@@ -159,27 +152,15 @@ export default function CreateTrainerForm({ action = createTrainer }: CreateTrai
         </div>
 
         <div>
-          <label
-            htmlFor='status-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Status
-          </label>
-          <select
+          <SingleSelect
+            label='Status'
             name='status'
-            id='status-input'
+            options={trainerStatusOptions}
             value={status}
-            onChange={handleStatusChange}
+            onChange={setStatus}
             aria-invalid={Boolean(statusError)}
             aria-describedby={statusError ? 'status-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm capitalize text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            {trainerStatuses.map(trainerStatus => (
-              <option key={trainerStatus} value={trainerStatus}>
-                {trainerStatus}
-              </option>
-            ))}
-          </select>
+          />
           {statusError && (
             <p id='status-error' className='mt-2 text-sm text-[var(--danger)]'>
               {statusError}

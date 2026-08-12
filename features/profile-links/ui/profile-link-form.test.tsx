@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { getSubmittedFormData } from '@/test/utils/form-data'
 import type { LinkProfileMemberFormState } from '../actions/link-profile-member'
 import ProfileLinkForm from './profile-link-form'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/link-profile-member', () => ({
   linkProfileMember: jest.fn(),
@@ -37,7 +38,8 @@ const members = [
 ]
 
 describe('ProfileLinkForm', () => {
-  it('renders profile and member options', () => {
+  it('renders profile and member options', async () => {
+    const user = userEvent.setup()
     const action = jest.fn<
       Promise<LinkProfileMemberFormState>,
       [LinkProfileMemberFormState, FormData]
@@ -46,17 +48,25 @@ describe('ProfileLinkForm', () => {
     render(<ProfileLinkForm profiles={profiles} members={members} action={action} />)
 
     expect(screen.getByRole('heading', { name: /create link/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/client profile/i)).toHaveValue('')
-    expect(screen.getByLabelText(/available member/i)).toHaveValue('')
+    expect(screen.getByRole('button', { name: /client profile/i })).toHaveTextContent(
+      'Select profile',
+    )
+    expect(screen.getByRole('button', { name: /available member/i })).toHaveTextContent(
+      'Select member',
+    )
 
-    expect(screen.getByRole('option', { name: /select profile/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /client one/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /unnamed client profile/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /client profile/i }))
+    expect(screen.getByRole('radio', { name: /client profile: client one/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: /client profile: unnamed client profile/i }),
+    ).toBeInTheDocument()
 
-    expect(screen.getByRole('option', { name: /select member/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /alex morgan/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /alex@example.com/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /jamie lee/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /available member/i }))
+    expect(screen.getByRole('radio', { name: /available member: alex morgan/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: /available member: alex morgan — alex@example.com/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /available member: jamie lee/i })).toBeInTheDocument()
 
     expect(screen.getByRole('button', { name: /link profile/i })).toBeInTheDocument()
   })
@@ -69,8 +79,8 @@ describe('ProfileLinkForm', () => {
 
     render(<ProfileLinkForm profiles={profiles} members={members} action={action} />)
 
-    await user.selectOptions(screen.getByLabelText(/client profile/i), 'profile-1')
-    await user.selectOptions(screen.getByLabelText(/available member/i), 'member-2')
+    await selectSingleOption(user, /client profile/i, /client profile: client one/i)
+    await selectSingleOption(user, /available member/i, /available member: jamie lee/i)
     await user.click(screen.getByRole('button', { name: /link profile/i }))
 
     expect(action).toHaveBeenCalledTimes(1)
@@ -113,8 +123,8 @@ describe('ProfileLinkForm', () => {
 
     render(<ProfileLinkForm profiles={profiles} members={members} action={action} />)
 
-    await user.selectOptions(screen.getByLabelText(/client profile/i), 'profile-1')
-    await user.selectOptions(screen.getByLabelText(/available member/i), 'member-1')
+    await selectSingleOption(user, /client profile/i, /client profile: client one/i)
+    await selectSingleOption(user, /available member/i, /available member: alex morgan/i)
     await user.click(screen.getByRole('button', { name: /link profile/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(
@@ -130,8 +140,8 @@ describe('ProfileLinkForm', () => {
 
     render(<ProfileLinkForm profiles={[]} members={members} action={action} />)
 
-    expect(screen.getByLabelText(/client profile/i)).toBeDisabled()
-    expect(screen.getByLabelText(/available member/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: /client profile/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /available member/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /link profile/i })).toBeDisabled()
     expect(
       screen.getByText(/linking requires at least one unlinked client profile/i),
@@ -146,8 +156,8 @@ describe('ProfileLinkForm', () => {
 
     render(<ProfileLinkForm profiles={profiles} members={[]} action={action} />)
 
-    expect(screen.getByLabelText(/client profile/i)).toBeDisabled()
-    expect(screen.getByLabelText(/available member/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: /client profile/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /available member/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /link profile/i })).toBeDisabled()
     expect(screen.getByText(/one available member/i)).toBeInTheDocument()
   })

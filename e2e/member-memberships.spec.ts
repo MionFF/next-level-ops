@@ -33,26 +33,26 @@ function getVisibleExactText(page: Page, text: string) {
 }
 
 async function selectFirstAvailableMembershipPlan(page: Page) {
-  const select = page.getByLabel('Plan')
+  await waitForAppReady(page)
 
-  await expect(select).toBeVisible()
+  const trigger = page.getByRole('button', { name: /^Plan:/i })
 
-  const options = select.getByRole('option')
-  const count = await options.count()
+  await expect(trigger).toBeVisible()
+  await trigger.click()
 
-  for (let index = 0; index < count; index += 1) {
-    const option = options.nth(index)
-    const value = await option.getAttribute('value')
-    const label = (await option.textContent())?.trim()
+  const option = page.getByRole('radio', { name: /^Plan:/i }).first()
 
-    if (value && label) {
-      await select.selectOption(value)
+  await expect(option).toBeVisible()
 
-      return label.split('—')[0].trim()
-    }
+  const label = (await option.getAttribute('aria-label'))?.replace(/^Plan:\s*/i, '').trim()
+
+  if (!label) {
+    throw new Error('No active membership plan option found')
   }
 
-  throw new Error('No active membership plan option found')
+  await page.getByRole('radiogroup', { name: 'Plan options' }).getByText(label).click()
+
+  return label.split('—')[0].trim()
 }
 
 test.describe('member membership flow', () => {

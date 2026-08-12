@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { updateMember, type UpdateMemberFormState } from '../actions/update-member'
-import type { EditableMember, MemberStatus } from '../model/member'
-import { isMemberStatus, memberStatuses, memberStatusLabels } from '../model/member'
+import { memberStatusOptions, type EditableMember, type MemberStatus } from '../model/member'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 const initialState = { message: '', errors: {} }
 
@@ -30,14 +30,6 @@ export default function EditMemberForm({ member, action }: EditMemberFormProps) 
   const emailError = state?.errors?.email?.[0]
   const phoneError = state?.errors?.phone?.[0]
   const statusError = state?.errors?.status?.[0]
-
-  function handleStatusChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextStatus = event.target.value
-
-    if (isMemberStatus(nextStatus)) {
-      setStatus(nextStatus)
-    }
-  }
 
   return (
     <form
@@ -133,27 +125,15 @@ export default function EditMemberForm({ member, action }: EditMemberFormProps) 
         </div>
 
         <div>
-          <label
-            htmlFor='status-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Status
-          </label>
-          <select
+          <SingleSelect
+            label='Status'
             name='status'
-            id='status-input'
+            options={memberStatusOptions}
             value={status}
-            onChange={handleStatusChange}
+            onChange={setStatus}
             aria-invalid={Boolean(statusError)}
             aria-describedby={statusError ? 'status-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm capitalize text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            {memberStatuses.map(memberStatus => (
-              <option key={memberStatus} value={memberStatus}>
-                {memberStatusLabels[memberStatus]}
-              </option>
-            ))}
-          </select>
+          />
           {statusError && (
             <p id='status-error' className='mt-2 text-sm text-[var(--danger)]'>
               {statusError}

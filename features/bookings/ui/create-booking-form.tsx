@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { createBooking, type CreateBookingFormState } from '../actions/create-booking'
 import { formatDateTime } from '@/shared/lib/format-date'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 type SessionOption = {
   id: string
@@ -42,6 +43,22 @@ export default function CreateBookingForm({
 
   const sessionIdError = state?.errors?.sessionId?.[0]
   const memberIdError = state?.errors?.memberId?.[0]
+  const sessionOptions = [
+    { value: '', label: 'Select a session' },
+    ...sessions.map(session => ({
+      value: session.id,
+      label: `${session.title} — ${formatDateTime(session.starts_at)}${
+        session.trainer ? ` — ${session.trainer.full_name}` : ''
+      }`,
+    })),
+  ]
+  const memberOptions = [
+    { value: '', label: 'Select a member' },
+    ...members.map(member => ({
+      value: member.id,
+      label: `${member.full_name} — ${member.email}`,
+    })),
+  ]
 
   return (
     <form
@@ -60,30 +77,16 @@ export default function CreateBookingForm({
       </div>
 
       <div className='grid gap-5 sm:grid-cols-2'>
-        <div>
-          <label
-            htmlFor='session-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Session
-          </label>
-          <select
+        <div className='min-w-0'>
+          <SingleSelect
+            label='Session'
             name='sessionId'
-            id='session-input'
+            options={sessionOptions}
             value={sessionId}
-            onChange={event => setSessionId(event.target.value)}
+            onChange={setSessionId}
             aria-invalid={Boolean(sessionIdError)}
             aria-describedby={sessionIdError ? 'session-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            <option value=''>Select a session</option>
-            {sessions.map(session => (
-              <option key={session.id} value={session.id}>
-                {session.title} — {formatDateTime(session.starts_at)}
-                {session.trainer ? ` — ${session.trainer.full_name}` : ''}
-              </option>
-            ))}
-          </select>
+          />
           {sessionIdError && (
             <p id='session-error' className='mt-2 text-sm text-[var(--danger)]'>
               {sessionIdError}
@@ -91,29 +94,16 @@ export default function CreateBookingForm({
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor='member-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Member
-          </label>
-          <select
+        <div className='min-w-0'>
+          <SingleSelect
+            label='Member'
             name='memberId'
-            id='member-input'
+            options={memberOptions}
             value={memberId}
-            onChange={event => setMemberId(event.target.value)}
+            onChange={setMemberId}
             aria-invalid={Boolean(memberIdError)}
             aria-describedby={memberIdError ? 'member-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            <option value=''>Select a member</option>
-            {members.map(member => (
-              <option key={member.id} value={member.id}>
-                {member.full_name} — {member.email}
-              </option>
-            ))}
-          </select>
+          />
           {memberIdError && (
             <p id='member-error' className='mt-2 text-sm text-[var(--danger)]'>
               {memberIdError}

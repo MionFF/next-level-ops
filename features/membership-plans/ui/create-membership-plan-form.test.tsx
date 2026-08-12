@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { CreateMembershipPlanFormState } from '../actions/create-membership-plan'
 import CreateMembershipPlanForm from './create-membership-plan-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/create-membership-plan', () => ({
   createMembershipPlan: jest.fn(),
@@ -22,7 +23,7 @@ describe('CreateMembershipPlanForm', () => {
     expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/duration/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/price/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/status/i)).toHaveValue('active')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Active')
     expect(screen.getByText(/enter amount in cents/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /create plan/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
@@ -46,7 +47,7 @@ describe('CreateMembershipPlanForm', () => {
     await user.type(screen.getByLabelText(/description/i), 'Full access to all classes')
     await user.type(screen.getByLabelText(/duration/i), '30')
     await user.type(screen.getByLabelText(/price/i), '9900')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'inactive')
+    await selectSingleOption(user, /status/i, /status: inactive/i)
     await user.click(screen.getByRole('button', { name: /create plan/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

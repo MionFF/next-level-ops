@@ -383,7 +383,7 @@ For Sessions and Bookings, `From` is inclusive and `To` is converted to the next
 
 Members, Sessions, and Bookings share domain-neutral UI primitives:
 
-- `SingleSelectFilter`
+- `SingleSelect`
 - `MultiSelectFilter`
 - `OperationsFilterPanel`
 - `OperationsPagination`

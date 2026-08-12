@@ -12,7 +12,7 @@ import { isValidBookingDateRange } from '../model/bookings-query'
 import { getBookingsHref } from '../model/bookings-url'
 import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
 import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
-import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 export type BookingsFiltersProps = {
   member: string
@@ -166,7 +166,7 @@ export default function BookingsFilters({
         </label>
 
         <div className='relative z-30 min-w-0'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Trainer'
             name='bookings-trainer-filter'
             options={trainerOptions}
@@ -238,7 +238,7 @@ export default function BookingsFilters({
 
       <div className='flex min-w-0 flex-col gap-4 border-t border-[var(--border)] bg-[var(--surface-2)]/20 px-4 py-4 md:flex-row md:items-end md:justify-between md:px-6'>
         <div className='relative z-10 w-full min-w-0 md:max-w-xs'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Sort'
             name='bookings-sort'
             options={bookingSortOptions}

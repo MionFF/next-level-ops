@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { loginAsAdmin } from './utils/auth'
 import { createE2EClient, createE2EMember } from './utils/entities'
-import { selectOptionByText } from './utils/forms'
+import { selectOptionByText, waitForAppReady } from './utils/forms'
 import { gotoAppPage } from './utils/navigation'
 import { createE2ERunId } from './utils/test-data'
 
@@ -51,9 +51,16 @@ test.describe('admin profile links flow', () => {
       await expect(linkedRowAfterReload).toBeVisible({ timeout: 15_000 })
       await linkedRowAfterReload.getByRole('button', { name: /unlink/i }).click()
 
-      await expect(adminPage.getByLabel('Client profile')).toContainText(clientName, {
-        timeout: 15_000,
+      await waitForAppReady(adminPage)
+
+      const clientProfileTrigger = adminPage.getByRole('button', {
+        name: /^Client profile:/i,
       })
+
+      await clientProfileTrigger.click()
+      await expect(
+        adminPage.getByRole('radio', { name: `Client profile: ${clientName}` }),
+      ).toBeVisible({ timeout: 15_000 })
 
       await clientPage.goto('/cabinet')
       await expect(clientPage).toHaveURL(/\/cabinet/, { timeout: 15_000 })

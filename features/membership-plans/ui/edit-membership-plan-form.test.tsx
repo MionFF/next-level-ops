@@ -4,6 +4,7 @@ import type { UpdateMembershipPlanFormState } from '../actions/update-membership
 import type { EditableMembershipPlan } from '../model/membership-plan'
 import EditMembershipPlanForm from './edit-membership-plan-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/update-membership-plan', () => ({
   updateMembershipPlan: jest.fn(),
@@ -32,7 +33,7 @@ describe('EditMembershipPlanForm', () => {
     expect(screen.getByLabelText(/description/i)).toHaveValue('Full access to all classes')
     expect(screen.getByLabelText(/duration/i)).toHaveValue(30)
     expect(screen.getByLabelText(/price/i)).toHaveValue(9900)
-    expect(screen.getByLabelText(/status/i)).toHaveValue('active')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Active')
     expect(screen.getByText(/enter amount in cents/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
@@ -59,7 +60,7 @@ describe('EditMembershipPlanForm', () => {
     await user.type(screen.getByLabelText(/duration/i), '365')
     await user.clear(screen.getByLabelText(/price/i))
     await user.type(screen.getByLabelText(/price/i), '99900')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'inactive')
+    await selectSingleOption(user, /status/i, /status: inactive/i)
     await user.click(screen.getByRole('button', { name: /save plan/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

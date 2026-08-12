@@ -1,28 +1,37 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import type { FilterOption } from './filter-option'
+import { useEffect, useId, useRef, useState, type AriaAttributes } from 'react'
+import type { SelectOption } from './select-option'
 
-type SingleSelectFilterProps<T extends string> = {
+type SingleSelectProps<T extends string> = {
   label: string
   name: string
-  options: readonly FilterOption<T>[]
+  options: readonly SelectOption<T>[]
   value: T
   disabled?: boolean
+  placeholder?: string
+  'aria-invalid'?: AriaAttributes['aria-invalid']
+  'aria-describedby'?: string
   onChange: (value: T) => void
 }
 
-export function SingleSelectFilter<T extends string>({
+export function SingleSelect<T extends string>({
   label,
   name,
   options,
   value,
   disabled,
+  placeholder,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedBy,
   onChange,
-}: SingleSelectFilterProps<T>) {
+}: SingleSelectProps<T>) {
   const [open, setOpen] = useState(false)
+  const generatedId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const triggerId = `${generatedId}-trigger`
+  const optionsId = `${generatedId}-options`
 
   useEffect(() => {
     if (!open) {
@@ -30,7 +39,7 @@ export function SingleSelectFilter<T extends string>({
     }
 
     function handleDocumentClick(event: MouseEvent) {
-      if (!window.matchMedia('(min-width: 768px)').matches) {
+      if (!window.matchMedia?.('(min-width: 768px)').matches) {
         return
       }
 
@@ -69,7 +78,8 @@ export function SingleSelectFilter<T extends string>({
     }
   }, [open])
 
-  const selectedLabel = options.find(option => option.value === value)?.label ?? value
+  const selectedOption = options.find(option => option.value === value)
+  const selectedLabel = selectedOption?.label ?? (value === '' ? placeholder : undefined) ?? value
 
   function selectValue(nextValue: T) {
     onChange(nextValue)
@@ -78,19 +88,28 @@ export function SingleSelectFilter<T extends string>({
   }
 
   return (
-    <div ref={containerRef} className='relative min-w-0'>
-      <span className='mb-2 block font-medium'>{label}</span>
+    <div ref={containerRef} className='relative w-full min-w-0 max-w-full'>
+      <label htmlFor={triggerId} className='mb-2 block font-medium'>
+        {label}
+      </label>
+
+      <input type='hidden' name={name} value={value} disabled={disabled} />
 
       <button
         ref={triggerRef}
+        id={triggerId}
         type='button'
         disabled={disabled}
+        aria-controls={optionsId}
         aria-expanded={open}
         aria-label={`${label}: ${selectedLabel}`}
+        aria-describedby={ariaDescribedBy}
         onClick={() => setOpen(current => !current)}
-        className='flex w-full cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-left text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--surface-2)]/80 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+        className='flex min-w-0 w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-left text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--surface-2)]/80 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
       >
-        <span className='truncate'>{selectedLabel}</span>
+        <span className={`min-w-0 flex-1 truncate ${selectedOption ? '' : 'text-[var(--muted)]'}`}>
+          {selectedLabel}
+        </span>
 
         <svg
           aria-hidden='true'
@@ -106,27 +125,32 @@ export function SingleSelectFilter<T extends string>({
       </button>
 
       <div
+        id={optionsId}
+        role='radiogroup'
+        aria-label={`${label} options`}
         aria-hidden={!open}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedBy}
         inert={!open}
-        className={`static z-30 mt-1 grid w-full origin-top transition-[grid-template-rows,opacity,transform] duration-200 ease-out motion-reduce:transition-none md:absolute md:left-0 md:min-w-[12rem] ${
+        className={`static z-30 mt-1 grid w-full min-w-0 max-w-full origin-top transition-[grid-template-rows,opacity,transform] duration-200 ease-out motion-reduce:transition-none md:absolute md:left-0 md:min-w-[12rem] ${
           open
             ? 'grid-rows-[1fr] translate-y-0 opacity-100'
             : 'pointer-events-none grid-rows-[0fr] -translate-y-1 opacity-0'
         }`}
       >
-        <div className='min-h-0 overflow-hidden'>
-          <div className='max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
+        <div className='min-h-0 min-w-0 max-w-full overflow-hidden'>
+          <div className='max-h-64 min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
             {options.map(option => {
               const checked = value === option.value
 
               return (
                 <label
                   key={option.value}
-                  className='flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
+                  className='flex min-w-0 max-w-full cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
                 >
                   <input
                     type='radio'
-                    name={name}
+                    value={option.value}
                     checked={checked}
                     disabled={disabled}
                     aria-label={`${label}: ${option.label}`}
@@ -141,7 +165,9 @@ export function SingleSelectFilter<T extends string>({
                     {checked && <span className='size-2 rounded-full bg-[var(--primary)]' />}
                   </span>
 
-                  <span className='text-sm text-[var(--foreground)]'>{option.label}</span>
+                  <span className='min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-sm text-[var(--foreground)]'>
+                    {option.label}
+                  </span>
                 </label>
               )
             })}

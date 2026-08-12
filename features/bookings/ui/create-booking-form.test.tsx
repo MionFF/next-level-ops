@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { CreateBookingFormState } from '../actions/create-booking'
 import CreateBookingForm from './create-booking-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/create-booking', () => ({
   createBooking: jest.fn(),
@@ -39,24 +40,29 @@ const members = [
 ]
 
 describe('CreateBookingForm', () => {
-  it('renders booking fields, session options, member options, and empty defaults', () => {
+  it('renders booking fields, session options, member options, and empty defaults', async () => {
+    const user = userEvent.setup()
     const action = jest.fn<Promise<CreateBookingFormState>, [CreateBookingFormState, FormData]>()
 
     render(<CreateBookingForm sessions={sessions} members={members} action={action} />)
 
     expect(screen.getByRole('heading', { name: /add booking/i })).toBeInTheDocument()
 
-    expect(screen.getByLabelText(/session/i)).toHaveValue('')
-    expect(screen.getByRole('option', { name: /select a session/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /morning strength/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /sam coach/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /evening mobility/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^session:/i })).toHaveTextContent(
+      'Select a session',
+    )
+    await user.click(screen.getByRole('button', { name: /^session:/i }))
+    expect(screen.getByRole('radio', { name: /session: select a session/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /session: morning strength/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /sam coach/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /session: evening mobility/i })).toBeInTheDocument()
 
-    expect(screen.getByLabelText(/member/i)).toHaveValue('')
-    expect(screen.getByRole('option', { name: /select a member/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /alex morgan/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /alex@example.com/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /jamie lee/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^member:/i })).toHaveTextContent('Select a member')
+    await user.click(screen.getByRole('button', { name: /^member:/i }))
+    expect(screen.getByRole('radio', { name: /member: select a member/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /member: alex morgan/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /alex@example.com/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /member: jamie lee/i })).toBeInTheDocument()
 
     expect(screen.getByRole('button', { name: /create booking/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
@@ -76,8 +82,8 @@ describe('CreateBookingForm', () => {
 
     render(<CreateBookingForm sessions={sessions} members={members} action={action} />)
 
-    await user.selectOptions(screen.getByLabelText(/session/i), 'session-1')
-    await user.selectOptions(screen.getByLabelText(/member/i), 'member-2')
+    await selectSingleOption(user, /^session:/i, /session: morning strength/i)
+    await selectSingleOption(user, /^member:/i, /member: jamie lee/i)
     await user.click(screen.getByRole('button', { name: /create booking/i }))
 
     expect(action).toHaveBeenCalledTimes(1)
@@ -120,8 +126,8 @@ describe('CreateBookingForm', () => {
 
     render(<CreateBookingForm sessions={sessions} members={members} action={action} />)
 
-    await user.selectOptions(screen.getByLabelText(/session/i), 'session-1')
-    await user.selectOptions(screen.getByLabelText(/member/i), 'member-1')
+    await selectSingleOption(user, /^session:/i, /session: morning strength/i)
+    await selectSingleOption(user, /^member:/i, /member: alex morgan/i)
     await user.click(screen.getByRole('button', { name: /create booking/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent(
@@ -140,8 +146,8 @@ describe('CreateBookingForm', () => {
 
     render(<CreateBookingForm sessions={sessions} members={members} action={action} />)
 
-    await user.selectOptions(screen.getByLabelText(/session/i), 'session-1')
-    await user.selectOptions(screen.getByLabelText(/member/i), 'member-1')
+    await selectSingleOption(user, /^session:/i, /session: morning strength/i)
+    await selectSingleOption(user, /^member:/i, /member: alex morgan/i)
     await user.click(screen.getByRole('button', { name: /create booking/i }))
 
     expect(await screen.findByRole('status')).toHaveTextContent('This session is fully booked.')

@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { updateSession, type UpdateSessionFormState } from '../actions/update-session'
 import {
+  sessionStatusOptions,
   type EditableSession,
   type SessionStatus,
-  isSessionStatus,
-  sessionStatuses,
 } from '../model/session'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 type TrainerOption = {
   id: string
@@ -45,13 +45,13 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
   const capacityError = state?.errors?.capacity?.[0]
   const statusError = state?.errors?.status?.[0]
 
-  function handleStatusChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextStatus = event.target.value
-
-    if (isSessionStatus(nextStatus)) {
-      setStatus(nextStatus)
-    }
-  }
+  const trainerOptions = [
+    { value: '', label: 'Select a trainer' },
+    ...trainers.map(trainer => ({
+      value: trainer.id,
+      label: trainer.full_name,
+    })),
+  ]
 
   return (
     <form
@@ -95,29 +95,16 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor='trainer-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Trainer
-          </label>
-          <select
+        <div className='min-w-0'>
+          <SingleSelect
+            label='Trainer'
             name='trainerId'
-            id='trainer-input'
+            options={trainerOptions}
             value={trainerId}
-            onChange={event => setTrainerId(event.target.value)}
+            onChange={setTrainerId}
             aria-invalid={Boolean(trainerIdError)}
             aria-describedby={trainerIdError ? 'trainer-id-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            <option value=''>Select a trainer</option>
-            {trainers.map(trainer => (
-              <option key={trainer.id} value={trainer.id}>
-                {trainer.full_name}
-              </option>
-            ))}
-          </select>
+          />
           {trainerIdError && (
             <p id='trainer-id-error' className='mt-2 text-sm text-[var(--danger)]'>
               {trainerIdError}
@@ -199,27 +186,15 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
         </div>
 
         <div>
-          <label
-            htmlFor='status-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Status
-          </label>
-          <select
+          <SingleSelect
+            label='Status'
             name='status'
-            id='status-input'
+            options={sessionStatusOptions}
             value={status}
-            onChange={handleStatusChange}
+            onChange={setStatus}
             aria-invalid={Boolean(statusError)}
             aria-describedby={statusError ? 'status-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm capitalize text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            {sessionStatuses.map(sessionStatus => (
-              <option key={sessionStatus} value={sessionStatus}>
-                {sessionStatus}
-              </option>
-            ))}
-          </select>
+          />
           {statusError && (
             <p id='status-error' className='mt-2 text-sm text-[var(--danger)]'>
               {statusError}

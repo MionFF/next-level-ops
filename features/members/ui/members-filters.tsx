@@ -3,8 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import {
-  memberStatuses,
-  memberStatusLabels,
+  memberStatusOptions,
   membershipOperationalStatuses,
   membershipOperationalStatusLabels,
   type MemberStatus,
@@ -14,7 +13,7 @@ import {
 import { getMembersHref } from '../model/members-url'
 import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
 import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
-import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 type MembersFiltersProps = {
   search: string
@@ -22,11 +21,6 @@ type MembersFiltersProps = {
   profile: ProfileLinkFilter
   selectedMemberships: MembershipOperationalStatus[]
 }
-
-const memberStatusOptions = memberStatuses.map(status => ({
-  value: status,
-  label: memberStatusLabels[status],
-}))
 
 const membershipOptions = membershipOperationalStatuses.map(status => ({
   value: status,
@@ -134,7 +128,7 @@ export default function MembersFilters({
           onToggle={toggleStatus}
         />
 
-        <SingleSelectFilter
+        <SingleSelect
           label='Profile'
           name='profile-filter'
           options={profileOptions}

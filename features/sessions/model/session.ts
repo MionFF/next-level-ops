@@ -2,6 +2,16 @@ export const sessionStatuses = ['scheduled', 'cancelled'] as const
 
 export type SessionStatus = (typeof sessionStatuses)[number]
 
+export const sessionStatusLabels: Record<SessionStatus, string> = {
+  scheduled: 'Scheduled',
+  cancelled: 'Cancelled',
+}
+
+export const sessionStatusOptions = sessionStatuses.map(status => ({
+  value: status,
+  label: sessionStatusLabels[status],
+}))
+
 export const derivedSessionStatuses = [
   'scheduled',
   'in_progress',
