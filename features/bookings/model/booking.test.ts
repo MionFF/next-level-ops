@@ -232,6 +232,7 @@ describe('booking model', () => {
 
   describe('isBookingSort', () => {
     it('accepts supported booking sorts', () => {
+      expect(isBookingSort('upcoming')).toBe(true)
       expect(isBookingSort('soonest')).toBe(true)
       expect(isBookingSort('latest')).toBe(true)
     })

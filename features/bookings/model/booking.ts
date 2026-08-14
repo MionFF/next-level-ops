@@ -57,7 +57,7 @@ export type BookingListRow = Pick<
   | 'is_cancellable'
 >
 
-export const bookingSortOptions = ['soonest', 'latest'] as const
+export const bookingSortOptions = ['upcoming', 'soonest', 'latest'] as const
 
 export type BookingSort = (typeof bookingSortOptions)[number]
 
@@ -75,7 +75,7 @@ export function isDerivedBookingStatus(value: string | undefined): value is Deri
 }
 
 export function isBookingSort(value: string | undefined): value is BookingSort {
-  return value === 'soonest' || value === 'latest'
+  return value === 'upcoming' || value === 'soonest' || value === 'latest'
 }
 
 export function getDerivedBookingStatus(booking: Booking, now = new Date()): DerivedBookingStatus {

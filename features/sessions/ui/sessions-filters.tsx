@@ -31,6 +31,7 @@ const derivedSessionStatusOptions = derivedSessionStatuses.map(status => ({
 }))
 
 const sessionSortOptions = [
+  { value: 'upcoming', label: 'Upcoming first' },
   { value: 'soonest', label: 'Soonest first' },
   { value: 'latest', label: 'Latest first' },
 ] as const
@@ -75,7 +76,7 @@ export default function SessionsFilters({
     selectedStatuses.length > 0,
     from.length > 0,
     to.length > 0,
-    sort !== 'soonest',
+    sort !== 'upcoming',
   ].filter(Boolean).length
 
   function toggleStatus(status: DerivedSessionStatus) {
@@ -112,7 +113,7 @@ export default function SessionsFilters({
     setDraftStatuses([])
     setDraftFrom('')
     setDraftTo('')
-    setDraftSort('soonest')
+    setDraftSort('upcoming')
 
     startTransition(() => {
       router.push('/dashboard/sessions')

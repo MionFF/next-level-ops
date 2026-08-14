@@ -362,8 +362,6 @@ Derived session statuses include:
 - completed
 - cancelled
 
-Sorting is limited to `soonest` and `latest`, using `starts_at` and `id` for stable ordering.
-
 ### Bookings
 
 Bookings use the read-only `public.booking_operations` view. It exposes member, session, and trainer display data together with derived booking status and `is_cancellable`.
@@ -377,7 +375,7 @@ Derived booking statuses include:
 - completed
 - cancelled
 
-For Sessions and Bookings, `From` is inclusive and `To` is converted to the next UTC day and applied as an exclusive boundary. One-sided ranges are valid; reversed ranges are blocked before querying. Pagination preserves active URL filters and redirects out-of-range pages to the last available page.
+For Sessions and Bookings, sorting supports `upcoming`, `soonest`, and `latest`. `upcoming` is the default operational order: current and future actionable records are ordered by start time ascending, followed by terminal or cancelled records with newer history first. All statuses remain in the result set. The operational ordering keys are computed by the read-only database views so range pagination uses the same global order. `soonest` and `latest` remain literal timestamp sorts. `From` is inclusive, while `To` is converted to the next UTC day and applied as an exclusive boundary. One-sided ranges are valid; reversed ranges are blocked before querying. Pagination preserves active URL filters and redirects out-of-range pages to the last available page.
 
 ### Shared operations UI
 

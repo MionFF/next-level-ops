@@ -141,6 +141,7 @@ describe('session model', () => {
 
   describe('isSessionSort', () => {
     it('accepts supported session sorts', () => {
+      expect(isSessionSort('upcoming')).toBe(true)
       expect(isSessionSort('soonest')).toBe(true)
       expect(isSessionSort('latest')).toBe(true)
     })

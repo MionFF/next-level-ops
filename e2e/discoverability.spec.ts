@@ -50,7 +50,7 @@ test.describe('discoverability flows', () => {
 
     await expect(sessionsFilters.getByRole('button', { name: 'Apply filters' })).toBeEnabled()
 
-    await sessionsFilters.getByRole('button', { name: 'Sort: Soonest first' }).click()
+    await sessionsFilters.getByRole('button', { name: 'Sort: Upcoming first' }).click()
     await sessionsFilters.locator('label').filter({ hasText: 'Latest first' }).click()
 
     await sessionsFilters.getByRole('button', { name: 'Apply filters' }).click()
@@ -96,7 +96,7 @@ test.describe('discoverability flows', () => {
     await expect(page.getByRole('button', { name: 'Session status: All' })).toBeVisible()
     await expect(page.getByLabel('From', { exact: true })).toHaveValue('')
     await expect(page.getByLabel('To', { exact: true })).toHaveValue('')
-    await expect(page.getByRole('button', { name: 'Sort: Soonest first' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Sort: Upcoming first' })).toBeVisible()
   })
 
   test('filters bookings through URL search params', async ({ page }) => {
@@ -106,11 +106,7 @@ test.describe('discoverability flows', () => {
 
     const { trainerName } = await createE2ETrainer(page, runId)
     const { memberName, memberEmail } = await createE2EMember(page, runId)
-    const { sessionTitle, startsAt, trainerId } = await createE2ESession(
-      page,
-      runId,
-      trainerName,
-    )
+    const { sessionTitle, startsAt, trainerId } = await createE2ESession(page, runId, trainerName)
     const sessionDate = startsAt.slice(0, 10)
 
     await createE2EBooking(page, sessionTitle, memberName)
@@ -135,7 +131,7 @@ test.describe('discoverability flows', () => {
     await bookingsFilters.getByLabel('From', { exact: true }).fill(sessionDate)
     await bookingsFilters.getByLabel('To', { exact: true }).fill(sessionDate)
 
-    await bookingsFilters.getByRole('button', { name: 'Sort: Soonest first' }).click()
+    await bookingsFilters.getByRole('button', { name: 'Sort: Upcoming first' }).click()
     await bookingsFilters.locator('label').filter({ hasText: 'Latest first' }).click()
 
     await bookingsFilters.getByRole('button', { name: 'Apply filters' }).click()
@@ -189,6 +185,6 @@ test.describe('discoverability flows', () => {
     await expect(page.getByRole('button', { name: 'Booking status: All' })).toBeVisible()
     await expect(page.getByLabel('From', { exact: true })).toHaveValue('')
     await expect(page.getByLabel('To', { exact: true })).toHaveValue('')
-    await expect(page.getByRole('button', { name: 'Sort: Soonest first' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Sort: Upcoming first' })).toBeVisible()
   })
 })

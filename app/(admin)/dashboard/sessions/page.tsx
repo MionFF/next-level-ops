@@ -74,7 +74,7 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
   const hasInvalidDateRange = !isValidSessionDateRange(from, to)
 
   const rawSort = getParam(params.sort)
-  const sort: SessionSort = isSessionSort(rawSort) ? rawSort : 'soonest'
+  const sort: SessionSort = isSessionSort(rawSort) ? rawSort : 'upcoming'
   const page = getPage(getParam(params.page))
 
   const searchFilter = search ? getSessionsSearchFilter(search) : null
@@ -197,12 +197,19 @@ export default async function SessionsPage({ searchParams }: SessionsPageProps) 
 
   const fromIndex = (page - 1) * PAGE_SIZE
   const toIndex = fromIndex + PAGE_SIZE - 1
-  const ascending = sort === 'soonest'
 
-  sessionsQuery = sessionsQuery
-    .order('starts_at', { ascending })
-    .order('id', { ascending })
-    .range(fromIndex, toIndex)
+  if (sort === 'upcoming') {
+    sessionsQuery = sessionsQuery
+      .order('operational_sort_group', { ascending: true })
+      .order('operational_sort_key', { ascending: true })
+      .order('id', { ascending: true })
+  } else {
+    const ascending = sort === 'soonest'
+
+    sessionsQuery = sessionsQuery.order('starts_at', { ascending }).order('id', { ascending })
+  }
+
+  sessionsQuery = sessionsQuery.range(fromIndex, toIndex)
 
   const { data, error } = await sessionsQuery
   const hasFilters = Boolean(search || trainer || selectedStatuses.length > 0 || from || to)

@@ -1,8 +1,4 @@
-import {
-  derivedSessionStatuses,
-  type DerivedSessionStatus,
-  type SessionSort,
-} from './session'
+import { derivedSessionStatuses, type DerivedSessionStatus, type SessionSort } from './session'
 
 export type SessionsUrlState = {
   search: string
@@ -48,7 +44,7 @@ export function getSessionsHref({
     params.set('to', to)
   }
 
-  if (sort !== 'soonest') {
+  if (sort !== 'upcoming') {
     params.set('sort', sort)
   }
 

@@ -78,22 +78,16 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
   const hasInvalidDateRange = !isValidBookingDateRange(from, to)
 
   const rawSort = getParam(params.sort)
-  const sort: BookingSort = isBookingSort(rawSort) ? rawSort : 'soonest'
+  const sort: BookingSort = isBookingSort(rawSort) ? rawSort : 'upcoming'
   const page = getPage(getParam(params.page))
 
   const memberSearchFilter = member ? getBookingsMemberSearchFilter(member) : null
   const sessionSearchFilter = session ? getBookingsSessionSearchFilter(session) : null
   const { fromInclusive, toExclusive } = getBookingDateBoundaries(from, to)
 
-  const filtersKey = [
-    member,
-    session,
-    trainer,
-    selectedStatuses.join(','),
-    from,
-    to,
-    sort,
-  ].join('|')
+  const filtersKey = [member, session, trainer, selectedStatuses.join(','), from, to, sort].join(
+    '|',
+  )
 
   const supabase = await createClient()
 
@@ -217,12 +211,21 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
 
   const fromIndex = (page - 1) * PAGE_SIZE
   const toIndex = fromIndex + PAGE_SIZE - 1
-  const ascending = sort === 'soonest'
 
-  bookingsQuery = bookingsQuery
-    .order('session_starts_at', { ascending })
-    .order('id', { ascending })
-    .range(fromIndex, toIndex)
+  if (sort === 'upcoming') {
+    bookingsQuery = bookingsQuery
+      .order('operational_sort_group', { ascending: true })
+      .order('operational_sort_key', { ascending: true })
+      .order('id', { ascending: true })
+  } else {
+    const ascending = sort === 'soonest'
+
+    bookingsQuery = bookingsQuery
+      .order('session_starts_at', { ascending })
+      .order('id', { ascending })
+  }
+
+  bookingsQuery = bookingsQuery.range(fromIndex, toIndex)
 
   const { data, error } = await bookingsQuery
   const bookings: BookingListRow[] = data ?? []

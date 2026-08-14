@@ -63,7 +63,7 @@ export type SessionListRow = Pick<
   | 'derived_status'
 >
 
-export const sessionSortOptions = ['soonest', 'latest'] as const
+export const sessionSortOptions = ['upcoming', 'soonest', 'latest'] as const
 
 export type SessionSort = (typeof sessionSortOptions)[number]
 
@@ -87,7 +87,7 @@ export function isDerivedSessionStatus(value: string | undefined): value is Deri
 }
 
 export function isSessionSort(value: string | undefined): value is SessionSort {
-  return value === 'soonest' || value === 'latest'
+  return value === 'upcoming' || value === 'soonest' || value === 'latest'
 }
 
 export function getDerivedSessionStatus(session: Session, now = new Date()): DerivedSessionStatus {
