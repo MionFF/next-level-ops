@@ -46,6 +46,9 @@ export default function ProfileLinkForm({
     label: `${member.full_name} — ${member.email}`,
   }))
 
+  const selectedProfileId = profiles.some(profile => profile.id === profileId) ? profileId : ''
+  const selectedMemberId = members.some(member => member.id === memberId) ? memberId : ''
+
   return (
     <form
       action={formAction}
@@ -65,7 +68,7 @@ export default function ProfileLinkForm({
             label='Client profile'
             name='profileId'
             options={profileOptions}
-            value={profileId}
+            value={selectedProfileId}
             onChange={setProfileId}
             disabled={isDisabled}
             placeholder='Select profile'
@@ -84,7 +87,7 @@ export default function ProfileLinkForm({
             label='Available member'
             name='memberId'
             options={memberOptions}
-            value={memberId}
+            value={selectedMemberId}
             onChange={setMemberId}
             disabled={isDisabled}
             placeholder='Select member'

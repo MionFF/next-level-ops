@@ -62,7 +62,9 @@ describe('ProfileLinkForm', () => {
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /available member/i }))
-    expect(screen.getByRole('radio', { name: /available member: alex morgan/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: /available member: alex morgan/i }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('radio', { name: /available member: alex morgan — alex@example.com/i }),
     ).toBeInTheDocument()
@@ -169,6 +171,39 @@ describe('ProfileLinkForm', () => {
     >()
 
     render(<ProfileLinkForm profiles={profiles} members={members} action={action} />)
+
+    expect(screen.queryByText('profile-1')).not.toBeInTheDocument()
+    expect(screen.queryByText('member-1')).not.toBeInTheDocument()
+  })
+
+  it('clears selections when refreshed options no longer contain the selected records', async () => {
+    const user = userEvent.setup()
+    const action = jest.fn<
+      Promise<LinkProfileMemberFormState>,
+      [LinkProfileMemberFormState, FormData]
+    >()
+
+    const { rerender } = render(
+      <ProfileLinkForm profiles={profiles} members={members} action={action} />,
+    )
+
+    await selectSingleOption(user, /client profile/i, /client profile: client one/i)
+    await selectSingleOption(user, /available member/i, /available member: alex morgan/i)
+
+    expect(screen.getByRole('button', { name: /client profile: client one/i })).toBeVisible()
+    expect(screen.getByRole('button', { name: /available member: alex morgan/i })).toBeVisible()
+
+    rerender(
+      <ProfileLinkForm
+        profiles={profiles.filter(profile => profile.id !== 'profile-1')}
+        members={members.filter(member => member.id !== 'member-1')}
+        action={action}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Client profile: Select profile' })).toBeVisible()
+
+    expect(screen.getByRole('button', { name: 'Available member: Select member' })).toBeVisible()
 
     expect(screen.queryByText('profile-1')).not.toBeInTheDocument()
     expect(screen.queryByText('member-1')).not.toBeInTheDocument()
