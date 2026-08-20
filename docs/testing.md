@@ -42,6 +42,7 @@ Covered areas:
 - list empty/error states
 - cancellation controls
 - profile-member linking UI states and form submissions
+- shared `SingleSelect` interaction/accessibility contracts and stale-selection reconciliation
 - member membership assignment form
 - member membership cancellation button
 - member membership current/history states
@@ -113,6 +114,8 @@ Playwright runs with one worker because the suite uses a real Supabase project, 
 Server-action submissions wait for Next.js hydration through the framework's test-only hydration marker. Playwright starts its own dev server with the required test environment instead of reusing an arbitrary local server.
 
 Cancellation tests wait for deterministic UI outcomes instead of `networkidle`, because the app can keep background requests open during Supabase-backed flows.
+
+Profile-link and member-membership mutation tests assert that pending states terminate and authoritative server-rendered UI updates without a manual reload or unrelated client interaction. This protects the Server Action reconciliation path rather than allowing another interaction to mask a stale UI state.
 
 Responsive member E2E assertions target visible content so duplicated desktop table and mobile card markup does not create ambiguous locators.
 
