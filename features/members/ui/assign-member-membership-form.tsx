@@ -1,11 +1,12 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import {
   assignMemberMembership,
   type AssignMemberMembershipFormState,
 } from '../actions/assign-member-membership'
 import type { MemberMembershipPlanOption } from '../model/member-membership'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 const initialState: AssignMemberMembershipFormState = {
   message: '',
@@ -35,6 +36,7 @@ export function AssignMemberMembershipForm({
   action = assignMemberMembership,
 }: AssignMemberMembershipFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState)
+  const [planId, setPlanId] = useState('')
 
   const isDisabled = plans.length === 0 || isPending
   const planError = state.errors?.planId?.[0]
@@ -46,12 +48,16 @@ export function AssignMemberMembershipForm({
     : 'Select an active plan and start date. The end date is calculated from the plan duration.'
   const buttonLabel = isRenewal ? 'Renew membership' : 'Assign membership'
   const pendingLabel = isRenewal ? 'Renewing...' : 'Assigning...'
+  const planOptions = plans.map(plan => ({
+    value: plan.id,
+    label: `${plan.name} — ${plan.duration_days} days`,
+  }))
 
   return (
     <form
       action={formAction}
       noValidate
-      className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-4'
+      className='rounded-[var(--radius-md)] bg-[var(--surface-2)] p-4'
     >
       <input type='hidden' name='memberId' value={memberId} />
 
@@ -62,30 +68,17 @@ export function AssignMemberMembershipForm({
 
       <div className='grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(180px,240px)_auto] lg:items-start'>
         <div className='min-w-0'>
-          <label
-            htmlFor='membership-plan'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Plan
-          </label>
-          <select
-            id='membership-plan'
+          <SingleSelect
+            label='Plan'
             name='planId'
-            defaultValue=''
+            options={planOptions}
+            value={planId}
+            onChange={setPlanId}
             disabled={isDisabled}
+            placeholder='Select plan'
             aria-invalid={Boolean(planError)}
             aria-describedby={planError ? 'membership-plan-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:text-[var(--muted)]'
-          >
-            <option value='' disabled>
-              Select plan
-            </option>
-            {plans.map(plan => (
-              <option key={plan.id} value={plan.id}>
-                {plan.name} — {plan.duration_days} days
-              </option>
-            ))}
-          </select>
+          />
           {planError && (
             <p id='membership-plan-error' className='mt-2 text-sm text-[var(--danger)]'>
               {planError}
@@ -109,7 +102,7 @@ export function AssignMemberMembershipForm({
             disabled={isDisabled}
             aria-invalid={Boolean(startsAtError)}
             aria-describedby={startsAtError ? 'membership-starts-at-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:text-[var(--muted)]'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60'
           />
           {startsAtError && (
             <p id='membership-starts-at-error' className='mt-2 text-sm text-[var(--danger)]'>

@@ -2,358 +2,144 @@
 
 Full-stack role-based operations dashboard for a fitness studio.
 
-Next Level Ops helps studio staff manage members, trainers, membership plans, sessions, and bookings, while clients can use a limited cabinet to view their membership, upcoming bookings, booking history, and cancel their own future bookings.
+Next Level Ops helps studio staff manage members, trainers, membership plans, sessions, and bookings, while clients can view their linked member profile, active membership, upcoming bookings, booking history, and cancel eligible future bookings.
 
-> This is a production-shaped MVP focused on real operational workflows, role-based access, server-side data boundaries, forms, mutations, discoverability, and testing.
-
-## Status
-
-MVP complete.
-
-Current focus: post-MVP hardening: access-control boundaries, business invariants, manual workflow reduction, operational scalability, performance/loading, and documentation alignment.
-
-See the current roadmap:
-
-- [Post-MVP Roadmap](docs/post-mvp-roadmap.md)
-
-## Screenshots
-
-### Admin dashboard overview
-
-![Admin dashboard overview](docs/assets/screenshots/admin-dashboard-overview.png)
-
-### Members screen
-
-![Members screen](docs/assets/screenshots/admin-members.png)
-
-### Sessions discoverability
-
-![Sessions discoverability](docs/assets/screenshots/admin-sessions-discoverability.png)
-
-### Bookings discoverability
-
-![Bookings discoverability](docs/assets/screenshots/admin-bookings-discoverability.png)
-
-### Client cabinet overview
-
-![Client cabinet overview](docs/assets/screenshots/client-cabinet-overview.png)
-
-### Client bookings and cancellation
-
-![Client bookings and cancellation](docs/assets/screenshots/client-bookings-cancellation.png)
-
-### Mobile navigation
-
-![Mobile navigation](docs/assets/screenshots/mobile-navigation.png)
+**Status:** MVP complete.
 
 ## Demo
 
-Hosted demo and local demo instructions:
-
 - https://next-level-ops.vercel.app
-- [Demo Instructions](docs/demo.md)
+- [Demo instructions](docs/demo.md)
+
+## Screenshots
+
+### Members operations
+
+![Members operations](docs/assets/screenshots/admin-members.png)
+
+### Bookings operations
+
+![Bookings operations](docs/assets/screenshots/admin-bookings.png)
+
+### Client cabinet
+
+![Client cabinet](docs/assets/screenshots/client-cabinet-overview.png)
+
+### Client booking cancellation
+
+![Client booking cancellation](docs/assets/screenshots/client-bookings-cancellation.png)
 
 ## Core features
 
 ### Admin
 
 - Dashboard overview
-- Members management
-- Trainers management
-- Membership plans management
-- Sessions management
-- Booking creation
-- Booking cancellation
-- Profile-member linking management
-- URL-driven search and filters
-- Operational sorting and derived statuses
-- Responsive dashboard shell
+- Members, trainers, membership plans, sessions, and bookings management
+- Member membership assignment and cancellation
+- Profile-to-member linking
+- Booking creation and cancellation
+- URL-driven search, filters, sorting, and pagination
+- Derived operational statuses for sessions, bookings, and memberships
 
 ### Client
 
 - Protected client cabinet
-- Linked member profile view
-- Active membership overview
-- Upcoming bookings
-- Booking history summary
-- Own future booking cancellation
+- Linked member profile and active membership
+- Upcoming bookings and booking history
+- Cancellation of own eligible future bookings
 
 ### Access control
 
-- Public auth routes
-- Protected admin area
-- Protected client area
-- Role-aware root redirect
-- Forbidden page for invalid role access
-- Supabase RLS-backed data boundaries
-- Admin-controlled profile-member linking through constrained RPCs
-- RPC-based client cancellation flow
+- Role-protected admin and client areas
+- Supabase Auth with RLS-backed data boundaries
+- Admin-controlled profile-member linking
+- Constrained RPCs for sensitive booking mutations
 
 ## Tech stack
 
-- Next.js App Router
-- React
+- Next.js 16 App Router
+- React 19
 - TypeScript
 - Supabase Auth / Postgres / RLS / RPC
 - Tailwind CSS
 - Zod
-- Jest
-- React Testing Library
+- Jest + React Testing Library
 - Playwright
-- ESLint
-- Prettier
 
-## Architecture highlights
+## Architecture
 
-The project uses a server-first Next.js App Router architecture.
+The application is server-first and keeps route orchestration, product behavior, and infrastructure concerns separated.
 
-High-level structure:
+Key decisions:
 
-```txt
-app/       routing, layouts, route-level server orchestration
-features/  product flows and domain-specific UI/actions/model logic
-widgets/   larger composition blocks such as admin/client shells
-shared/    reusable UI, config, and generic helpers
-lib/       infrastructure helpers such as Supabase clients
-docs/      project decisions and architecture documentation
-supabase/  database migrations
-scripts/   project maintenance scripts
-```
-
-Important architecture decisions:
-
-- `app` stays thin and route-focused.
-- Feature modules own product behavior.
-- Server actions handle mutations.
-- Client components are used only for interactive UI.
+- App Router pages stay thin and server-focused.
+- Product logic lives in feature modules.
+- Client components are limited to interactive UI.
 - Auth users, app profiles, and studio members are separate concepts.
-- Client profile-to-member linking is admin-controlled and handled through constrained RPCs.
-- Route protection and database-level access control are treated as separate layers.
-- Client booking cancellation is handled through a constrained database RPC instead of broad direct table updates.
+- Operational Members, Sessions, and Bookings screens use database-side filtering, exact counts, stable sorting, and pagination.
+- Sensitive booking mutations are protected by database-backed invariants instead of UI-only checks.
 
-More details:
+Detailed documentation:
 
-- [Architecture Notes](docs/architecture.md)
+- [Architecture](docs/architecture.md)
 - [Trade-offs](docs/trade-offs.md)
-- [Testing Strategy](docs/testing.md)
-- [Decision Log](docs/decision-log.md)
-
-## Product model
-
-The MVP has two authenticated roles:
-
-### Admin
-
-The admin manages operational studio data:
-
-- members
-- trainers
-- membership plans
-- sessions
-- bookings
-
-### Client
-
-The client has a limited cabinet and can:
-
-- view linked member information
-- view active membership information
-- view upcoming bookings
-- view booking history summary
-- cancel own confirmed future bookings
-
-Client self-booking, payments, Stripe, trainer accounts, and full membership lifecycle automation are intentionally out of scope for the MVP.
+- [Testing strategy](docs/testing.md)
+- [Decision log](docs/decision-log.md)
+- [Roadmap](docs/post-mvp-roadmap.md)
 
 ## Testing
 
-Testing is treated as an MVP quality gate, not as a 100% coverage target.
+The project uses three levels of automated testing:
 
-### Unit tests
+- **Jest** for domain and query logic
+- **React Testing Library** for forms, filters, lists, validation, and interactive states
+- **Playwright** for real Supabase-backed auth, access control, CRUD, booking, membership, profile-linking, discoverability, and navigation flows
 
-Cover pure domain/model logic:
+The E2E suite runs against real Supabase infrastructure rather than a mocked backend.
 
-- derived booking statuses
-- booking sorting
-- derived session statuses
-- session sorting
-- status guards and helpers
+Generated E2E data can be removed with:
 
-### React Testing Library tests
+```bash
+npm run e2e:cleanup
+```
 
-Cover user-facing UI behavior:
-
-- forms
-- filters
-- lists
-- auth UI
-- validation/action errors
-- cancellation controls
-- profile-member linking UI states
-
-### Playwright E2E tests
-
-Cover critical full-stack flows:
-
-- auth and protected route access
-- admin member create/edit/filter flow
-- admin trainer/member/session/booking creation flow
-- admin booking cancellation
-- client cabinet access
-- client own-booking cancellation
-- sessions/bookings discoverability
-- admin profile-member linking flow
-- admin/client navigation smoke
-
-Testing details:
-
-- [Testing Strategy](docs/testing.md)
+See [Testing strategy](docs/testing.md) for environment requirements, fixture conventions, cleanup safety, and E2E details.
 
 ## Getting started
-
-### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd next-level-ops
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure environment variables
+Create `.env.local` from `.env.example` and provide the required Supabase credentials.
 
-Create `.env.local` based on `.env.example`.
-
-Required for the app:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-```
-
-Required for E2E tests:
-
-```bash
-E2E_ADMIN_EMAIL=
-E2E_ADMIN_PASSWORD=
-E2E_CLIENT_EMAIL=
-E2E_CLIENT_PASSWORD=
-```
-
-### 4. Prepare Supabase
-
-The project expects a Supabase project with the required schema, RLS policies, and RPC functions.
-
-Database changes are versioned in:
-
-```txt
-supabase/migrations
-```
-
-Some MVP setup is manual:
-
-- assign admin role
-- prepare stable E2E fixtures if running Playwright tests
-
-Client profile-to-member linking is handled from `/dashboard/profile-links` after admin access is configured.
-
-### 5. Run the development server
+Then run:
 
 ```bash
 npm run dev
 ```
 
-Alternative Turbopack dev mode:
+Useful quality commands:
 
 ```bash
-npm run dev:turbo
+npm run quality
+npm run e2e
+npm run e2e:cleanup
 ```
 
-### 6. Run production build locally
+Database schema changes are versioned in `supabase/migrations`.
 
-```bash
-npm run build
-npm run start
-```
+## Current scope
 
-## Scripts
+The current product intentionally does not include:
 
-```bash
-npm run dev            # Start dev server with webpack
-npm run dev:turbo      # Start dev server with Turbopack
-npm run build          # Create production build
-npm run start          # Start production server
-npm run lint           # Run ESLint
-npm run test           # Run Jest/RTL tests
-npm run test:watch     # Run tests in watch mode
-npm run test:coverage  # Generate coverage report
-npm run e2e            # Run Playwright E2E tests
-npm run e2e:ui         # Run Playwright UI mode
-npm run quality        # Run lint, tests, and build
-```
-
-## E2E data
-
-E2E tests use real Supabase-backed flows.
-
-Conventions:
-
-- `E2E ` prefix — records created by E2E tests
-- `Fixture ` prefix — stable fixture records that should not be deleted
-
-Manual cleanup script:
-
-```txt
-scripts/cleanup-e2e-data.sql
-```
-
-Run it from the Supabase SQL Editor when test data accumulates.
-
-## MVP limitations
-
-The MVP intentionally does not include:
-
-- payments or Stripe integration
+- payments or Stripe
 - client self-booking
 - trainer portal
 - advanced analytics
-- automatic membership lifecycle automation
-- light theme
-- localization
-- custom backend outside Supabase
-- Dockerized local backend environment
+- automatic subscription lifecycle
+- localization or theme switching
 
-These are documented as product and engineering trade-offs, not hidden missing features.
-
-See:
-
-- [Trade-offs](docs/trade-offs.md)
-
-## Known performance note
-
-The app currently depends on Supabase as a remote Backend-as-a-Service. Network latency and free-tier limits can affect response time, especially during development and E2E flows.
-
-This is documented as a known trade-off and can be revisited if the project moves beyond MVP scope.
-
-## Why this project matters
-
-Next Level Ops demonstrates more than CRUD.
-
-It shows:
-
-- role-based product architecture
-- protected routes
-- server-first Next.js App Router usage
-- Supabase Auth/RLS/RPC integration
-- typed forms and mutations
-- URL-driven discoverability
-- secure profile-member linking flow
-- secure cancellation flow
-- responsive dashboard UX
-- unit, RTL, and E2E testing strategy
-- documented trade-offs and architecture decisions
-
-The goal is to present a realistic full-stack frontend project with production-minded decisions, clear architecture, documented trade-offs, and tested critical flows.
+These are product boundaries, not hidden functionality. The reasoning behind the major compromises is documented in [Trade-offs](docs/trade-offs.md).

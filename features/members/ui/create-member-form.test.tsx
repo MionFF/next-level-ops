@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import CreateMemberForm from './create-member-form'
 import type { CreateMemberFormState } from '../actions/create-member'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/create-member', () => ({
   createMember: jest.fn(),
@@ -17,7 +18,7 @@ describe('CreateMemberForm', () => {
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/phone/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/status/i)).toHaveValue('active')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Active')
     expect(screen.getByRole('button', { name: /create member/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
@@ -39,7 +40,7 @@ describe('CreateMemberForm', () => {
     await user.type(screen.getByLabelText(/full name/i), 'Alex Morgan')
     await user.type(screen.getByLabelText(/email/i), 'alex@example.com')
     await user.type(screen.getByLabelText(/phone/i), '+1 555 0101')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'inactive')
+    await selectSingleOption(user, /status/i, /status: inactive/i)
     await user.click(screen.getByRole('button', { name: /create member/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

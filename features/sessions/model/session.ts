@@ -2,6 +2,16 @@ export const sessionStatuses = ['scheduled', 'cancelled'] as const
 
 export type SessionStatus = (typeof sessionStatuses)[number]
 
+export const sessionStatusLabels: Record<SessionStatus, string> = {
+  scheduled: 'Scheduled',
+  cancelled: 'Cancelled',
+}
+
+export const sessionStatusOptions = sessionStatuses.map(status => ({
+  value: status,
+  label: sessionStatusLabels[status],
+}))
+
 export const derivedSessionStatuses = [
   'scheduled',
   'in_progress',
@@ -11,6 +21,14 @@ export const derivedSessionStatuses = [
 ] as const
 
 export type DerivedSessionStatus = (typeof derivedSessionStatuses)[number]
+
+export const derivedSessionStatusLabels: Record<DerivedSessionStatus, string> = {
+  scheduled: sessionStatusLabels.scheduled,
+  in_progress: 'In progress',
+  full: 'Full',
+  completed: 'Completed',
+  cancelled: sessionStatusLabels.cancelled,
+}
 
 export type Session = {
   id: string
@@ -53,7 +71,7 @@ export type SessionListRow = Pick<
   | 'derived_status'
 >
 
-export const sessionSortOptions = ['soonest', 'latest'] as const
+export const sessionSortOptions = ['upcoming', 'soonest', 'latest'] as const
 
 export type SessionSort = (typeof sessionSortOptions)[number]
 
@@ -77,7 +95,7 @@ export function isDerivedSessionStatus(value: string | undefined): value is Deri
 }
 
 export function isSessionSort(value: string | undefined): value is SessionSort {
-  return value === 'soonest' || value === 'latest'
+  return value === 'upcoming' || value === 'soonest' || value === 'latest'
 }
 
 export function getDerivedSessionStatus(session: Session, now = new Date()): DerivedSessionStatus {
@@ -107,39 +125,6 @@ const derivedStatusSortOrder: Record<DerivedSessionStatus, number> = {
   full: 2,
   completed: 3,
   cancelled: 4,
-}
-
-export function getSessionDisplayBadge(status: DerivedSessionStatus): {
-  text: string
-  className: string
-} {
-  switch (status) {
-    case 'cancelled':
-      return {
-        text: 'Cancelled',
-        className: 'border-[var(--border)] text-[var(--muted)]',
-      }
-    case 'completed':
-      return {
-        text: 'Completed',
-        className: 'border-[var(--border)] text-[var(--muted)]',
-      }
-    case 'in_progress':
-      return {
-        text: 'In progress',
-        className: 'border-[var(--primary)]/30 text-[var(--primary)]',
-      }
-    case 'full':
-      return {
-        text: 'Full',
-        className: 'border-[var(--danger)]/30 text-[var(--danger)]',
-      }
-    case 'scheduled':
-      return {
-        text: 'Scheduled',
-        className: 'border-[var(--border)] text-[var(--foreground)]',
-      }
-  }
 }
 
 export function sortSessions(sessions: Session[]): Session[] {

@@ -4,6 +4,7 @@ import EditMemberForm from './edit-member-form'
 import type { EditableMember } from '../model/member'
 import type { UpdateMemberFormState } from '../actions/update-member'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/update-member', () => ({
   updateMember: jest.fn(),
@@ -26,7 +27,7 @@ describe('EditMemberForm', () => {
     expect(screen.getByLabelText(/full name/i)).toHaveValue('Alex Morgan')
     expect(screen.getByLabelText(/email/i)).toHaveValue('alex@example.com')
     expect(screen.getByLabelText(/phone/i)).toHaveValue('+1 555 0101')
-    expect(screen.getByLabelText(/status/i)).toHaveValue('active')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Active')
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
       '/dashboard/members/member-1',
@@ -50,7 +51,7 @@ describe('EditMemberForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'alex.updated@example.com')
     await user.clear(screen.getByLabelText(/phone/i))
     await user.type(screen.getByLabelText(/phone/i), '+1 555 9999')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'inactive')
+    await selectSingleOption(user, /status/i, /status: inactive/i)
     await user.click(screen.getByRole('button', { name: /save member/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

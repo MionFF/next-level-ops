@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import {
   derivedSessionStatuses,
-  getSessionDisplayBadge,
+  derivedSessionStatusLabels,
   type DerivedSessionStatus,
   type SessionSort,
 } from '../model/session'
@@ -12,7 +12,7 @@ import { isValidSessionDateRange } from '../model/sessions-query'
 import { getSessionsHref } from '../model/sessions-url'
 import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
 import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
-import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 export type SessionsFiltersProps = {
   search: string
@@ -25,12 +25,13 @@ export type SessionsFiltersProps = {
   trainerOptionsError?: string
 }
 
-const sessionStatusOptions = derivedSessionStatuses.map(status => ({
+const derivedSessionStatusOptions = derivedSessionStatuses.map(status => ({
   value: status,
-  label: getSessionDisplayBadge(status).text,
+  label: derivedSessionStatusLabels[status],
 }))
 
 const sessionSortOptions = [
+  { value: 'upcoming', label: 'Upcoming first' },
   { value: 'soonest', label: 'Soonest first' },
   { value: 'latest', label: 'Latest first' },
 ] as const
@@ -58,10 +59,14 @@ export default function SessionsFilters({
 
   const hasInvalidDateRange = !isValidSessionDateRange(draftFrom, draftTo)
 
-  const dateInputClassName = `min-w-0 rounded-[var(--radius-md)] border bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+  const controlInputClassName =
+    'min-w-0 rounded-[var(--radius-md)] border bg-[var(--control)] px-3 py-2 text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60 disabled:placeholder:text-[var(--muted)]!'
+  const standardControlInputClassName = `${controlInputClassName} border-[var(--border-strong)] focus:border-[var(--primary)]`
+
+  const dateInputClassName = `${controlInputClassName} ${
     hasInvalidDateRange
       ? 'border-[var(--danger)] focus:border-[var(--danger)]'
-      : 'border-[var(--border)] focus:border-[var(--primary)]'
+      : 'border-[var(--border-strong)] focus:border-[var(--primary)]'
   }`
 
   const trainerOptions = [
@@ -75,7 +80,7 @@ export default function SessionsFilters({
     selectedStatuses.length > 0,
     from.length > 0,
     to.length > 0,
-    sort !== 'soonest',
+    sort !== 'upcoming',
   ].filter(Boolean).length
 
   function toggleStatus(status: DerivedSessionStatus) {
@@ -112,7 +117,7 @@ export default function SessionsFilters({
     setDraftStatuses([])
     setDraftFrom('')
     setDraftTo('')
-    setDraftSort('soonest')
+    setDraftSort('upcoming')
 
     startTransition(() => {
       router.push('/dashboard/sessions')
@@ -138,12 +143,12 @@ export default function SessionsFilters({
             disabled={isPending}
             onChange={event => setDraftSearch(event.target.value)}
             placeholder='Search by title'
-            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+            className={standardControlInputClassName}
           />
         </label>
 
         <div className='relative z-30 min-w-0'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Trainer'
             name='trainer-filter'
             options={trainerOptions}
@@ -156,7 +161,7 @@ export default function SessionsFilters({
         <div className='relative z-20 min-w-0'>
           <MultiSelectFilter
             label='Session status'
-            options={sessionStatusOptions}
+            options={derivedSessionStatusOptions}
             selectedValues={draftStatuses}
             disabled={isPending}
             onToggle={toggleStatus}
@@ -194,7 +199,7 @@ export default function SessionsFilters({
         </label>
 
         <div className='relative z-10 min-w-0'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Sort'
             name='sessions-sort'
             options={sessionSortOptions}

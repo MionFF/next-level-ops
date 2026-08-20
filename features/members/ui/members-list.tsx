@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { formatDate } from '@/shared/lib/format-date'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 import {
   memberStatusLabels,
   membershipOperationalStatusLabels,
@@ -8,38 +9,18 @@ import {
   type MembershipOperationalStatus,
 } from '../model/member'
 
-type BadgeTone = 'success' | 'warning' | 'danger' | 'primary' | 'muted'
-
-const badgeToneClasses: Record<BadgeTone, string> = {
-  success: 'border-[var(--success)]/35 bg-[var(--success)]/10 text-[var(--success)]',
-  warning: 'border-[var(--warning)]/35 bg-[var(--warning)]/10 text-[var(--warning)]',
-  danger: 'border-[var(--danger)]/35 bg-[var(--danger)]/10 text-[var(--danger)]',
-  primary: 'border-[var(--primary)]/35 bg-[var(--primary)]/10 text-[var(--primary)]',
-  muted: 'border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted)]',
-}
-
-const memberStatusTones: Record<MemberStatus, BadgeTone> = {
+const memberStatusTones: Record<MemberStatus, StatusTone> = {
   active: 'success',
   paused: 'warning',
-  inactive: 'muted',
+  inactive: 'neutral',
 }
 
-const membershipStatusTones: Record<MembershipOperationalStatus, BadgeTone> = {
+const membershipStatusTones: Record<MembershipOperationalStatus, StatusTone> = {
   active: 'success',
-  upcoming: 'primary',
-  expired: 'warning',
+  upcoming: 'info',
+  expired: 'neutral',
   cancelled: 'danger',
-  none: 'muted',
-}
-
-function StatusBadge({ label, tone }: { label: string; tone: BadgeTone }) {
-  return (
-    <span
-      className={`inline-flex max-w-full items-center rounded-[var(--radius-sm)] border px-2 py-0.5 text-xs font-medium ${badgeToneClasses[tone]}`}
-    >
-      <span className='truncate'>{label}</span>
-    </span>
-  )
+  none: 'neutral',
 }
 
 function MemberStatusBadge({ status }: { status: MemberStatus }) {
@@ -48,7 +29,7 @@ function MemberStatusBadge({ status }: { status: MemberStatus }) {
 
 function ProfileStatusBadge({ isLinked }: { isLinked: boolean }) {
   return (
-    <StatusBadge label={isLinked ? 'Linked' : 'Unlinked'} tone={isLinked ? 'primary' : 'muted'} />
+    <StatusBadge label={isLinked ? 'Linked' : 'Unlinked'} tone={isLinked ? 'info' : 'neutral'} />
   )
 }
 

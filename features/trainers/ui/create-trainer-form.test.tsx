@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { CreateTrainerFormState } from '../actions/create-trainer'
 import CreateTrainerForm from './create-trainer-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/create-trainer', () => ({
   createTrainer: jest.fn(),
@@ -19,7 +20,7 @@ describe('CreateTrainerForm', () => {
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/phone/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/specialty/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/status/i)).toHaveValue('active')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Active')
     expect(screen.getByRole('button', { name: /create trainer/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
@@ -42,7 +43,7 @@ describe('CreateTrainerForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'sam@example.com')
     await user.type(screen.getByLabelText(/phone/i), '+1 555 0202')
     await user.type(screen.getByLabelText(/specialty/i), 'Strength')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'inactive')
+    await selectSingleOption(user, /status/i, /status: inactive/i)
     await user.click(screen.getByRole('button', { name: /create trainer/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

@@ -52,12 +52,12 @@ describe('MembershipPlansList', () => {
     expect(screen.getAllByText('Full access to all classes').length).toBeGreaterThan(0)
     expect(screen.getAllByText('30 days').length).toBeGreaterThan(0)
     expect(screen.getAllByText('$99.00').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('active').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
 
     expect(screen.getAllByText('Drop-in').length).toBeGreaterThan(0)
     expect(screen.getAllByText('1 days').length).toBeGreaterThan(0)
     expect(screen.getAllByText('$25.00').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('inactive').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Inactive').length).toBeGreaterThan(0)
   })
 
   it('renders fallback values and edit links', () => {

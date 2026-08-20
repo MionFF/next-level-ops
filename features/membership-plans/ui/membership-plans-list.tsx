@@ -1,10 +1,20 @@
 import Link from 'next/link'
-import { MembershipPlan } from '../model/membership-plan'
+import {
+  membershipPlanStatusLabels,
+  type MembershipPlan,
+  type MembershipPlanStatus,
+} from '../model/membership-plan'
 import { formatDate } from '@/shared/lib/format-date'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 
 type MembershipPlansListProps = {
   plans: MembershipPlan[]
   errorMessage?: string
+}
+
+const membershipPlanStatusTones: Record<MembershipPlanStatus, StatusTone> = {
+  active: 'success',
+  inactive: 'neutral',
 }
 
 function formatUsd(cents: number): string {
@@ -76,13 +86,14 @@ export default function MembershipPlansList({ plans, errorMessage }: MembershipP
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {plan.duration_days} days
                     </td>
-                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap font-medium text-[var(--foreground)]'>
                       {formatUsd(plan.price_cents)}
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap'>
-                      <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
-                        {plan.status}
-                      </span>
+                      <StatusBadge
+                        label={membershipPlanStatusLabels[plan.status]}
+                        tone={membershipPlanStatusTones[plan.status]}
+                      />
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(plan.created_at)}
@@ -118,13 +129,18 @@ export default function MembershipPlansList({ plans, errorMessage }: MembershipP
                         <p className='max-w-full break-words'>{plan.description}</p>
                       )}
                       <p>{plan.duration_days} days</p>
-                      <p>{formatUsd(plan.price_cents)}</p>
-                      <p>{formatDate(plan.created_at)}</p>
+                      <p className='font-medium text-[var(--foreground)]'>
+                        {formatUsd(plan.price_cents)}
+                      </p>
+                      <p className='text-xs'>{formatDate(plan.created_at)}</p>
                     </div>
 
-                    <span className='mt-2 inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium capitalize text-[var(--foreground)]'>
-                      {plan.status}
-                    </span>
+                    <div className='mt-2'>
+                      <StatusBadge
+                        label={membershipPlanStatusLabels[plan.status]}
+                        tone={membershipPlanStatusTones[plan.status]}
+                      />
+                    </div>
                   </div>
 
                   <Link

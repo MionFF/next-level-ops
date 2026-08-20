@@ -39,6 +39,20 @@ test.describe('admin profile links flow', () => {
       await expect(linkedRow).toContainText(memberName)
       await expect(linkedRow).toContainText(memberEmail)
 
+      await expect(adminPage.getByRole('button', { name: /^linking\.\.\.$/i })).toHaveCount(0)
+
+      await expect(
+        adminPage.getByRole('button', {
+          name: 'Client profile: Select profile',
+        }),
+      ).toBeVisible()
+
+      await expect(
+        adminPage.getByRole('button', {
+          name: 'Available member: Select member',
+        }),
+      ).toBeVisible()
+
       await clientPage.goto('/cabinet')
       await expect(clientPage).toHaveURL(/\/cabinet/, { timeout: 15_000 })
       await expect(clientPage.getByText(memberName).first()).toBeVisible()
@@ -49,16 +63,28 @@ test.describe('admin profile links flow', () => {
       const linkedRowAfterReload = adminPage.locator('tr').filter({ hasText: memberEmail })
 
       await expect(linkedRowAfterReload).toBeVisible({ timeout: 15_000 })
-      await linkedRowAfterReload.getByRole('button', { name: /unlink/i }).click()
 
-      await expect(adminPage.getByLabel('Client profile')).toContainText(clientName, {
+      await linkedRowAfterReload.getByRole('button', { name: /^unlink$/i }).click()
+
+      await expect(linkedRowAfterReload).toHaveCount(0, {
         timeout: 15_000,
       })
 
+      await expect(adminPage.getByRole('button', { name: /^unlinking\.\.\.$/i })).toHaveCount(0)
+
+      await expect(
+        adminPage.getByRole('button', {
+          name: 'Client profile: Select profile',
+        }),
+      ).toBeVisible()
+
       await clientPage.goto('/cabinet')
       await expect(clientPage).toHaveURL(/\/cabinet/, { timeout: 15_000 })
+
       await expect(
-        clientPage.getByRole('heading', { name: 'Membership profile not linked' }),
+        clientPage.getByRole('heading', {
+          name: 'Membership profile not linked',
+        }),
       ).toBeVisible()
     } finally {
       await adminContext.close()

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import {
   derivedBookingStatuses,
-  getBookingDisplayBadge,
+  derivedBookingStatusLabels,
   type BookingSort,
   type DerivedBookingStatus,
 } from '../model/booking'
@@ -12,7 +12,7 @@ import { isValidBookingDateRange } from '../model/bookings-query'
 import { getBookingsHref } from '../model/bookings-url'
 import { MultiSelectFilter } from '@/shared/ui/filters/multi-select-filter'
 import { OperationsFilterPanel } from '@/shared/ui/filters/operations-filter-panel'
-import { SingleSelectFilter } from '@/shared/ui/filters/single-select-filter'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 export type BookingsFiltersProps = {
   member: string
@@ -28,10 +28,11 @@ export type BookingsFiltersProps = {
 
 const bookingStatusOptions = derivedBookingStatuses.map(status => ({
   value: status,
-  label: getBookingDisplayBadge(status).text,
+  label: derivedBookingStatusLabels[status],
 }))
 
 const bookingSortOptions = [
+  { value: 'upcoming', label: 'Upcoming first' },
   { value: 'soonest', label: 'Soonest first' },
   { value: 'latest', label: 'Latest first' },
 ] as const
@@ -61,10 +62,14 @@ export default function BookingsFilters({
 
   const hasInvalidDateRange = !isValidBookingDateRange(draftFrom, draftTo)
 
-  const dateInputClassName = `min-w-0 rounded-[var(--radius-md)] border bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+  const controlInputClassName =
+    'min-w-0 rounded-[var(--radius-md)] border bg-[var(--control)] px-3 py-2 text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60 disabled:placeholder:text-[var(--muted)]!'
+  const standardControlInputClassName = `${controlInputClassName} border-[var(--border-strong)] focus:border-[var(--primary)]`
+
+  const dateInputClassName = `${controlInputClassName} ${
     hasInvalidDateRange
       ? 'border-[var(--danger)] focus:border-[var(--danger)]'
-      : 'border-[var(--border)] focus:border-[var(--primary)]'
+      : 'border-[var(--border-strong)] focus:border-[var(--primary)]'
   }`
 
   const trainerOptions = [
@@ -82,7 +87,7 @@ export default function BookingsFilters({
     selectedStatuses.length > 0,
     from.length > 0,
     to.length > 0,
-    sort !== 'soonest',
+    sort !== 'upcoming',
   ].filter(Boolean).length
 
   function toggleStatus(status: DerivedBookingStatus) {
@@ -121,7 +126,7 @@ export default function BookingsFilters({
     setDraftStatuses([])
     setDraftFrom('')
     setDraftTo('')
-    setDraftSort('soonest')
+    setDraftSort('upcoming')
 
     startTransition(() => {
       router.push('/dashboard/bookings')
@@ -147,7 +152,7 @@ export default function BookingsFilters({
             disabled={isPending}
             onChange={event => setDraftMember(event.target.value)}
             placeholder='Name or email'
-            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+            className={standardControlInputClassName}
           />
         </label>
 
@@ -161,12 +166,12 @@ export default function BookingsFilters({
             disabled={isPending}
             onChange={event => setDraftSession(event.target.value)}
             placeholder='Session title'
-            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+            className={standardControlInputClassName}
           />
         </label>
 
         <div className='relative z-30 min-w-0'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Trainer'
             name='bookings-trainer-filter'
             options={trainerOptions}
@@ -238,7 +243,7 @@ export default function BookingsFilters({
 
       <div className='flex min-w-0 flex-col gap-4 border-t border-[var(--border)] bg-[var(--surface-2)]/20 px-4 py-4 md:flex-row md:items-end md:justify-between md:px-6'>
         <div className='relative z-10 w-full min-w-0 md:max-w-xs'>
-          <SingleSelectFilter
+          <SingleSelect
             label='Sort'
             name='bookings-sort'
             options={bookingSortOptions}

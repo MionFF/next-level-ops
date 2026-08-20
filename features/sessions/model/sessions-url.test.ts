@@ -9,7 +9,7 @@ describe('getSessionsHref', () => {
         statuses: [],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 1,
       }),
     ).toBe('/dashboard/sessions')
@@ -31,6 +31,20 @@ describe('getSessionsHref', () => {
     )
   })
 
+  it('serializes explicit soonest sorting because upcoming is the default', () => {
+    expect(
+      getSessionsHref({
+        search: '',
+        trainer: '',
+        statuses: [],
+        from: '',
+        to: '',
+        sort: 'soonest',
+        page: 1,
+      }),
+    ).toBe('/dashboard/sessions?sort=soonest')
+  })
+
   it('deduplicates and orders statuses by canonical domain order', () => {
     expect(
       getSessionsHref({
@@ -39,7 +53,7 @@ describe('getSessionsHref', () => {
         statuses: ['cancelled', 'full', 'scheduled', 'full'],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 1,
       }),
     ).toBe('/dashboard/sessions?statuses=scheduled&statuses=full&statuses=cancelled')
@@ -53,7 +67,7 @@ describe('getSessionsHref', () => {
         statuses: [],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 4,
       }),
     ).toBe('/dashboard/sessions?page=4')
@@ -67,7 +81,7 @@ describe('getSessionsHref', () => {
         statuses: [],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 1,
       }),
     ).toBe('/dashboard/sessions?search=Strength+%26+%22Mobility%22&trainer=trainer%2Fid%3F1')

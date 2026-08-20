@@ -1,8 +1,4 @@
-import {
-  derivedBookingStatuses,
-  type BookingSort,
-  type DerivedBookingStatus,
-} from './booking'
+import { derivedBookingStatuses, type BookingSort, type DerivedBookingStatus } from './booking'
 
 export type BookingsUrlState = {
   member: string
@@ -55,7 +51,7 @@ export function getBookingsHref({
     params.set('to', to)
   }
 
-  if (sort !== 'soonest') {
+  if (sort !== 'upcoming') {
     params.set('sort', sort)
   }
 

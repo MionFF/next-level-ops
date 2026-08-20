@@ -10,12 +10,13 @@ export async function createE2ETrainer(page: Page, runId: string) {
 
   await gotoAppPage(page, '/dashboard/trainers/new')
   await expect(page.getByRole('heading', { name: /add trainer/i })).toBeVisible()
+  await waitForAppReady(page)
 
   await page.getByLabel('Full name').fill(trainerName)
   await page.getByLabel('Email').fill(trainerEmail)
   await page.getByLabel('Phone').fill('+1 555 0202')
   await page.getByLabel('Specialty').fill('Strength')
-  await page.getByLabel('Status').selectOption('active')
+  await selectOptionByText(page, 'Status', 'Active')
 
   await waitForAppReady(page)
 
@@ -38,11 +39,12 @@ export async function createE2EMember(page: Page, runId: string) {
 
   await gotoAppPage(page, '/dashboard/members/new')
   await expect(page.getByRole('heading', { name: /add member/i })).toBeVisible()
+  await waitForAppReady(page)
 
   await page.getByLabel('Full name').fill(memberName)
   await page.getByLabel('Email').fill(memberEmail)
   await page.getByLabel('Phone').fill('+1 555 0101')
-  await page.getByLabel('Status').selectOption('active')
+  await selectOptionByText(page, 'Status', 'Active')
 
   await waitForAppReady(page)
 
@@ -73,13 +75,14 @@ export async function createE2ESession(page: Page, runId: string, trainerName: s
 
   await gotoAppPage(page, '/dashboard/sessions/new')
   await expect(page.getByRole('heading', { name: /add session/i })).toBeVisible()
+  await waitForAppReady(page)
 
   await page.getByLabel('Title').fill(sessionTitle)
   const trainerId = await selectOptionByText(page, 'Trainer', trainerName)
   await page.getByLabel('Starts at').fill(startsAt)
   await page.getByLabel('Ends at').fill(endsAt)
   await page.getByLabel('Capacity').fill('10')
-  await page.getByLabel('Status').selectOption('scheduled')
+  await selectOptionByText(page, 'Status', 'Scheduled')
 
   await waitForAppReady(page)
 
@@ -97,6 +100,7 @@ export async function createE2ESession(page: Page, runId: string, trainerName: s
 export async function createE2EBooking(page: Page, sessionTitle: string, memberSearchText: string) {
   await gotoAppPage(page, '/dashboard/bookings/new')
   await expect(page.getByRole('heading', { name: /add booking/i })).toBeVisible()
+  await waitForAppReady(page)
 
   await selectOptionByText(page, 'Session', sessionTitle)
   await selectOptionByText(page, 'Member', memberSearchText)

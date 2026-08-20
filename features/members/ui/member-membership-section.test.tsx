@@ -147,7 +147,7 @@ describe('MemberMembershipSection', () => {
       activePlans: [],
     })
 
-    expect(screen.getByLabelText(/plan/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: /plan:/i })).toBeDisabled()
     expect(screen.getByLabelText(/start date/i)).toBeDisabled()
     expect(screen.getByRole('button', { name: /assign membership/i })).toBeDisabled()
     expect(screen.getByText(/no active membership plans available/i)).toBeInTheDocument()

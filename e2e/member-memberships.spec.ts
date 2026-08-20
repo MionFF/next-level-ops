@@ -33,26 +33,26 @@ function getVisibleExactText(page: Page, text: string) {
 }
 
 async function selectFirstAvailableMembershipPlan(page: Page) {
-  const select = page.getByLabel('Plan')
+  await waitForAppReady(page)
 
-  await expect(select).toBeVisible()
+  const trigger = page.getByRole('button', { name: /^Plan:/i })
 
-  const options = select.getByRole('option')
-  const count = await options.count()
+  await expect(trigger).toBeVisible()
+  await trigger.click()
 
-  for (let index = 0; index < count; index += 1) {
-    const option = options.nth(index)
-    const value = await option.getAttribute('value')
-    const label = (await option.textContent())?.trim()
+  const option = page.getByRole('radio', { name: /^Plan:/i }).first()
 
-    if (value && label) {
-      await select.selectOption(value)
+  await expect(option).toBeVisible()
 
-      return label.split('—')[0].trim()
-    }
+  const label = (await option.getAttribute('aria-label'))?.replace(/^Plan:\s*/i, '').trim()
+
+  if (!label) {
+    throw new Error('No active membership plan option found')
   }
 
-  throw new Error('No active membership plan option found')
+  await page.getByRole('radiogroup', { name: 'Plan options' }).getByText(label).click()
+
+  return label.split('—')[0].trim()
 }
 
 test.describe('member membership flow', () => {
@@ -126,7 +126,15 @@ test.describe('member membership flow', () => {
         timeout: 15_000,
       })
 
-      await clientPage.goto('/cabinet', { waitUntil: 'domcontentloaded' })
+      await expect(
+        adminPage.getByRole('button', {
+          name: /assigning|renewing/i,
+        }),
+      ).toHaveCount(0)
+
+      await clientPage.goto('/cabinet', {
+        waitUntil: 'domcontentloaded',
+      })
 
       const activeMembershipSection = getSectionByHeading(clientPage, /^active membership$/i)
 
@@ -136,17 +144,29 @@ test.describe('member membership flow', () => {
 
       await waitForAppReady(adminPage)
 
-      await currentMembershipSection.getByRole('button', { name: /cancel/i }).click()
+      await currentMembershipSection.getByRole('button', { name: /^cancel$/i }).click()
 
       await expect(currentMembershipSection.getByText('No active membership.')).toBeVisible({
         timeout: 15_000,
       })
 
-      await clientPage.goto('/cabinet', { waitUntil: 'domcontentloaded' })
+      await expect(
+        adminPage.getByRole('button', {
+          name: /^cancelling\.\.\.$/i,
+        }),
+      ).toHaveCount(0)
+
+      await clientPage.goto('/cabinet', {
+        waitUntil: 'domcontentloaded',
+      })
 
       await expect(
-        clientPage.getByRole('heading', { name: /^no active membership$/i }),
-      ).toBeVisible({ timeout: 15_000 })
+        clientPage.getByRole('heading', {
+          name: /^no active membership$/i,
+        }),
+      ).toBeVisible({
+        timeout: 15_000,
+      })
     } finally {
       await adminContext.close()
       await clientContext.close()

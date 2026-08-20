@@ -1,8 +1,9 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { linkProfileMember, type LinkProfileMemberFormState } from '../actions/link-profile-member'
 import type { ClientProfile, MemberOption } from '../model/profile-link'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 const initialState: LinkProfileMemberFormState = {
   message: '',
@@ -30,10 +31,23 @@ export default function ProfileLinkForm({
   action = linkProfileMember,
 }: ProfileLinkFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState)
+  const [profileId, setProfileId] = useState('')
+  const [memberId, setMemberId] = useState('')
 
   const isDisabled = profiles.length === 0 || members.length === 0 || isPending
   const profileError = state.errors?.profileId?.[0]
   const memberError = state.errors?.memberId?.[0]
+  const profileOptions = profiles.map(profile => ({
+    value: profile.id,
+    label: getProfileLabel(profile),
+  }))
+  const memberOptions = members.map(member => ({
+    value: member.id,
+    label: `${member.full_name} — ${member.email}`,
+  }))
+
+  const selectedProfileId = profiles.some(profile => profile.id === profileId) ? profileId : ''
+  const selectedMemberId = members.some(member => member.id === memberId) ? memberId : ''
 
   return (
     <form
@@ -50,30 +64,17 @@ export default function ProfileLinkForm({
 
       <div className='grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-start'>
         <div className='min-w-0'>
-          <label
-            htmlFor='profile-link-profile'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Client profile
-          </label>
-          <select
-            id='profile-link-profile'
+          <SingleSelect
+            label='Client profile'
             name='profileId'
+            options={profileOptions}
+            value={selectedProfileId}
+            onChange={setProfileId}
             disabled={isDisabled}
-            defaultValue=''
+            placeholder='Select profile'
             aria-invalid={Boolean(profileError)}
             aria-describedby={profileError ? 'profile-link-profile-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:text-[var(--muted)]'
-          >
-            <option value='' disabled>
-              Select profile
-            </option>
-            {profiles.map(profile => (
-              <option key={profile.id} value={profile.id}>
-                {getProfileLabel(profile)}
-              </option>
-            ))}
-          </select>
+          />
           {profileError && (
             <p id='profile-link-profile-error' className='mt-2 text-sm text-[var(--danger)]'>
               {profileError}
@@ -82,30 +83,17 @@ export default function ProfileLinkForm({
         </div>
 
         <div className='min-w-0'>
-          <label
-            htmlFor='profile-link-member'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Available member
-          </label>
-          <select
-            id='profile-link-member'
+          <SingleSelect
+            label='Available member'
             name='memberId'
+            options={memberOptions}
+            value={selectedMemberId}
+            onChange={setMemberId}
             disabled={isDisabled}
-            defaultValue=''
+            placeholder='Select member'
             aria-invalid={Boolean(memberError)}
             aria-describedby={memberError ? 'profile-link-member-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:text-[var(--muted)]'
-          >
-            <option value='' disabled>
-              Select member
-            </option>
-            {members.map(member => (
-              <option key={member.id} value={member.id}>
-                {member.full_name} — {member.email}
-              </option>
-            ))}
-          </select>
+          />
           {memberError && (
             <p id='profile-link-member-error' className='mt-2 text-sm text-[var(--danger)]'>
               {memberError}

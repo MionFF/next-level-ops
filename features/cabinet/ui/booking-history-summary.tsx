@@ -1,9 +1,17 @@
 import type { BookingHistorySummary } from '../model/cabinet-booking'
 
-function StatBox({ label, value }: { label: string; value: number }) {
+type StatTone = 'neutral' | 'info' | 'danger'
+
+const valueToneClasses: Record<StatTone, string> = {
+  neutral: 'text-[var(--foreground)]',
+  info: 'text-[var(--info)]',
+  danger: 'text-[var(--danger)]',
+}
+
+function StatBox({ label, value, tone }: { label: string; value: number; tone: StatTone }) {
   return (
     <div className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-center'>
-      <p className='text-2xl font-bold text-[var(--foreground)]'>{value}</p>
+      <p className={`text-2xl font-bold ${valueToneClasses[tone]}`}>{value}</p>
       <p className='mt-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]'>
         {label}
       </p>
@@ -22,10 +30,10 @@ export function BookingHistorySummaryCard({ summary }: { summary: BookingHistory
       </div>
 
       <div className='grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4'>
-        <StatBox label='Total' value={summary.total} />
-        <StatBox label='Upcoming' value={summary.upcoming} />
-        <StatBox label='Completed' value={summary.completed} />
-        <StatBox label='Cancelled' value={summary.cancelled} />
+        <StatBox label='Total' value={summary.total} tone='neutral' />
+        <StatBox label='Upcoming' value={summary.upcoming} tone='info' />
+        <StatBox label='Completed' value={summary.completed} tone='neutral' />
+        <StatBox label='Cancelled' value={summary.cancelled} tone='danger' />
       </div>
     </section>
   )

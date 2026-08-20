@@ -10,7 +10,7 @@ describe('getBookingsHref', () => {
         statuses: [],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 1,
       }),
     ).toBe('/dashboard/bookings')
@@ -33,6 +33,21 @@ describe('getBookingsHref', () => {
     )
   })
 
+  it('serializes explicit soonest sorting because upcoming is the default', () => {
+    expect(
+      getBookingsHref({
+        member: '',
+        session: '',
+        trainer: '',
+        statuses: [],
+        from: '',
+        to: '',
+        sort: 'soonest',
+        page: 1,
+      }),
+    ).toBe('/dashboard/bookings?sort=soonest')
+  })
+
   it('deduplicates and orders statuses by canonical domain order', () => {
     expect(
       getBookingsHref({
@@ -42,12 +57,10 @@ describe('getBookingsHref', () => {
         statuses: ['cancelled', 'completed', 'confirmed', 'completed'],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 1,
       }),
-    ).toBe(
-      '/dashboard/bookings?statuses=confirmed&statuses=completed&statuses=cancelled',
-    )
+    ).toBe('/dashboard/bookings?statuses=confirmed&statuses=completed&statuses=cancelled')
   })
 
   it('includes a non-default page while omitting defaults and empty values', () => {
@@ -59,7 +72,7 @@ describe('getBookingsHref', () => {
         statuses: [],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 4,
       }),
     ).toBe('/dashboard/bookings?page=4')
@@ -74,7 +87,7 @@ describe('getBookingsHref', () => {
         statuses: [],
         from: '',
         to: '',
-        sort: 'soonest',
+        sort: 'upcoming',
         page: 1,
       }),
     ).toBe(

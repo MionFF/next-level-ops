@@ -4,6 +4,7 @@ import type { UpdateSessionFormState } from '../actions/update-session'
 import type { EditableSession } from '../model/session'
 import EditSessionForm from './edit-session-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/update-session', () => ({
   updateSession: jest.fn(),
@@ -25,20 +26,22 @@ const session: EditableSession = {
 }
 
 describe('EditSessionForm', () => {
-  it('renders existing session values and trainer options', () => {
+  it('renders existing session values and trainer options', async () => {
+    const user = userEvent.setup()
     const action = jest.fn<Promise<UpdateSessionFormState>, [UpdateSessionFormState, FormData]>()
 
     render(<EditSessionForm session={session} trainers={trainers} action={action} />)
 
     expect(screen.getByRole('heading', { name: /edit session/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/title/i)).toHaveValue('Morning Strength')
-    expect(screen.getByLabelText(/trainer/i)).toHaveValue('trainer-1')
-    expect(screen.getByRole('option', { name: /sam coach/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /mia trainer/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /trainer/i })).toHaveTextContent('Sam Coach')
+    await user.click(screen.getByRole('button', { name: /trainer/i }))
+    expect(screen.getByRole('radio', { name: /trainer: sam coach/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /trainer: mia trainer/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/starts at/i)).toHaveValue('2026-06-01T10:00')
     expect(screen.getByLabelText(/ends at/i)).toHaveValue('2026-06-01T11:00')
     expect(screen.getByLabelText(/capacity/i)).toHaveValue(20)
-    expect(screen.getByLabelText(/status/i)).toHaveValue('scheduled')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Scheduled')
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
       '/dashboard/sessions',
@@ -58,7 +61,7 @@ describe('EditSessionForm', () => {
 
     await user.clear(screen.getByLabelText(/title/i))
     await user.type(screen.getByLabelText(/title/i), 'Evening Mobility')
-    await user.selectOptions(screen.getByLabelText(/trainer/i), 'trainer-2')
+    await selectSingleOption(user, /trainer/i, /trainer: mia trainer/i)
     fireEvent.change(screen.getByLabelText(/starts at/i), {
       target: { value: '2026-06-02T18:00' },
     })
@@ -67,7 +70,7 @@ describe('EditSessionForm', () => {
     })
     await user.clear(screen.getByLabelText(/capacity/i))
     await user.type(screen.getByLabelText(/capacity/i), '12')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'cancelled')
+    await selectSingleOption(user, /status/i, /status: cancelled/i)
     await user.click(screen.getByRole('button', { name: /save session/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

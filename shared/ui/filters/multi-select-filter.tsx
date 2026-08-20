@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { FilterOption } from './filter-option'
+import type { SelectOption } from '../select-option'
 
 type MultiSelectFilterProps<T extends string> = {
   label: string
-  options: readonly FilterOption<T>[]
+  options: readonly SelectOption<T>[]
   selectedValues: readonly T[]
   disabled?: boolean
   onToggle: (value: T) => void
@@ -88,13 +88,15 @@ export function MultiSelectFilter<T extends string>({
         aria-expanded={open}
         aria-label={`${label}: ${summary}`}
         onClick={() => setOpen(current => !current)}
-        className='flex w-full cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-left text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--surface-2)]/80 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+        className='flex w-full cursor-pointer items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2 text-left text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60'
       >
         <span className='truncate'>{summary}</span>
 
         <svg
           aria-hidden='true'
-          className={`size-4 shrink-0 text-[var(--muted)] transition-transform duration-200 ease-out motion-reduce:transition-none ${
+          className={`size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none ${
+            disabled ? 'text-[var(--muted)]' : 'text-[var(--foreground)]/70'
+          } ${
             open ? 'rotate-180' : ''
           }`}
           fill='none'
@@ -115,14 +117,18 @@ export function MultiSelectFilter<T extends string>({
         }`}
       >
         <div className='min-h-0 overflow-hidden'>
-          <div className='max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
+          <div className='max-h-64 overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface)] p-1 shadow-lg'>
             {options.map(option => {
               const checked = selectedValues.includes(option.value)
 
               return (
                 <label
                   key={option.value}
-                  className='flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
+                  className={`flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors ${
+                    disabled
+                      ? 'cursor-not-allowed text-[var(--muted)]'
+                      : 'cursor-pointer hover:bg-[var(--surface-2)]'
+                  }`}
                 >
                   <input
                     type='checkbox'
@@ -133,7 +139,13 @@ export function MultiSelectFilter<T extends string>({
                     className='size-4 accent-[var(--primary)]'
                   />
 
-                  <span className='text-sm text-[var(--foreground)]'>{option.label}</span>
+                  <span
+                    className={`text-sm ${
+                      disabled ? 'text-[var(--muted)]' : 'text-[var(--foreground)]'
+                    }`}
+                  >
+                    {option.label}
+                  </span>
                 </label>
               )
             })}

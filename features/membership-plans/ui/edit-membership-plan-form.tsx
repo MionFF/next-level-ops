@@ -6,8 +6,12 @@ import {
   updateMembershipPlan,
   type UpdateMembershipPlanFormState,
 } from '../actions/update-membership-plan'
-import type { EditableMembershipPlan, MembershipPlanStatus } from '../model/membership-plan'
-import { isMembershipPlanStatus, membershipPlanStatuses } from '../model/membership-plan'
+import {
+  membershipPlanStatusOptions,
+  type EditableMembershipPlan,
+  type MembershipPlanStatus,
+} from '../model/membership-plan'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 const initialState = { message: '', errors: {} }
 
@@ -35,14 +39,6 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
   const durationDaysError = state?.errors?.durationDays?.[0]
   const priceCentsError = state?.errors?.priceCents?.[0]
   const statusError = state?.errors?.status?.[0]
-
-  function handleStatusChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextStatus = event.target.value
-
-    if (isMembershipPlanStatus(nextStatus)) {
-      setStatus(nextStatus)
-    }
-  }
 
   return (
     <form
@@ -78,7 +74,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setName(event.target.value)}
             aria-invalid={Boolean(nameError)}
             aria-describedby={nameError ? 'name-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {nameError && (
             <p id='name-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -104,7 +100,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setDescription(event.target.value)}
             aria-invalid={Boolean(descriptionError)}
             aria-describedby={descriptionError ? 'description-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {descriptionError && (
             <p id='description-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -130,7 +126,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setDurationDays(event.target.value)}
             aria-invalid={Boolean(durationDaysError)}
             aria-describedby={durationDaysError ? 'duration-days-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {durationDaysError && (
             <p id='duration-days-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -156,7 +152,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setPriceCents(event.target.value)}
             aria-invalid={Boolean(priceCentsError)}
             aria-describedby={priceCentsError ? 'price-cents-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           <p className='mt-1 text-xs text-[var(--muted)]'>
             Enter amount in cents (e.g. 9900 = $99.00)
@@ -169,27 +165,15 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
         </div>
 
         <div>
-          <label
-            htmlFor='status-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Status
-          </label>
-          <select
+          <SingleSelect
+            label='Status'
             name='status'
-            id='status-input'
+            options={membershipPlanStatusOptions}
             value={status}
-            onChange={handleStatusChange}
+            onChange={setStatus}
             aria-invalid={Boolean(statusError)}
             aria-describedby={statusError ? 'status-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm capitalize text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            {membershipPlanStatuses.map(planStatus => (
-              <option key={planStatus} value={planStatus}>
-                {planStatus}
-              </option>
-            ))}
-          </select>
+          />
           {statusError && (
             <p id='status-error' className='mt-2 text-sm text-[var(--danger)]'>
               {statusError}

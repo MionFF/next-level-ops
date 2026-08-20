@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { loginAsAdmin } from './utils/auth'
-import { waitForAppReady } from './utils/forms'
+import { selectOptionByText, waitForAppReady } from './utils/forms'
 import { createE2EEmail, createE2EName, createE2ERunId } from './utils/test-data'
 
 function visibleMemberLink(page: Page, name: string) {
@@ -47,11 +47,12 @@ test.describe('admin member flow', () => {
 
     await expect(page).toHaveURL(/\/dashboard\/members\/new/)
     await expect(page.getByRole('heading', { name: /add member/i })).toBeVisible()
+    await waitForAppReady(page)
 
     await page.getByLabel('Full name').fill(memberName)
     await page.getByLabel('Email').fill(memberEmail)
     await page.getByLabel('Phone').fill(memberPhone)
-    await page.getByLabel('Status').selectOption('active')
+    await selectOptionByText(page, 'Status', 'Active')
 
     await waitForAppReady(page)
 
@@ -79,10 +80,11 @@ test.describe('admin member flow', () => {
 
     await expect(page).toHaveURL(/\/dashboard\/members\/[^/]+\/edit/)
     await expect(page.getByRole('heading', { name: /edit member/i })).toBeVisible()
+    await waitForAppReady(page)
 
     await page.getByLabel('Full name').fill(updatedMemberName)
     await page.getByLabel('Phone').fill(updatedMemberPhone)
-    await page.getByLabel('Status').selectOption('paused')
+    await selectOptionByText(page, 'Status', 'Paused')
 
     await waitForAppReady(page)
 

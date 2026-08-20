@@ -27,7 +27,7 @@ export function CancelOwnBookingButton({
       <button
         type='submit'
         disabled={isPending}
-        className='rounded-[var(--radius-sm)] cursor-pointer border border-[var(--danger)]/40 px-2.5 py-1 text-xs font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger)]/10 disabled:cursor-not-allowed disabled:opacity-50'
+        className='cursor-pointer rounded-[var(--radius-sm)] border border-[var(--danger)]/30 bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--danger)] outline-none transition-colors enabled:hover:border-[var(--danger)]/55 enabled:hover:bg-[var(--danger)]/10 focus-visible:ring-2 focus-visible:ring-[var(--danger)]/30 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60'
       >
         {isPending ? 'Cancelling...' : 'Cancel'}
       </button>

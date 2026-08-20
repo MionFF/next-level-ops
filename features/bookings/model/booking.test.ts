@@ -1,5 +1,5 @@
 import {
-  getBookingDisplayBadge,
+  derivedBookingStatusLabels,
   getDerivedBookingStatus,
   canCancelBooking,
   isBookingSort,
@@ -232,6 +232,7 @@ describe('booking model', () => {
 
   describe('isBookingSort', () => {
     it('accepts supported booking sorts', () => {
+      expect(isBookingSort('upcoming')).toBe(true)
       expect(isBookingSort('soonest')).toBe(true)
       expect(isBookingSort('latest')).toBe(true)
     })
@@ -242,12 +243,14 @@ describe('booking model', () => {
     })
   })
 
-  describe('getBookingDisplayBadge', () => {
-    it('returns display labels for derived booking statuses', () => {
-      expect(getBookingDisplayBadge('confirmed').text).toBe('Confirmed')
-      expect(getBookingDisplayBadge('in_progress').text).toBe('In progress')
-      expect(getBookingDisplayBadge('completed').text).toBe('Completed')
-      expect(getBookingDisplayBadge('cancelled').text).toBe('Cancelled')
+  describe('derivedBookingStatusLabels', () => {
+    it('provides canonical labels for derived booking statuses', () => {
+      expect(derivedBookingStatusLabels).toEqual({
+        confirmed: 'Confirmed',
+        in_progress: 'In progress',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+      })
     })
   })
 

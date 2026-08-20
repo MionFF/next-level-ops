@@ -21,7 +21,7 @@ const defaultProps: BookingsFiltersProps = {
   selectedStatuses: [],
   from: '',
   to: '',
-  sort: 'soonest',
+  sort: 'upcoming',
 }
 
 function mockMatchMedia(matches: boolean) {
@@ -87,7 +87,7 @@ describe('BookingsFilters', () => {
     await user.type(screen.getByLabelText('From'), '2026-07-01')
     await user.type(screen.getByLabelText('To'), '2026-07-31')
 
-    await user.click(screen.getByRole('button', { name: 'Sort: Soonest first' }))
+    await user.click(screen.getByRole('button', { name: 'Sort: Upcoming first' }))
     await user.click(screen.getByLabelText('Sort: Latest first'))
 
     await user.click(screen.getByRole('button', { name: 'Apply filters' }))
@@ -148,7 +148,7 @@ describe('BookingsFilters', () => {
     expect(screen.getByRole('button', { name: 'Booking status: All' })).toBeInTheDocument()
     expect(screen.getByLabelText('From')).toHaveValue('')
     expect(screen.getByLabelText('To')).toHaveValue('')
-    expect(screen.getByRole('button', { name: 'Sort: Soonest first' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sort: Upcoming first' })).toBeInTheDocument()
   })
 
   it('blocks applying an invalid date range and exposes one accessible error', async () => {

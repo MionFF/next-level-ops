@@ -362,8 +362,6 @@ Derived session statuses include:
 - completed
 - cancelled
 
-Sorting is limited to `soonest` and `latest`, using `starts_at` and `id` for stable ordering.
-
 ### Bookings
 
 Bookings use the read-only `public.booking_operations` view. It exposes member, session, and trainer display data together with derived booking status and `is_cancellable`.
@@ -377,18 +375,23 @@ Derived booking statuses include:
 - completed
 - cancelled
 
-For Sessions and Bookings, `From` is inclusive and `To` is converted to the next UTC day and applied as an exclusive boundary. One-sided ranges are valid; reversed ranges are blocked before querying. Pagination preserves active URL filters and redirects out-of-range pages to the last available page.
+For Sessions and Bookings, sorting supports `upcoming`, `soonest`, and `latest`. `upcoming` is the default operational order: current and future actionable records are ordered by start time ascending, followed by terminal or cancelled records with newer history first. All statuses remain in the result set. The operational ordering keys are computed by the read-only database views so range pagination uses the same global order. `soonest` and `latest` remain literal timestamp sorts. `From` is inclusive, while `To` is converted to the next UTC day and applied as an exclusive boundary. One-sided ranges are valid; reversed ranges are blocked before querying. Pagination preserves active URL filters and redirects out-of-range pages to the last available page.
 
 ### Shared operations UI
 
-Members, Sessions, and Bookings share domain-neutral UI primitives:
+Operational screens reuse domain-neutral UI primitives:
 
-- `SingleSelectFilter`
+- `SingleSelect`
 - `MultiSelectFilter`
+- `StatusBadge`
 - `OperationsFilterPanel`
 - `OperationsPagination`
 
-Shared components own dropdown behavior, accessibility, mobile filter-panel state, scrollable option lists, and pagination rendering. Feature modules keep their own options, validation, layout, URL helpers, and database queries.
+`SingleSelect` is the common controlled single-choice primitive used across filters and forms. `MultiSelectFilter` keeps multi-value filter behavior separate while sharing the same interactive control hierarchy.
+
+`StatusBadge` owns only semantic presentation through neutral tones such as `success`, `info`, `warning`, `danger`, and `neutral`. Feature modules remain responsible for mapping domain statuses to those tones. This keeps domain meaning out of shared UI while giving Members, Sessions, Bookings, Trainers, Plans, Profile Links, memberships, and the client cabinet a consistent operational status language.
+
+Shared components own generic interaction, accessibility, responsive dropdown behavior, visual control states, and pagination rendering. Feature modules keep their own domain options, status meaning, validation, layout, URL helpers, and database queries.
 
 Native date inputs remain intentional. A custom date picker and searchable trainer combobox are outside the current scope.
 

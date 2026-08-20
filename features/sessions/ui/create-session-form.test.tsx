@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { CreateSessionFormState } from '../actions/create-session'
 import CreateSessionForm from './create-session-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/create-session', () => ({
   createSession: jest.fn(),
@@ -14,21 +15,22 @@ const trainers = [
 ]
 
 describe('CreateSessionForm', () => {
-  it('renders session fields, trainer options, and default status', () => {
+  it('renders session fields, trainer options, and default status', async () => {
+    const user = userEvent.setup()
     const action = jest.fn<Promise<CreateSessionFormState>, [CreateSessionFormState, FormData]>()
 
     render(<CreateSessionForm trainers={trainers} action={action} />)
 
     expect(screen.getByRole('heading', { name: /add session/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/trainer/i)).toHaveValue('')
-    expect(screen.getByRole('option', { name: /select a trainer/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /sam coach/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /mia trainer/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /trainer/i })).toHaveTextContent('Select a trainer')
+    await user.click(screen.getByRole('button', { name: /trainer/i }))
+    expect(screen.getByRole('radio', { name: /trainer: sam coach/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /trainer: mia trainer/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/starts at/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/ends at/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/capacity/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/status/i)).toHaveValue('scheduled')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Scheduled')
     expect(screen.getByRole('button', { name: /create session/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
@@ -48,7 +50,7 @@ describe('CreateSessionForm', () => {
     render(<CreateSessionForm trainers={trainers} action={action} />)
 
     await user.type(screen.getByLabelText(/title/i), 'Morning Strength')
-    await user.selectOptions(screen.getByLabelText(/trainer/i), 'trainer-1')
+    await selectSingleOption(user, /trainer/i, /trainer: sam coach/i)
     fireEvent.change(screen.getByLabelText(/starts at/i), {
       target: { value: '2026-06-01T10:00' },
     })
@@ -56,7 +58,7 @@ describe('CreateSessionForm', () => {
       target: { value: '2026-06-01T11:00' },
     })
     await user.type(screen.getByLabelText(/capacity/i), '20')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'cancelled')
+    await selectSingleOption(user, /status/i, /status: cancelled/i)
     await user.click(screen.getByRole('button', { name: /create session/i }))
 
     expect(action).toHaveBeenCalledTimes(1)
@@ -112,7 +114,7 @@ describe('CreateSessionForm', () => {
     render(<CreateSessionForm trainers={trainers} action={action} />)
 
     await user.type(screen.getByLabelText(/title/i), 'Morning Strength')
-    await user.selectOptions(screen.getByLabelText(/trainer/i), 'trainer-1')
+    await selectSingleOption(user, /trainer/i, /trainer: sam coach/i)
     fireEvent.change(screen.getByLabelText(/starts at/i), {
       target: { value: '2026-06-01T10:00' },
     })

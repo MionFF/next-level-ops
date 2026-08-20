@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { createSession, type CreateSessionFormState } from '../actions/create-session'
-import { isSessionStatus, sessionStatuses, type SessionStatus } from '../model/session'
+import { sessionStatusOptions, type SessionStatus } from '../model/session'
+import { SingleSelect } from '@/shared/ui/single-select'
 
 type TrainerOption = {
   id: string
@@ -41,13 +42,13 @@ export default function CreateSessionForm({
   const capacityError = state?.errors?.capacity?.[0]
   const statusError = state?.errors?.status?.[0]
 
-  function handleStatusChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextStatus = event.target.value
-
-    if (isSessionStatus(nextStatus)) {
-      setStatus(nextStatus)
-    }
-  }
+  const trainerOptions = [
+    { value: '', label: 'Select a trainer' },
+    ...trainers.map(trainer => ({
+      value: trainer.id,
+      label: trainer.full_name,
+    })),
+  ]
 
   return (
     <form
@@ -82,7 +83,7 @@ export default function CreateSessionForm({
             onChange={event => setTitle(event.target.value)}
             aria-invalid={Boolean(titleError)}
             aria-describedby={titleError ? 'title-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {titleError && (
             <p id='title-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -91,29 +92,16 @@ export default function CreateSessionForm({
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor='trainer-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Trainer
-          </label>
-          <select
+        <div className='min-w-0'>
+          <SingleSelect
+            label='Trainer'
             name='trainerId'
-            id='trainer-input'
+            options={trainerOptions}
             value={trainerId}
-            onChange={event => setTrainerId(event.target.value)}
+            onChange={setTrainerId}
             aria-invalid={Boolean(trainerIdError)}
             aria-describedby={trainerIdError ? 'trainer-id-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            <option value=''>Select a trainer</option>
-            {trainers.map(trainer => (
-              <option key={trainer.id} value={trainer.id}>
-                {trainer.full_name}
-              </option>
-            ))}
-          </select>
+          />
           {trainerIdError && (
             <p id='trainer-id-error' className='mt-2 text-sm text-[var(--danger)]'>
               {trainerIdError}
@@ -136,7 +124,7 @@ export default function CreateSessionForm({
             onChange={event => setStartsAt(event.target.value)}
             aria-invalid={Boolean(startsAtError)}
             aria-describedby={startsAtError ? 'starts-at-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {startsAtError && (
             <p id='starts-at-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -160,7 +148,7 @@ export default function CreateSessionForm({
             onChange={event => setEndsAt(event.target.value)}
             aria-invalid={Boolean(endsAtError)}
             aria-describedby={endsAtError ? 'ends-at-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {endsAtError && (
             <p id='ends-at-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -185,7 +173,7 @@ export default function CreateSessionForm({
             onChange={event => setCapacity(event.target.value)}
             aria-invalid={Boolean(capacityError)}
             aria-describedby={capacityError ? 'capacity-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {capacityError && (
             <p id='capacity-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -195,27 +183,15 @@ export default function CreateSessionForm({
         </div>
 
         <div>
-          <label
-            htmlFor='status-input'
-            className='mb-2 block text-sm font-medium text-[var(--foreground)]'
-          >
-            Status
-          </label>
-          <select
+          <SingleSelect
+            label='Status'
             name='status'
-            id='status-input'
+            options={sessionStatusOptions}
             value={status}
-            onChange={handleStatusChange}
+            onChange={setStatus}
             aria-invalid={Boolean(statusError)}
             aria-describedby={statusError ? 'status-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm capitalize text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
-          >
-            {sessionStatuses.map(sessionStatus => (
-              <option key={sessionStatus} value={sessionStatus}>
-                {sessionStatus}
-              </option>
-            ))}
-          </select>
+          />
           {statusError && (
             <p id='status-error' className='mt-2 text-sm text-[var(--danger)]'>
               {statusError}

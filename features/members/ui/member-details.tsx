@@ -1,10 +1,22 @@
 import Link from 'next/link'
-import { memberStatusLabels, type MemberDetails as MemberDetailsType } from '../model/member'
+import type { ReactNode } from 'react'
+import {
+  memberStatusLabels,
+  type MemberDetails as MemberDetailsType,
+  type MemberStatus,
+} from '../model/member'
 import type { MemberMembership, MemberMembershipPlanOption } from '../model/member-membership'
 import { formatDate } from '@/shared/lib/format-date'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 import { MemberMembershipSection } from './member-membership-section'
 
-function DetailItem({ label, value }: { label: string; value: string }) {
+const memberStatusTones: Record<MemberStatus, StatusTone> = {
+  active: 'success',
+  paused: 'warning',
+  inactive: 'neutral',
+}
+
+function DetailItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className='border-b border-[var(--border)] py-4 last:border-b-0'>
       <dt className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>{label}</dt>
@@ -49,10 +61,18 @@ export function MemberDetails({
           </h1>
         </div>
 
-        <dl className='mt-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'>
+        <dl className='mt-6 rounded-[var(--radius-md)] bg-[var(--surface-2)] px-4'>
           <DetailItem label='Email' value={member.email} />
           <DetailItem label='Phone' value={member.phone ?? 'No phone'} />
-          <DetailItem label='Status' value={memberStatusLabels[member.status]} />
+          <DetailItem
+            label='Status'
+            value={
+              <StatusBadge
+                label={memberStatusLabels[member.status]}
+                tone={memberStatusTones[member.status]}
+              />
+            }
+          />
           <DetailItem label='Created' value={formatDate(member.created_at)} />
           <DetailItem label='Updated' value={formatDate(member.updated_at)} />
         </dl>

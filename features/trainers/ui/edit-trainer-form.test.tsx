@@ -4,6 +4,7 @@ import type { UpdateTrainerFormState } from '../actions/update-trainer'
 import type { EditableTrainer } from '../model/trainer'
 import EditTrainerForm from './edit-trainer-form'
 import { getSubmittedFormData } from '@/test/utils/form-data'
+import { selectSingleOption } from '@/test/utils/single-select'
 
 jest.mock('../actions/update-trainer', () => ({
   updateTrainer: jest.fn(),
@@ -29,7 +30,7 @@ describe('EditTrainerForm', () => {
     expect(screen.getByLabelText(/email/i)).toHaveValue('sam@example.com')
     expect(screen.getByLabelText(/phone/i)).toHaveValue('+1 555 0202')
     expect(screen.getByLabelText(/specialty/i)).toHaveValue('Strength')
-    expect(screen.getByLabelText(/status/i)).toHaveValue('active')
+    expect(screen.getByRole('button', { name: /status/i })).toHaveTextContent('Active')
     expect(screen.getByRole('link', { name: /cancel/i })).toHaveAttribute(
       'href',
       '/dashboard/trainers',
@@ -55,7 +56,7 @@ describe('EditTrainerForm', () => {
     await user.type(screen.getByLabelText(/phone/i), '+1 555 9999')
     await user.clear(screen.getByLabelText(/specialty/i))
     await user.type(screen.getByLabelText(/specialty/i), 'Mobility')
-    await user.selectOptions(screen.getByLabelText(/status/i), 'inactive')
+    await selectSingleOption(user, /status/i, /status: inactive/i)
     await user.click(screen.getByRole('button', { name: /save trainer/i }))
 
     expect(action).toHaveBeenCalledTimes(1)

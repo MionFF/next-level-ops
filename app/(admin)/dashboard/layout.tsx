@@ -8,9 +8,5 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) return redirect('/sign-in')
   if (profile?.role !== 'admin') return redirect('/forbidden')
 
-  return (
-    <AdminShell pageTitle='Dashboard' roleLabel='Admin'>
-      {children}
-    </AdminShell>
-  )
+  return <AdminShell pageTitle='Dashboard'>{children}</AdminShell>
 }

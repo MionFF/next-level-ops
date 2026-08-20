@@ -1,4 +1,12 @@
 import type { LinkedMember } from '../model/cabinet-profile'
+import { memberStatusLabels } from '@/features/members/model/member'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
+
+const memberStatusTones: Record<LinkedMember['status'], StatusTone> = {
+  active: 'success',
+  paused: 'warning',
+  inactive: 'neutral',
+}
 
 export function LinkedMemberOverview({ member }: { member: LinkedMember }) {
   return (
@@ -10,7 +18,7 @@ export function LinkedMemberOverview({ member }: { member: LinkedMember }) {
 
       <h2 className='mb-3 text-lg font-semibold text-[var(--foreground)]'>Personal information</h2>
 
-      <div className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'>
+      <div className='rounded-[var(--radius-md)] bg-[var(--surface-2)] px-4'>
         <dl>
           <div className='border-b border-[var(--border)] py-4 last:border-b-0'>
             <dt className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
@@ -38,11 +46,11 @@ export function LinkedMemberOverview({ member }: { member: LinkedMember }) {
             <dt className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
               Account status
             </dt>
-            <dd className='mt-1 text-sm capitalize text-[var(--foreground)]'>
-              <span className='inline-flex items-center gap-2 text-sm font-medium text-[var(--foreground)]'>
-                <span className='h-1.5 w-1.5 rounded-full bg-[var(--muted)]' />
-                {member.status}
-              </span>
+            <dd className='mt-1'>
+              <StatusBadge
+                label={memberStatusLabels[member.status]}
+                tone={memberStatusTones[member.status]}
+              />
             </dd>
           </div>
         </dl>
