@@ -1,4 +1,5 @@
 import { formatDate } from '@/shared/lib/format-date'
+import { StatusBadge } from '@/shared/ui/status-badge'
 import type { CabinetMembership } from '../model/cabinet-membership'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -14,7 +15,7 @@ export function ActiveMembershipCard({ membership }: { membership: CabinetMember
   const remaining = daysRemaining(membership.ends_at)
 
   return (
-    <div className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'>
+    <div className='rounded-[var(--radius-md)] bg-[var(--surface-2)] px-4'>
       <dl>
         <div className='border-b border-[var(--border)] py-4 last:border-b-0'>
           <dt className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
@@ -48,11 +49,8 @@ export function ActiveMembershipCard({ membership }: { membership: CabinetMember
           <dt className='text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
             Status
           </dt>
-          <dd className='mt-1 text-sm capitalize text-[var(--foreground)]'>
-            <span className='inline-flex items-center gap-2 text-sm font-medium text-[var(--foreground)]'>
-              <span className='h-1.5 w-1.5 rounded-full bg-[var(--muted)]' />
-              Active
-            </span>
+          <dd className='mt-1'>
+            <StatusBadge label='Active' tone='success' />
           </dd>
         </div>
       </dl>

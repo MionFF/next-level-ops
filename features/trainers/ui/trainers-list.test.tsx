@@ -52,11 +52,11 @@ describe('TrainersList', () => {
     expect(screen.getAllByText('sam@example.com').length).toBeGreaterThan(0)
     expect(screen.getAllByText('+1 555 0202').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Strength').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('active').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
 
     expect(screen.getAllByText('Mia Trainer').length).toBeGreaterThan(0)
     expect(screen.getAllByText('mia@example.com').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('inactive').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Inactive').length).toBeGreaterThan(0)
   })
 
   it('renders fallback values and edit links', () => {

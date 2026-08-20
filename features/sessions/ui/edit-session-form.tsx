@@ -86,7 +86,7 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
             onChange={event => setTitle(event.target.value)}
             aria-invalid={Boolean(titleError)}
             aria-describedby={titleError ? 'title-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {titleError && (
             <p id='title-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -127,7 +127,7 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
             onChange={event => setStartsAt(event.target.value)}
             aria-invalid={Boolean(startsAtError)}
             aria-describedby={startsAtError ? 'starts-at-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {startsAtError && (
             <p id='starts-at-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -151,7 +151,7 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
             onChange={event => setEndsAt(event.target.value)}
             aria-invalid={Boolean(endsAtError)}
             aria-describedby={endsAtError ? 'ends-at-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {endsAtError && (
             <p id='ends-at-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -176,7 +176,7 @@ export default function EditSessionForm({ session, trainers, action }: EditSessi
             onChange={event => setCapacity(event.target.value)}
             aria-invalid={Boolean(capacityError)}
             aria-describedby={capacityError ? 'capacity-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {capacityError && (
             <p id='capacity-error' className='mt-2 text-sm text-[var(--danger)]'>

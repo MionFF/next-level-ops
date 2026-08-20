@@ -1,6 +1,11 @@
 import Link from 'next/link'
-import { getSessionDisplayBadge, type SessionListRow } from '../model/session'
+import {
+  derivedSessionStatusLabels,
+  type DerivedSessionStatus,
+  type SessionListRow,
+} from '../model/session'
 import { formatDate, formatDateTime } from '@/shared/lib/format-date'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 
 type SessionsListProps = {
   sessions: SessionListRow[]
@@ -8,14 +13,17 @@ type SessionsListProps = {
   emptyMessage?: string
 }
 
-function DisplayBadge({ status }: { status: SessionListRow['derived_status'] }) {
-  const { text, className } = getSessionDisplayBadge(status)
+const sessionStatusTones: Record<DerivedSessionStatus, StatusTone> = {
+  scheduled: 'info',
+  in_progress: 'success',
+  full: 'warning',
+  completed: 'neutral',
+  cancelled: 'danger',
+}
+
+function SessionStatusBadge({ status }: { status: SessionListRow['derived_status'] }) {
   return (
-    <span
-      className={`inline-flex rounded-[var(--radius-sm)] border bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize ${className}`}
-    >
-      {text}
-    </span>
+    <StatusBadge label={derivedSessionStatusLabels[status]} tone={sessionStatusTones[status]} />
   )
 }
 
@@ -52,17 +60,17 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
       {!errorMessage && sessions && sessions.length > 0 && (
         <>
           <div className='hidden overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] min-[1470px]:block'>
-            <table className='min-w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
+            <table className='w-full table-fixed divide-y divide-[var(--border)] text-left text-sm'>
               <thead className='bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--muted)]'>
                 <tr>
-                  <th className='px-4 py-3'>Title</th>
-                  <th className='px-4 py-3'>Trainer</th>
-                  <th className='px-4 py-3'>Start time</th>
-                  <th className='px-4 py-3'>End time</th>
-                  <th className='px-4 py-3'>Capacity</th>
-                  <th className='px-4 py-3'>Status</th>
-                  <th className='px-4 py-3'>Created</th>
-                  <th className='px-4 py-3 text-right'>Actions</th>
+                  <th className='w-[14%] px-4 py-3'>Title</th>
+                  <th className='w-[14%] px-4 py-3'>Trainer</th>
+                  <th className='w-[16%] px-4 py-3'>Starts</th>
+                  <th className='w-[16%] px-4 py-3'>Ends</th>
+                  <th className='w-[12%] px-4 py-3'>Capacity</th>
+                  <th className='w-[13%] px-4 py-3'>Status</th>
+                  <th className='w-[8%] px-4 py-3'>Created on</th>
+                  <th className='w-[7%] px-4 py-3 text-right'>Actions</th>
                 </tr>
               </thead>
               <tbody className='divide-y divide-[var(--border)] bg-[var(--surface)]'>
@@ -77,7 +85,7 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                     <td className='px-4 py-3 text-[var(--muted)]'>
                       <div className='line-clamp-2 max-w-full'>{session.trainer_name}</div>
                     </td>
-                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap font-medium text-[var(--foreground)]'>
                       {formatDateTime(session.starts_at)}
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
@@ -87,9 +95,9 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                       {session.confirmed_bookings_count} / {session.capacity} booked
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap'>
-                      <DisplayBadge status={session.derived_status} />
+                      <SessionStatusBadge status={session.derived_status} />
                     </td>
-                    <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
+                    <td className='px-4 py-3 whitespace-nowrap text-xs text-[var(--muted)]'>
                       {formatDate(session.created_at)}
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-right'>
@@ -118,18 +126,24 @@ export default function SessionsList({ sessions, errorMessage, emptyMessage }: S
                       {session.title}
                     </p>
 
-                    <div className='mt-2 min-w-0 space-y-1 text-sm text-[var(--muted)]'>
-                      <p className='max-w-full truncate'>Trainer: {session.trainer_name}</p>
-                      <p>Starts: {formatDateTime(session.starts_at)}</p>
-                      <p>Ends: {formatDateTime(session.ends_at)}</p>
-                      <p>
+                    <div className='mt-2 min-w-0 space-y-1 text-sm'>
+                      <p className='max-w-full truncate text-[var(--muted)]'>
+                        Trainer: {session.trainer_name}
+                      </p>
+                      <p className='font-medium text-[var(--foreground)]'>
+                        Starts: {formatDateTime(session.starts_at)}
+                      </p>
+                      <p className='text-[var(--muted)]'>Ends: {formatDateTime(session.ends_at)}</p>
+                      <p className='text-[var(--muted)]'>
                         Capacity: {session.confirmed_bookings_count} / {session.capacity} booked
                       </p>
-                      <p>Created: {formatDate(session.created_at)}</p>
+                      <p className='text-xs text-[var(--muted)]'>
+                        Created on: {formatDate(session.created_at)}
+                      </p>
                     </div>
 
                     <div className='mt-2'>
-                      <DisplayBadge status={session.derived_status} />
+                      <SessionStatusBadge status={session.derived_status} />
                     </div>
                   </div>
 

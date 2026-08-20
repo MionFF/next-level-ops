@@ -2,6 +2,11 @@ export const bookingStatuses = ['confirmed', 'cancelled'] as const
 
 export type BookingStatus = (typeof bookingStatuses)[number]
 
+export const bookingStatusLabels: Record<BookingStatus, string> = {
+  confirmed: 'Confirmed',
+  cancelled: 'Cancelled',
+}
+
 export const derivedBookingStatuses = [
   'confirmed',
   'in_progress',
@@ -10,6 +15,13 @@ export const derivedBookingStatuses = [
 ] as const
 
 export type DerivedBookingStatus = (typeof derivedBookingStatuses)[number]
+
+export const derivedBookingStatusLabels: Record<DerivedBookingStatus, string> = {
+  confirmed: bookingStatusLabels.confirmed,
+  in_progress: 'In progress',
+  completed: 'Completed',
+  cancelled: bookingStatusLabels.cancelled,
+}
 
 export type Booking = {
   id: string
@@ -122,34 +134,6 @@ const derivedStatusSortOrder: Record<DerivedBookingStatus, number> = {
   in_progress: 1,
   completed: 2,
   cancelled: 3,
-}
-
-export function getBookingDisplayBadge(status: DerivedBookingStatus): {
-  text: string
-  className: string
-} {
-  switch (status) {
-    case 'cancelled':
-      return {
-        text: 'Cancelled',
-        className: 'border-[var(--border)] text-[var(--muted)]',
-      }
-    case 'completed':
-      return {
-        text: 'Completed',
-        className: 'border-[var(--border)] text-[var(--muted)]',
-      }
-    case 'in_progress':
-      return {
-        text: 'In progress',
-        className: 'border-[var(--primary)]/30 text-[var(--primary)]',
-      }
-    case 'confirmed':
-      return {
-        text: 'Confirmed',
-        className: 'border-[var(--border)] text-[var(--foreground)]',
-      }
-  }
 }
 
 export function sortBookings(bookings: Booking[]): Booking[] {

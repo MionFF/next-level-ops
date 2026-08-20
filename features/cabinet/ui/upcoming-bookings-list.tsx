@@ -1,4 +1,5 @@
 import { formatDateTime } from '@/shared/lib/format-date'
+import { StatusBadge } from '@/shared/ui/status-badge'
 import type { CabinetUpcomingBooking } from '../model/cabinet-booking'
 import { CancelOwnBookingButton } from './cancel-own-booking-button'
 import { NoUpcomingBookingsCard } from './no-upcoming-bookings-card'
@@ -50,10 +51,7 @@ export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBo
                       {booking.session?.ends_at ? formatDateTime(booking.session.ends_at) : '—'}
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap'>
-                      <span className='inline-flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)]'>
-                        <span className='inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]' />
-                        Confirmed
-                      </span>
+                      <StatusBadge label='Confirmed' tone='info' />
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-right'>
                       <CancelOwnBookingButton bookingId={booking.id} />
@@ -92,10 +90,9 @@ export function UpcomingBookingsList({ bookings }: { bookings: CabinetUpcomingBo
                       </p>
                     </div>
 
-                    <span className='mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--foreground)]'>
-                      <span className='inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]' />
-                      Confirmed
-                    </span>
+                    <div className='mt-2'>
+                      <StatusBadge label='Confirmed' tone='info' />
+                    </div>
                   </div>
 
                   <div className='flex shrink-0 justify-end'>

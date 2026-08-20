@@ -1,4 +1,10 @@
 import type { ClientProfile, LinkedProfileMemberPair, MemberOption } from '../model/profile-link'
+import {
+  isMemberStatus,
+  memberStatusLabels,
+  type MemberStatus,
+} from '@/features/members/model/member'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 import ProfileLinkForm from './profile-link-form'
 import UnlinkProfileMemberButton from './unlink-profile-member-button'
 
@@ -32,12 +38,18 @@ function SummaryCard({ label, count }: { label: string; count: number }) {
   )
 }
 
+const memberStatusTones: Record<MemberStatus, StatusTone> = {
+  active: 'success',
+  paused: 'warning',
+  inactive: 'neutral',
+}
+
 function MemberStatusBadge({ status }: { status: string }) {
-  return (
-    <span className='inline-flex shrink-0 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium capitalize text-[var(--foreground)]'>
-      {status}
-    </span>
-  )
+  if (!isMemberStatus(status)) {
+    return <StatusBadge label={status} tone='neutral' />
+  }
+
+  return <StatusBadge label={memberStatusLabels[status]} tone={memberStatusTones[status]} />
 }
 
 function SectionHeader({ title, description }: { title: string; description: string }) {

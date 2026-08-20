@@ -1,10 +1,16 @@
 import Link from 'next/link'
-import { Trainer } from '../model/trainer'
+import { trainerStatusLabels, type Trainer, type TrainerStatus } from '../model/trainer'
 import { formatDate } from '@/shared/lib/format-date'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 
 type TrainersListProps = {
   trainers: Trainer[]
   errorMessage?: string
+}
+
+const trainerStatusTones: Record<TrainerStatus, StatusTone> = {
+  active: 'success',
+  inactive: 'neutral',
 }
 
 export default function TrainersList({ trainers, errorMessage }: TrainersListProps) {
@@ -71,9 +77,10 @@ export default function TrainersList({ trainers, errorMessage }: TrainersListPro
                       {trainer.specialty ?? 'No specialty'}
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap'>
-                      <span className='inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs font-medium capitalize text-[var(--foreground)]'>
-                        {trainer.status}
-                      </span>
+                      <StatusBadge
+                        label={trainerStatusLabels[trainer.status]}
+                        tone={trainerStatusTones[trainer.status]}
+                      />
                     </td>
                     <td className='px-4 py-3 whitespace-nowrap text-[var(--muted)]'>
                       {formatDate(trainer.created_at)}
@@ -113,9 +120,12 @@ export default function TrainersList({ trainers, errorMessage }: TrainersListPro
                       <p>{formatDate(trainer.created_at)}</p>
                     </div>
 
-                    <span className='mt-2 inline-flex rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium capitalize text-[var(--foreground)]'>
-                      {trainer.status}
-                    </span>
+                    <div className='mt-2'>
+                      <StatusBadge
+                        label={trainerStatusLabels[trainer.status]}
+                        tone={trainerStatusTones[trainer.status]}
+                      />
+                    </div>
                   </div>
 
                   <Link

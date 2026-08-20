@@ -116,7 +116,7 @@ export default function MembersFilters({
             disabled={isPending}
             onChange={event => setDraftSearch(event.target.value)}
             placeholder='Search by name, email or phone'
-            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2 text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60 disabled:placeholder:text-[var(--muted)]!'
           />
         </label>
 

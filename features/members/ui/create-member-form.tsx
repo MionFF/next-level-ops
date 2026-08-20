@@ -61,7 +61,7 @@ export default function CreateMemberForm({ action = createMember }: CreateMember
             onChange={event => setFullName(event.target.value)}
             aria-invalid={Boolean(fullNameError)}
             aria-describedby={fullNameError ? 'full-name-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {fullNameError && (
             <p id='full-name-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -87,7 +87,7 @@ export default function CreateMemberForm({ action = createMember }: CreateMember
             onChange={event => setEmail(event.target.value)}
             aria-invalid={Boolean(emailError)}
             aria-describedby={emailError ? 'email-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {emailError && (
             <p id='email-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -113,7 +113,7 @@ export default function CreateMemberForm({ action = createMember }: CreateMember
             onChange={event => setPhone(event.target.value)}
             aria-invalid={Boolean(phoneError)}
             aria-describedby={phoneError ? 'phone-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {phoneError && (
             <p id='phone-error' className='mt-2 text-sm text-[var(--danger)]'>

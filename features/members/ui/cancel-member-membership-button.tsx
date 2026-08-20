@@ -37,7 +37,7 @@ export function CancelMemberMembershipButton({
       <button
         type='submit'
         disabled={isPending}
-        className='w-full cursor-pointer rounded-[var(--radius-md)] border border-[var(--danger)]/40 px-3 py-2 text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger)]/10 disabled:cursor-not-allowed disabled:text-[var(--muted)] sm:w-auto'
+        className='w-full cursor-pointer rounded-[var(--radius-md)] border border-[var(--danger)]/30 bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--danger)] outline-none transition-colors enabled:hover:border-[var(--danger)]/55 enabled:hover:bg-[var(--danger)]/10 focus-visible:ring-2 focus-visible:ring-[var(--danger)]/30 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60 sm:w-auto'
       >
         {isPending ? 'Cancelling...' : 'Cancel'}
       </button>

@@ -105,15 +105,25 @@ export function SingleSelect<T extends string>({
         aria-label={`${label}: ${selectedLabel}`}
         aria-describedby={ariaDescribedBy}
         onClick={() => setOpen(current => !current)}
-        className='flex min-w-0 w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-left text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--surface-2)]/80 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+        className='flex min-w-0 w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2 text-left text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:opacity-60'
       >
-        <span className={`min-w-0 flex-1 truncate ${selectedOption ? '' : 'text-[var(--muted)]'}`}>
+        <span
+          className={`min-w-0 flex-1 truncate ${
+            disabled
+              ? 'text-[var(--muted)]'
+              : selectedOption
+                ? 'text-[var(--foreground)]'
+                : 'text-[var(--foreground)]/70'
+          }`}
+        >
           {selectedLabel}
         </span>
 
         <svg
           aria-hidden='true'
-          className={`size-4 shrink-0 text-[var(--muted)] transition-transform duration-200 ease-out motion-reduce:transition-none ${
+          className={`size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none ${
+            disabled ? 'text-[var(--muted)]' : 'text-[var(--foreground)]/70'
+          } ${
             open ? 'rotate-180' : ''
           }`}
           fill='none'
@@ -139,14 +149,18 @@ export function SingleSelect<T extends string>({
         }`}
       >
         <div className='min-h-0 min-w-0 max-w-full overflow-hidden'>
-          <div className='max-h-64 min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1 shadow-lg'>
+          <div className='max-h-64 min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface)] p-1 shadow-lg'>
             {options.map(option => {
               const checked = value === option.value
 
               return (
                 <label
                   key={option.value}
-                  className='flex min-w-0 max-w-full cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
+                  className={`flex min-w-0 max-w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 transition-colors ${
+                    disabled
+                      ? 'cursor-not-allowed text-[var(--muted)]'
+                      : 'cursor-pointer hover:bg-[var(--surface-2)]'
+                  }`}
                 >
                   <input
                     type='radio'
@@ -160,12 +174,16 @@ export function SingleSelect<T extends string>({
 
                   <span
                     aria-hidden='true'
-                    className='flex size-4 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-2)] transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--primary)]/40'
+                    className='flex size-4 shrink-0 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--control)] transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--primary)]/40'
                   >
                     {checked && <span className='size-2 rounded-full bg-[var(--primary)]' />}
                   </span>
 
-                  <span className='min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-sm text-[var(--foreground)]'>
+                  <span
+                    className={`min-w-0 flex-1 break-words [overflow-wrap:anywhere] text-sm ${
+                      disabled ? 'text-[var(--muted)]' : 'text-[var(--foreground)]'
+                    }`}
+                  >
                     {option.label}
                   </span>
                 </label>

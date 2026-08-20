@@ -2,10 +2,7 @@ import { Skeleton } from '@/shared/ui/skeleton'
 
 function DetailRowsSkeleton({ count }: { count: number }) {
   return (
-    <div
-      aria-hidden='true'
-      className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4'
-    >
+    <div aria-hidden='true' className='rounded-[var(--radius-md)] bg-[var(--surface-2)] px-4'>
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className='border-b border-[var(--border)] py-4 last:border-b-0'>
           <Skeleton className='h-3 w-24' />

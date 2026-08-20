@@ -1,4 +1,5 @@
 import { formatDate } from '@/shared/lib/format-date'
+import { StatusBadge, type StatusTone } from '@/shared/ui/status-badge'
 import {
   canCancelMemberMembership,
   getMembershipDefaultStartDate,
@@ -19,11 +20,19 @@ function EmptyState({ message }: { message: string }) {
   )
 }
 
+const membershipStatusTones: Record<MemberMembershipStatus, StatusTone> = {
+  active: 'success',
+  upcoming: 'info',
+  expired: 'neutral',
+  cancelled: 'danger',
+}
+
 function MembershipStatus({ status }: { status: MemberMembershipStatus }) {
   return (
-    <span className='text-sm font-medium text-[var(--foreground)]'>
-      {memberMembershipStatusLabels[status]}
-    </span>
+    <StatusBadge
+      label={memberMembershipStatusLabels[status]}
+      tone={membershipStatusTones[status]}
+    />
   )
 }
 

@@ -1,6 +1,6 @@
 import {
+  derivedSessionStatusLabels,
   getDerivedSessionStatus,
-  getSessionDisplayBadge,
   isDerivedSessionStatus,
   isSessionSort,
   sortSessionOperationRows,
@@ -152,13 +152,15 @@ describe('session model', () => {
     })
   })
 
-  describe('getSessionDisplayBadge', () => {
-    it('returns display labels for derived session statuses', () => {
-      expect(getSessionDisplayBadge('scheduled').text).toBe('Scheduled')
-      expect(getSessionDisplayBadge('in_progress').text).toBe('In progress')
-      expect(getSessionDisplayBadge('full').text).toBe('Full')
-      expect(getSessionDisplayBadge('completed').text).toBe('Completed')
-      expect(getSessionDisplayBadge('cancelled').text).toBe('Cancelled')
+  describe('derivedSessionStatusLabels', () => {
+    it('provides canonical labels for derived session statuses', () => {
+      expect(derivedSessionStatusLabels).toEqual({
+        scheduled: 'Scheduled',
+        in_progress: 'In progress',
+        full: 'Full',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+      })
     })
   })
 

@@ -114,11 +114,11 @@ describe('ProfileLinksOverview', () => {
 
     expect(screen.getByText('Alex Morgan')).toBeInTheDocument()
     expect(screen.getByText('alex@example.com')).toBeInTheDocument()
-    expect(screen.getByText('active')).toBeInTheDocument()
+    expect(screen.getByText('Active')).toBeInTheDocument()
 
     expect(screen.getByText('Jamie Lee')).toBeInTheDocument()
     expect(screen.getByText('jamie@example.com')).toBeInTheDocument()
-    expect(screen.getByText('paused')).toBeInTheDocument()
+    expect(screen.getByText('Paused')).toBeInTheDocument()
   })
 
   it('renders empty states', () => {

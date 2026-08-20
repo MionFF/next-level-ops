@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import {
   derivedBookingStatuses,
-  getBookingDisplayBadge,
+  derivedBookingStatusLabels,
   type BookingSort,
   type DerivedBookingStatus,
 } from '../model/booking'
@@ -28,7 +28,7 @@ export type BookingsFiltersProps = {
 
 const bookingStatusOptions = derivedBookingStatuses.map(status => ({
   value: status,
-  label: getBookingDisplayBadge(status).text,
+  label: derivedBookingStatusLabels[status],
 }))
 
 const bookingSortOptions = [
@@ -62,10 +62,14 @@ export default function BookingsFilters({
 
   const hasInvalidDateRange = !isValidBookingDateRange(draftFrom, draftTo)
 
-  const dateInputClassName = `min-w-0 rounded-[var(--radius-md)] border bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50 ${
+  const controlInputClassName =
+    'min-w-0 rounded-[var(--radius-md)] border bg-[var(--control)] px-3 py-2 text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60 disabled:placeholder:text-[var(--muted)]!'
+  const standardControlInputClassName = `${controlInputClassName} border-[var(--border-strong)] focus:border-[var(--primary)]`
+
+  const dateInputClassName = `${controlInputClassName} ${
     hasInvalidDateRange
       ? 'border-[var(--danger)] focus:border-[var(--danger)]'
-      : 'border-[var(--border)] focus:border-[var(--primary)]'
+      : 'border-[var(--border-strong)] focus:border-[var(--primary)]'
   }`
 
   const trainerOptions = [
@@ -148,7 +152,7 @@ export default function BookingsFilters({
             disabled={isPending}
             onChange={event => setDraftMember(event.target.value)}
             placeholder='Name or email'
-            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+            className={standardControlInputClassName}
           />
         </label>
 
@@ -162,7 +166,7 @@ export default function BookingsFilters({
             disabled={isPending}
             onChange={event => setDraftSession(event.target.value)}
             placeholder='Session title'
-            className='min-w-0 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:opacity-50'
+            className={standardControlInputClassName}
           />
         </label>
 

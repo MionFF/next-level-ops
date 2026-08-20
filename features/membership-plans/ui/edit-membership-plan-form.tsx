@@ -74,7 +74,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setName(event.target.value)}
             aria-invalid={Boolean(nameError)}
             aria-describedby={nameError ? 'name-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {nameError && (
             <p id='name-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -100,7 +100,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setDescription(event.target.value)}
             aria-invalid={Boolean(descriptionError)}
             aria-describedby={descriptionError ? 'description-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {descriptionError && (
             <p id='description-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -126,7 +126,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setDurationDays(event.target.value)}
             aria-invalid={Boolean(durationDaysError)}
             aria-describedby={durationDaysError ? 'duration-days-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           {durationDaysError && (
             <p id='duration-days-error' className='mt-2 text-sm text-[var(--danger)]'>
@@ -152,7 +152,7 @@ export default function EditMembershipPlanForm({ plan, action }: EditMembershipP
             onChange={event => setPriceCents(event.target.value)}
             aria-invalid={Boolean(priceCentsError)}
             aria-describedby={priceCentsError ? 'price-cents-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors placeholder:text-[var(--foreground)]/70 enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25'
           />
           <p className='mt-1 text-xs text-[var(--muted)]'>
             Enter amount in cents (e.g. 9900 = $99.00)

@@ -34,7 +34,7 @@ export default function UnlinkProfileMemberButton({
       <button
         type='submit'
         disabled={isPending}
-        className='rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--danger)]/60 hover:bg-[var(--danger)]/10 hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:text-[var(--muted)] cursor-pointer'
+        className='cursor-pointer rounded-[var(--radius-sm)] border border-[var(--danger)]/30 bg-[var(--surface)] px-3 py-1.5 text-sm font-medium text-[var(--danger)] outline-none transition-colors enabled:hover:border-[var(--danger)]/55 enabled:hover:bg-[var(--danger)]/10 focus-visible:ring-2 focus-visible:ring-[var(--danger)]/30 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60'
       >
         {isPending ? 'Unlinking...' : 'Unlink'}
       </button>

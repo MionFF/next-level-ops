@@ -57,7 +57,7 @@ export function AssignMemberMembershipForm({
     <form
       action={formAction}
       noValidate
-      className='rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-4'
+      className='rounded-[var(--radius-md)] bg-[var(--surface-2)] p-4'
     >
       <input type='hidden' name='memberId' value={memberId} />
 
@@ -102,7 +102,7 @@ export function AssignMemberMembershipForm({
             disabled={isDisabled}
             aria-invalid={Boolean(startsAtError)}
             aria-describedby={startsAtError ? 'membership-starts-at-error' : undefined}
-            className='w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:text-[var(--muted)]'
+            className='w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--control)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors enabled:hover:bg-[var(--control-hover)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25 disabled:cursor-not-allowed disabled:border-[var(--border)]! disabled:bg-[var(--surface-2)]! disabled:text-[var(--muted)]! disabled:opacity-60'
           />
           {startsAtError && (
             <p id='membership-starts-at-error' className='mt-2 text-sm text-[var(--danger)]'>
